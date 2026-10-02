@@ -16,7 +16,7 @@
 
 import { toast } from 'sonner';
 
-import { INotification } from "../../interfaces";
+import { INotification } from "@/interfaces";
 
 export default function (noti: INotification) {
   switch (noti.level) {

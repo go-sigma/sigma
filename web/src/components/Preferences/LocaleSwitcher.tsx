@@ -1,5 +1,5 @@
-import { Locale, useUiStore } from "../../stores";
-import { useTranslation } from "../../i18n/useTranslation";
+import { Locale, useUiStore } from "@/stores";
+import { useTranslation } from "@/i18n/useTranslation";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const locales: Locale[] = ["en-US", "zh-CN"];

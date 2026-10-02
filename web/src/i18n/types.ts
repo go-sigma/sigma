@@ -1,4 +1,4 @@
-import { Locale } from "../stores";
+import { Locale } from "@/stores";
 import { MessageKey } from "./messages";
 
 export type { Locale, MessageKey };

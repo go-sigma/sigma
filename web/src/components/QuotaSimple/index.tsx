@@ -17,7 +17,7 @@
 import humanFormat from 'human-format';
 import { Badge } from "@/components/ui/badge";
 
-import Settings from "../../Settings";
+import Settings from "@/Settings";
 
 export default function ({ current, limit }: { current: number, limit: number }) {
   const threshold = limit !== 0 ? (current / limit > 1 ? 1 : current / limit) : 0;

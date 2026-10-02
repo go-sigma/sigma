@@ -19,10 +19,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
-import SigmaSvg from "../../components/svg/sigma";
-import Notification from "../../components/Notification";
-import { useTranslation } from "../../i18n/useTranslation";
-import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "../../interfaces";
+import SigmaSvg from "@/components/svg/sigma";
+import Notification from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "@/interfaces";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

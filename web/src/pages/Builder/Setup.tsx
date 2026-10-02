@@ -45,13 +45,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import Header from '../../components/Header';
-import HeaderMenu from '../../components/Menu';
-import ShikiDockerfileEditor from '../../components/CodeEditor/ShikiDockerfileEditor';
-import Settings from '../../Settings';
-import Toast from "../../components/Notification";
-import { useTranslation } from "../../i18n/useTranslation";
-import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '../../interfaces';
+import Header from '@/components/Header';
+import HeaderMenu from '@/components/Menu';
+import ShikiDockerfileEditor from '@/components/CodeEditor/ShikiDockerfileEditor';
+import Settings from '@/Settings';
+import Toast from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '@/interfaces';
 
 const supportPlatforms = [
   { id: 1, name: 'linux/amd64' },

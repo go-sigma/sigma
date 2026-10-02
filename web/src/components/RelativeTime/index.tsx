@@ -18,7 +18,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { type Locale, useUiStore } from "../../stores";
+import { type Locale, useUiStore } from "@/stores";
 
 const dayjsLocales: Record<Locale, string> = {
   "en-US": "en",

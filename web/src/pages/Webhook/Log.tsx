@@ -17,29 +17,54 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useParams, useSearchParams, useLocation } from 'react-router-dom';
-
-import Header from "../../components/Header";
-import IMenu from "../../components/Menu";
-import NamespaceTabs from "../../components/NamespaceTabs";
-import Notification from "../../components/Notification";
-import Pagination from "../../components/Pagination";
-import Settings from "../../Settings";
-import { IHTTPError, INamespaceItem, IOrder, IUserSelf, IWebhookLogItem, IWebhookLogList } from "../../interfaces";
-import OrderHeader from "../../components/OrderHeader";
-import { EllipsisVerticalIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { NamespaceRole, UserRole } from "../../interfaces/enums";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useParams, useSearchParams, useLocation } from "react-router-dom";
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import NamespaceTabs from "@/components/NamespaceTabs";
+import Notification from "@/components/Notification";
+import Pagination from "@/components/Pagination";
+import Settings from "@/Settings";
+import {
+  IHTTPError,
+  INamespaceItem,
+  IOrder,
+  IUserSelf,
+  IWebhookLogItem,
+  IWebhookLogList,
+} from "@/interfaces";
+import OrderHeader from "@/components/OrderHeader";
+import {
+  EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import { NamespaceRole, UserRole } from "@/interfaces/enums";
 
 export default function ({ localServer }: { localServer: string }) {
   const location = useLocation();
-  const { namespace, webhook_id } = useParams<{ namespace: string, webhook_id: string }>();
+  const { namespace, webhook_id } = useParams<{
+    namespace: string;
+    webhook_id: string;
+  }>();
   const [searchParams] = useSearchParams();
-  const namespaceId = searchParams.get('namespace_id');
-  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
+  const namespaceId = searchParams.get("namespace_id");
+  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>(
+    {} as INamespaceItem,
+  );
   const webhookId = parseInt(webhook_id || "0");
 
   const [page, setPage] = useState(1);
@@ -52,39 +77,61 @@ export default function ({ localServer }: { localServer: string }) {
     if (namespaceId == null || namespaceId == "") {
       return;
     }
-    axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
-      if (response.status == 200) {
-        const namespaceData = response.data as INamespaceItem;
-        setNamespaceObj(namespaceData);
-      } else if (response.status !== 404) {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-      }
-    }).catch(error => {
-      // A missing namespace means there are no webhook logs, so stay silent.
-      if (error.response?.status === 404) {
-        return;
-      }
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
+    axios
+      .get(`${localServer}/api/v1/namespaces/${namespaceId}`)
+      .then((response) => {
+        if (response.status == 200) {
+          const namespaceData = response.data as INamespaceItem;
+          setNamespaceObj(namespaceData);
+        } else if (response.status !== 404) {
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode?.title,
+            message: errorcode?.description,
+          });
+        }
+      })
+      .catch((error) => {
+        // A missing namespace means there are no webhook logs, so stay silent.
+        if (error.response?.status === 404) {
+          return;
+        }
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
   }, [localServer, location.pathname, namespaceId]);
 
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
   useEffect(() => {
-    axios.get(localServer + "/api/v1/users/self").then(response => {
-      if (response.status === 200) {
-        const user = response.data as IUserSelf;
-        setUserObj(user);
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    });
+    axios
+      .get(localServer + "/api/v1/users/self")
+      .then((response) => {
+        if (response.status === 200) {
+          const user = response.data as IUserSelf;
+          setUserObj(user);
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode.title,
+            message: errorcode.description,
+          });
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
   }, [localServer]);
 
   const [refresh, setRefresh] = useState({});
@@ -92,60 +139,86 @@ export default function ({ localServer }: { localServer: string }) {
   const [updatedAtOrder, setUpdatedAtOrder] = useState(IOrder.None);
   const [sortOrder, setSortOrder] = useState(IOrder.None);
   const [sortName, setSortName] = useState("");
-  const [webhookLogList, setWebhookLogList] = useState<IWebhookLogList>({} as IWebhookLogList);
+  const [webhookLogList, setWebhookLogList] = useState<IWebhookLogList>(
+    {} as IWebhookLogList,
+  );
 
   const resetOrder = () => {
     setCreatedAtOrder(IOrder.None);
     setUpdatedAtOrder(IOrder.None);
-  }
+  };
 
   const [fetchWebhookSuccess, setFetchWebhookSuccess] = useState(false);
 
   useEffect(() => {
-    let url = localServer + `/api/v1/webhooks/${webhookId}/logs/?limit=${Settings.PageSize}&page=${page}`;
+    let url =
+      localServer +
+      `/api/v1/webhooks/${webhookId}/logs/?limit=${Settings.PageSize}&page=${page}`;
     if (sortName !== "") {
-      url += `&sort=${sortName}&method=${sortOrder.toString()}`
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`;
     }
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        const webhookLogListData = response.data as IWebhookLogList;
-        setWebhookLogList(webhookLogListData);
-        setTotal(webhookLogListData.total);
-        setFetchWebhookSuccess(true);
-      } else {
+    axios
+      .get(url)
+      .then((response) => {
+        if (response?.status === 200) {
+          const webhookLogListData = response.data as IWebhookLogList;
+          setWebhookLogList(webhookLogListData);
+          setTotal(webhookLogListData.total);
+          setFetchWebhookSuccess(true);
+        } else {
+          setFetchWebhookSuccess(false);
+          if (response.status === 404) {
+            return;
+          }
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode?.title,
+            message: errorcode?.description,
+          });
+        }
+      })
+      .catch((error) => {
         setFetchWebhookSuccess(false);
-        if (response.status === 404) {
+        // An empty webhook log list is not an error, so stay silent.
+        if (error.response?.status === 404) {
           return;
         }
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-      }
-    }).catch(error => {
-      setFetchWebhookSuccess(false);
-      // An empty webhook log list is not an error, so stay silent.
-      if (error.response?.status === 404) {
-        return;
-      }
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    });
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
   }, [refresh, page, sortOrder, sortName, localServer, webhookId]);
 
   const [webhookPingModal, setWebhookPingModal] = useState(false);
 
   const webhookPing = () => {
-    axios.get(`${localServer}/api/v1/webhooks/${webhookId}/ping`).then(response => {
-      if (response.status === 204) {
-        setRefresh({});
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }
+    axios
+      .get(`${localServer}/api/v1/webhooks/${webhookId}/ping`)
+      .then((response) => {
+        if (response.status === 204) {
+          setRefresh({});
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode.title,
+            message: errorcode.description,
+          });
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode.title,
+          message: errorcode.description,
+        });
+      });
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -168,29 +241,48 @@ export default function ({ localServer }: { localServer: string }) {
       <div
         id="tooltip-webhook-retry-duration"
         role="tooltip"
-        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-55">
+        className="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700 w-55"
+      >
         Less than 10, unit is second.
       </div>
       <div className="min-h-screen flex overflow-hidden bg-white">
-        <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "webhooks" : "repositories"} />
+        <IMenu
+          localServer={localServer}
+          item={
+            location.pathname.startsWith("/settings")
+              ? "webhooks"
+              : "repositories"
+          }
+        />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header title="Webhook" props={
-              location.pathname.startsWith("/settings") ? null : (
-                <NamespaceTabs namespace={namespace} namespaceId={namespaceId || ""} active="webhooks" />
-              )
-            } />
+            <Header
+              title="Webhook"
+              props={
+                location.pathname.startsWith("/settings") ? null : (
+                  <NamespaceTabs
+                    namespace={namespace}
+                    namespaceId={namespaceId || ""}
+                    active="webhooks"
+                  />
+                )
+              }
+            />
             <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
               <div className="px-4">
                 <div className="flex gap-4">
-                  <div className="relative mt-2 flex items-center">
-                  </div>
+                  <div className="relative mt-2 flex items-center"></div>
                 </div>
               </div>
               <div className="px-4 flex flex-col">
-                <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                  onClick={() => { setWebhookPingModal(true) }}
-                >Ping</button>
+                <button
+                  className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+                  onClick={() => {
+                    setWebhookPingModal(true);
+                  }}
+                >
+                  Ping
+                </button>
               </div>
             </div>
           </main>
@@ -209,20 +301,28 @@ export default function ({ localServer }: { localServer: string }) {
                       <span className="lg:pl-2">Status</span>
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
-                      <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
-                        resetOrder();
-                        setCreatedAtOrder(e);
-                        setSortOrder(e);
-                        setSortName("created_at");
-                      }} />
+                      <OrderHeader
+                        text={"Created at"}
+                        orderStatus={createdAtOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setCreatedAtOrder(e);
+                          setSortOrder(e);
+                          setSortName("created_at");
+                        }}
+                      />
                     </th>
                     <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
-                      <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={(e) => {
-                        resetOrder();
-                        setUpdatedAtOrder(e);
-                        setSortOrder(e);
-                        setSortName("updated_at");
-                      }} />
+                      <OrderHeader
+                        text={"Updated at"}
+                        orderStatus={updatedAtOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setUpdatedAtOrder(e);
+                          setSortOrder(e);
+                          setSortName("updated_at");
+                        }}
+                      />
                     </th>
                     <th className="sticky top-0 z-10 pr-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       Action
@@ -230,25 +330,39 @@ export default function ({ localServer }: { localServer: string }) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 max-h-max">
-                  {
-                    webhookLogList.items?.map((webhookLog, index) => {
-                      return (
-                        <TableItem key={webhookLog.id} index={index} userObj={userObj} namespaceObj={namespaceObj} localServer={localServer} webhookLogObj={webhookLog} setRefresh={setRefresh} />
-                      );
-                    })
-                  }
+                  {webhookLogList.items?.map((webhookLog, index) => {
+                    return (
+                      <TableItem
+                        key={webhookLog.id}
+                        index={index}
+                        userObj={userObj}
+                        namespaceObj={namespaceObj}
+                        localServer={localServer}
+                        webhookLogObj={webhookLog}
+                        setRefresh={setRefresh}
+                      />
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
-          <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
+          <Pagination
+            limit={Settings.PageSize}
+            page={page}
+            setPage={setPage}
+            total={total}
+          />
         </div>
       </div>
       <Dialog open={webhookPingModal} onOpenChange={setWebhookPingModal}>
         <DialogContent className="sm:max-w-lg">
           <div className="flex items-start gap-4">
             <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
-              <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+              <ExclamationTriangleIcon
+                className="size-6 text-red-600"
+                aria-hidden="true"
+              />
             </div>
             <div className="text-center sm:text-left">
               <DialogTitle>Send webhook ping event</DialogTitle>
@@ -258,66 +372,118 @@ export default function ({ localServer }: { localServer: string }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setWebhookPingModal(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setWebhookPingModal(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={() => { setWebhookPingModal(false); webhookPing(); }}>
+            <Button
+              onClick={() => {
+                setWebhookPingModal(false);
+                webhookPing();
+              }}
+            >
               Send
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Fragment >
+    </Fragment>
   );
 }
 
-function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, setRefresh }: { localServer: string, index: number, userObj: IUserSelf, namespaceObj: INamespaceItem, webhookLogObj: IWebhookLogItem, setRefresh: (param: any) => void }) {
-  const canManageWebhookLog = userObj.role == UserRole.Admin || userObj.role == UserRole.Root || (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager));
+function TableItem({
+  localServer,
+  index,
+  userObj,
+  namespaceObj,
+  webhookLogObj,
+  setRefresh,
+}: {
+  localServer: string;
+  index: number;
+  userObj: IUserSelf;
+  namespaceObj: INamespaceItem;
+  webhookLogObj: IWebhookLogItem;
+  setRefresh: (param: any) => void;
+}) {
+  const canManageWebhookLog =
+    userObj.role == UserRole.Admin ||
+    userObj.role == UserRole.Root ||
+    (namespaceObj.role != undefined &&
+      (namespaceObj.role == NamespaceRole.Admin ||
+        namespaceObj.role == NamespaceRole.Manager));
   const [webhookLogResendModal, setWebhookLogResendModal] = useState(false);
   const [webhookLogDeleteModal, setWebhookLogDeleteModal] = useState(false);
 
   const webhookLogResend = () => {
-    axios.get(`${localServer}/api/v1/webhooks/${webhookLogObj.id}/logs/${webhookLogObj.id}/resend`).then(response => {
-      if (response.status === 204) {
-        setRefresh({});
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }
+    axios
+      .get(
+        `${localServer}/api/v1/webhooks/${webhookLogObj.id}/logs/${webhookLogObj.id}/resend`,
+      )
+      .then((response) => {
+        if (response.status === 204) {
+          setRefresh({});
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode.title,
+            message: errorcode.description,
+          });
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode.title,
+          message: errorcode.description,
+        });
+      });
+  };
 
   const webhookLogDelete = () => {
-    axios.delete(`${localServer}/api/v1/webhooks/${webhookLogObj.id}/logs/${webhookLogObj.id}`).then(response => {
-      if (response.status === 204) {
-        setRefresh({});
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }
+    axios
+      .delete(
+        `${localServer}/api/v1/webhooks/${webhookLogObj.id}/logs/${webhookLogObj.id}`,
+      )
+      .then((response) => {
+        if (response.status === 204) {
+          setRefresh({});
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode.title,
+            message: errorcode.description,
+          });
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode.title,
+          message: errorcode.description,
+        });
+      });
+  };
 
   const [drawerShow, setDrawerShow] = useState(false);
 
   return (
     <tr className="align-middle">
-      <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
+      <td
+        className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
         onClick={() => {
           setDrawerShow(true);
         }}
       >
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
-            <span>
-              {webhookLogObj.resource_type}
-            </span>
+            <span>{webhookLogObj.resource_type}</span>
           </div>
         </div>
       </td>
@@ -328,14 +494,23 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
         {webhookLogObj.status_code}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        {dayjs.utc(webhookLogObj.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
+        {dayjs
+          .utc(webhookLogObj.created_at)
+          .tz(dayjs.tz.guess())
+          .format("YYYY-MM-DD HH:mm:ss")}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        {dayjs.utc(webhookLogObj.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
+        {dayjs
+          .utc(webhookLogObj.updated_at)
+          .tz(dayjs.tz.guess())
+          .format("YYYY-MM-DD HH:mm:ss")}
       </td>
-      <td className="pr-3 whitespace-nowrap text-center" onClick={e => {
-        e.stopPropagation();
-      }}>
+      <td
+        className="pr-3 whitespace-nowrap text-center"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -346,113 +521,179 @@ function TableItem({ localServer, index, userObj, namespaceObj, webhookLogObj, s
             }
           />
           <DropdownMenuContent align="end" className="w-28">
-            <DropdownMenuItem disabled={!canManageWebhookLog} onClick={() => setWebhookLogResendModal(true)}>
+            <DropdownMenuItem
+              disabled={!canManageWebhookLog}
+              onClick={() => setWebhookLogResendModal(true)}
+            >
               Resend
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" disabled={!canManageWebhookLog} onClick={() => setWebhookLogDeleteModal(true)}>
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={!canManageWebhookLog}
+              onClick={() => setWebhookLogDeleteModal(true)}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
-      <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Dialog open={webhookLogResendModal} onOpenChange={setWebhookLogResendModal}>
+      <td
+        className="absolute hidden"
+        onClick={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <Dialog
+          open={webhookLogResendModal}
+          onOpenChange={setWebhookLogResendModal}
+        >
           <DialogContent className="sm:max-w-lg">
             <div className="flex items-start gap-4">
               <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
-                <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+                <ExclamationTriangleIcon
+                  className="size-6 text-red-600"
+                  aria-hidden="true"
+                />
               </div>
               <div className="text-center sm:text-left">
                 <DialogTitle>Resend webhook event</DialogTitle>
                 <DialogDescription className="mt-2">
                   Are you sure you want to resend the webhook event{" "}
-                  <span className="text-foreground font-medium capitalize">{webhookLogObj.resource_type}</span>
+                  <span className="text-foreground font-medium capitalize">
+                    {webhookLogObj.resource_type}
+                  </span>
                 </DialogDescription>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setWebhookLogResendModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setWebhookLogResendModal(false)}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => { setWebhookLogResendModal(false); webhookLogResend() }}>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setWebhookLogResendModal(false);
+                  webhookLogResend();
+                }}
+              >
                 Resend
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </td>
-      <td className="absolute hidden" onClick={e => { e.preventDefault() }}>
-        <Dialog open={webhookLogDeleteModal} onOpenChange={setWebhookLogDeleteModal}>
+      <td
+        className="absolute hidden"
+        onClick={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <Dialog
+          open={webhookLogDeleteModal}
+          onOpenChange={setWebhookLogDeleteModal}
+        >
           <DialogContent className="sm:max-w-lg">
             <div className="flex items-start gap-4">
               <div className="mx-auto flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
-                <ExclamationTriangleIcon className="size-6 text-red-600" aria-hidden="true" />
+                <ExclamationTriangleIcon
+                  className="size-6 text-red-600"
+                  aria-hidden="true"
+                />
               </div>
               <div className="text-center sm:text-left">
                 <DialogTitle>Delete webhook log</DialogTitle>
                 <DialogDescription className="mt-2">
                   Are you sure you want to delete the webhook event{" "}
-                  <span className="text-foreground font-medium capitalize">{webhookLogObj.resource_type}</span>
+                  <span className="text-foreground font-medium capitalize">
+                    {webhookLogObj.resource_type}
+                  </span>
                 </DialogDescription>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setWebhookLogDeleteModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setWebhookLogDeleteModal(false)}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => { setWebhookLogDeleteModal(false); webhookLogDelete() }}>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setWebhookLogDeleteModal(false);
+                  webhookLogDelete();
+                }}
+              >
                 Delete
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </td>
-      <td className="absolute" onClick={e => { e.preventDefault() }}>
-        <div className={`fixed inset-0 z-30 bg-black/20 transition-opacity ${drawerShow ? "opacity-100" : "pointer-events-none opacity-0"}`} onClick={() => setDrawerShow(false)} />
-        <div id={`drawer-${index}`} className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto bg-white w-200 shadow-xl transition-transform dark:bg-gray-800 ${drawerShow ? "translate-x-0" : "translate-x-full"}`} aria-labelledby="drawer-right-label">
+      <td
+        className="absolute"
+        onClick={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <div
+          className={`fixed inset-0 z-30 bg-black/20 transition-opacity ${drawerShow ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          onClick={() => setDrawerShow(false)}
+        />
+        <div
+          id={`drawer-${index}`}
+          className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto bg-white w-200 shadow-xl transition-transform dark:bg-gray-800 ${drawerShow ? "translate-x-0" : "translate-x-full"}`}
+          aria-labelledby="drawer-right-label"
+        >
           <button
             type="button"
             className="absolute right-4 top-4 rounded-md text-gray-400 hover:text-gray-600"
             onClick={() => setDrawerShow(false)}
           >
-            <span className="sr-only">Close drawer</span>
-            ×
+            <span className="sr-only">Close drawer</span>×
           </button>
-          <h5 id="drawer-right-label" className="items-center pb-4 pr-8 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+          <h5
+            id="drawer-right-label"
+            className="items-center pb-4 pr-8 text-base font-semibold text-gray-500 dark:text-gray-400 border-b"
+          >
             Request headers
           </h5>
           <kbd className="text-gray-600 whitespace-pre-wrap text-sm py-4 block border-b">
-            {
-              Object.entries(JSON.parse(webhookLogObj.req_header))
-                .map(([k, v]) => `${k}: ${v}`)
-                .join('\n')
-            }
+            {Object.entries(JSON.parse(webhookLogObj.req_header))
+              .map(([k, v]) => `${k}: ${v}`)
+              .join("\n")}
           </kbd>
-          <h5 id="drawer-right-label" className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+          <h5
+            id="drawer-right-label"
+            className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b"
+          >
             Request body
           </h5>
           <kbd className="text-gray-600 whitespace-pre-wrap text-sm py-4 block border-b">
-            {
-              JSON.stringify(JSON.parse(webhookLogObj.req_body), null, 2)
-            }
+            {JSON.stringify(JSON.parse(webhookLogObj.req_body), null, 2)}
           </kbd>
-          <h5 id="drawer-right-label" className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+          <h5
+            id="drawer-right-label"
+            className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b"
+          >
             Response headers
           </h5>
           <kbd className="text-gray-600 whitespace-pre-wrap text-sm py-4 block border-b">
-            {
-              Object.entries(JSON.parse(webhookLogObj.resp_header))
-                .map(([k, v]) => `${k}: ${v}`)
-                .join('\n')
-            }
+            {Object.entries(JSON.parse(webhookLogObj.resp_header))
+              .map(([k, v]) => `${k}: ${v}`)
+              .join("\n")}
           </kbd>
-          <h5 id="drawer-right-label" className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b">
+          <h5
+            id="drawer-right-label"
+            className="items-center py-4 text-base font-semibold text-gray-500 dark:text-gray-400 border-b"
+          >
             Response body
           </h5>
           <kbd className="text-gray-600 whitespace-pre-wrap text-sm mt-4 block">
-            {
-              webhookLogObj.resp_body
-            }
+            {webhookLogObj.resp_body}
           </kbd>
         </div>
       </td>

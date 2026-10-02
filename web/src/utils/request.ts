@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import axios from 'axios';
-import { NavigateFunction } from 'react-router-dom';
-
-import { setApiNavigationHandlers } from '../api/client';
-import { IUserLoginResponse } from '../interfaces';
+import axios from "axios";
+import { NavigateFunction } from "react-router-dom";
+import { setApiNavigationHandlers } from "@/api/client";
+import { IUserLoginResponse } from "@/interfaces";
 
 let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
 
@@ -27,32 +26,43 @@ const REFRESH_TOKEN_INTERVAL_TIMEOUT = 60 * 1000; // 10s
 /** Install the axios request/response interceptors used across the app. */
 export const setupAxiosInterceptor = (navigate: NavigateFunction) => {
   setApiNavigationHandlers({
-    navigateToLogin: () => navigate('/login'),
+    navigateToLogin: () => navigate("/login"),
   });
-  axios.interceptors.response.clear()
+  axios.interceptors.response.clear();
   axios.interceptors.request.clear();
-  axios.interceptors.response.use(response => {
-    return response;
-  }, error => {
-    if (error?.response?.status === 401) {
-      if (error?.response?.config?.url?.endsWith("/api/v1/users/login")) {
-        return Promise.resolve(error?.response);
+  axios.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      if (error?.response?.status === 401) {
+        if (error?.response?.config?.url?.endsWith("/api/v1/users/login")) {
+          return Promise.resolve(error?.response);
+        } else {
+          navigate("/login");
+        }
+      } else if (error?.response?.status === 500) {
+        return Promise.reject(error);
       } else {
-        navigate('/login');
+        return Promise.resolve(error?.response);
       }
-    } else if (error?.response?.status === 500) {
-      return Promise.reject(error);
-    } else {
-      return Promise.resolve(error?.response);
-    }
-  });
+    },
+  );
   axios.interceptors.request.use((config: any) => {
-    const token = localStorage.getItem('token');
-    if (config.headers.Authorization === undefined || config.headers.Authorization === null) {
+    const token = localStorage.getItem("token");
+    if (
+      config.headers.Authorization === undefined ||
+      config.headers.Authorization === null
+    ) {
       if (token === null) {
-        if (!config.url.endsWith("/api/v1/users/login") && location.hash != "#/login") {
-          navigate('/login');
-          return Promise.reject(new Error('request has been banned by axios interceptor'));
+        if (
+          !config.url.endsWith("/api/v1/users/login") &&
+          location.hash != "#/login"
+        ) {
+          navigate("/login");
+          return Promise.reject(
+            new Error("request has been banned by axios interceptor"),
+          );
         }
       } else {
         config.headers.Authorization = "Bearer " + token;
@@ -60,25 +70,27 @@ export const setupAxiosInterceptor = (navigate: NavigateFunction) => {
     }
     return config;
   });
-}
+};
 
 /** Exchange the refresh token for a new access token. */
-export function refreshToken(
-  localServer: string,
-  onFailed: () => void
-) {
-  if (localStorage.getItem('refresh_token') == null) {
+export function refreshToken(localServer: string, onFailed: () => void) {
+  if (localStorage.getItem("refresh_token") == null) {
     return;
   }
   let headers: { [key: string]: any } = {
-    "Authorization": "Bearer " + localStorage.getItem('refresh_token'),
+    Authorization: "Bearer " + localStorage.getItem("refresh_token"),
   };
 
   let url = localServer + `/api/v1/users/login`;
-  axios.post(url, {}, {
-    headers: headers,
-  })
-    .then(response => {
+  axios
+    .post(
+      url,
+      {},
+      {
+        headers: headers,
+      },
+    )
+    .then((response) => {
       if (response?.status === 200) {
         const resp = response.data as IUserLoginResponse;
         localStorage.setItem("token", resp.token);
@@ -86,17 +98,18 @@ export function refreshToken(
         localStorage.setItem("username", resp.username);
         localStorage.setItem("email", resp.email);
       } else {
-        onFailed()
+        onFailed();
       }
-    }).catch(() => {
-      onFailed()
     })
+    .catch(() => {
+      onFailed();
+    });
 }
 
 /** Start the periodic access token refresh. */
 export function setupAutoRefreshToken(
   localServer: string,
-  onFailed: () => void
+  onFailed: () => void,
 ) {
   if (REFRESH_TOKEN_INTERVAL) return;
   REFRESH_TOKEN_INTERVAL = REFRESH_TOKEN_INTERVAL = setInterval(() => {

@@ -25,10 +25,10 @@ import { Terminal } from "xterm";
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import Header from "../../components/Header";
-import Menu from "../../components/Menu";
-import Toast from "../../components/Notification";
-import { IBuilderItem, IBuilderRunnerItem, IEndpoint, IHTTPError, IRepositoryItem, IRunOrRerunRunnerResponse } from "../../interfaces";
+import Header from "@/components/Header";
+import Menu from "@/components/Menu";
+import Toast from "@/components/Notification";
+import { IBuilderItem, IBuilderRunnerItem, IEndpoint, IHTTPError, IRepositoryItem, IRunOrRerunRunnerResponse } from "@/interfaces";
 
 let term = new Terminal({
   fontFamily: 'Menlo, Monaco, "Courier New", monospace',

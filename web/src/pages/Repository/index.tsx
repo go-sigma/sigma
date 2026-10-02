@@ -18,27 +18,39 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useDebounce } from "react-use";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Helmet, HelmetProvider } from "react-helmet-async";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-import Header from "../../components/Header";
-import IMenu from "../../components/Menu";
-import NamespaceTabs from "../../components/NamespaceTabs";
-import Notification from "../../components/Notification";
-import OrderHeader from "../../components/OrderHeader";
-import Pagination from "../../components/Pagination";
-import Quota from "../../components/Quota";
-import QuotaSimple from "../../components/QuotaSimple";
-import Settings from "../../Settings";
-import { calcUnit } from "../../utils";
-import { useTranslation } from "../../i18n/useTranslation";
-import { IHTTPError, INamespaceItem, IOrder, IRepositoryItem, IRepositoryList, IUserSelf } from "../../interfaces";
-import { NamespaceRole, UserRole } from "../../interfaces/enums";
-
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import NamespaceTabs from "@/components/NamespaceTabs";
+import Notification from "@/components/Notification";
+import OrderHeader from "@/components/OrderHeader";
+import Pagination from "@/components/Pagination";
+import Quota from "@/components/Quota";
+import QuotaSimple from "@/components/QuotaSimple";
+import Settings from "@/Settings";
+import { calcUnit } from "@/utils";
+import { useTranslation } from "@/i18n/useTranslation";
+import {
+  IHTTPError,
+  INamespaceItem,
+  IOrder,
+  IRepositoryItem,
+  IRepositoryList,
+  IUserSelf,
+} from "@/interfaces";
+import { NamespaceRole, UserRole } from "@/interfaces/enums";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -68,7 +80,9 @@ import { CornerDownLeft, SquarePen, Trash2 } from "lucide-react";
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
-  const [repositoryList, setRepositoryList] = useState<IRepositoryList>({} as IRepositoryList);
+  const [repositoryList, setRepositoryList] = useState<IRepositoryList>(
+    {} as IRepositoryList,
+  );
   const [refresh, setRefresh] = useState({});
   const [page, setPage] = useState(1);
   const [searchRepository, setSearchRepository] = useState("");
@@ -76,14 +90,20 @@ export default function ({ localServer }: { localServer: string }) {
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
-  const namespaceId = searchParams.get('namespace_id');
-  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
+  const namespaceId = searchParams.get("namespace_id");
+  const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>(
+    {} as INamespaceItem,
+  );
 
   useEffect(() => {
     if (!namespaceId) return;
-    axios.get(`${localServer}/api/v1/namespaces/${namespaceId}`).then(response => {
-      if (response.status == 200) setNamespaceObj(response.data as INamespaceItem);
-    }).catch(() => {});
+    axios
+      .get(`${localServer}/api/v1/namespaces/${namespaceId}`)
+      .then((response) => {
+        if (response.status == 200)
+          setNamespaceObj(response.data as INamespaceItem);
+      })
+      .catch(() => {});
   }, [localServer, namespaceId]);
 
   const [repositoryText, setRepositoryText] = useState("");
@@ -92,53 +112,97 @@ export default function ({ localServer }: { localServer: string }) {
     if (repositoryText != "") {
       setRepositoryTextValid(/^[a-z][0-9a-z-]{0,20}$/.test(repositoryText));
     }
-  }, [repositoryText])
+  }, [repositoryText]);
   const [descriptionText, setDescriptionText] = useState("");
-  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
+  const descriptionTextValid =
+    descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
   const [tagCountLimitValid, setTagCountLimitValid] = useState(true);
-  useEffect(() => { setTagCountLimitValid(Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0) }, [tagCountLimit])
+  useEffect(() => {
+    setTagCountLimitValid(
+      Number.isInteger(tagCountLimit) &&
+        parseInt(tagCountLimit.toString()) >= 0,
+    );
+  }, [tagCountLimit]);
   const [realSizeLimit, setRealSizeLimit] = useState(0);
   const [sizeLimit, setSizeLimit] = useState<string | number>(0);
   const [sizeLimitValid, setSizeLimitValid] = useState(true);
   const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
-  useEffect(() => { setSizeLimitValid(Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0) }, [sizeLimit])
+  useEffect(() => {
+    setSizeLimitValid(
+      Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0,
+    );
+  }, [sizeLimit]);
   useEffect(() => {
     let sl = 0;
     if (Number.isInteger(sizeLimit)) sl = parseInt(sizeLimit.toString());
     switch (sizeLimitUnit) {
-      case "MiB": setRealSizeLimit(sl * 2 ** 20); break;
-      case "GiB": setRealSizeLimit(sl * 2 ** 30); break;
-      case "TiB": setRealSizeLimit(sl * 2 ** 40); break;
+      case "MiB":
+        setRealSizeLimit(sl * 2 ** 20);
+        break;
+      case "GiB":
+        setRealSizeLimit(sl * 2 ** 30);
+        break;
+      case "TiB":
+        setRealSizeLimit(sl * 2 ** 40);
+        break;
     }
   }, [sizeLimit, sizeLimitUnit]);
   const [createRepositoryModal, setCreateRepositoryModal] = useState(false);
 
   const createRepository = () => {
-    if (!(repositoryTextValid && descriptionTextValid && sizeLimitValid && tagCountLimitValid)) {
-      Notification({ level: "warning", title: t("common.formValidateFailed"), message: t("common.checkForm") });
+    if (!(
+      repositoryTextValid &&
+      descriptionTextValid &&
+      sizeLimitValid &&
+      tagCountLimitValid
+    )) {
+      Notification({
+        level: "warning",
+        title: t("common.formValidateFailed"),
+        message: t("common.checkForm"),
+      });
       return;
     }
     setCreateRepositoryModal(false);
-    axios.post(localServer + `/api/v1/namespaces/${namespaceId}/repositories/`, {
-      name: namespace + "/" + repositoryText, description: descriptionText, size_limit: realSizeLimit, tag_limit: tagCountLimit,
-    } as IRepositoryItem).then(response => {
-      if (response.status === 201) {
-        setRepositoryText(""); setDescriptionText(""); setTagCountLimit(0); setSizeLimit(0);
-        setRefresh({});
-      }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
-  }
+    axios
+      .post(localServer + `/api/v1/namespaces/${namespaceId}/repositories/`, {
+        name: namespace + "/" + repositoryText,
+        description: descriptionText,
+        size_limit: realSizeLimit,
+        tag_limit: tagCountLimit,
+      } as IRepositoryItem)
+      .then((response) => {
+        if (response.status === 201) {
+          setRepositoryText("");
+          setDescriptionText("");
+          setTagCountLimit(0);
+          setSizeLimit(0);
+          setRefresh({});
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
+  };
 
   const validateRepository = () => {
     if (repositoryText === "") return;
-    axios.get(localServer + `/api/v1/validators/reference?reference=${namespace}/${repositoryText}`).then(response => {
-      setRepositoryTextValid(response?.status === 204);
-    }).catch(() => setRepositoryTextValid(false));
-  }
+    axios
+      .get(
+        localServer +
+          `/api/v1/validators/reference?reference=${namespace}/${repositoryText}`,
+      )
+      .then((response) => {
+        setRepositoryTextValid(response?.status === 204);
+      })
+      .catch(() => setRepositoryTextValid(false));
+  };
   useDebounce(validateRepository, 300, [repositoryText]);
 
   const [sizeOrder, setSizeOrder] = useState(IOrder.None);
@@ -149,22 +213,35 @@ export default function ({ localServer }: { localServer: string }) {
   const [sortName, setSortName] = useState("");
 
   const resetOrder = () => {
-    setSizeOrder(IOrder.None); setTagCountOrder(IOrder.None); setCreatedAtOrder(IOrder.None); setUpdatedAtOrder(IOrder.None);
-  }
+    setSizeOrder(IOrder.None);
+    setTagCountOrder(IOrder.None);
+    setCreatedAtOrder(IOrder.None);
+    setUpdatedAtOrder(IOrder.None);
+  };
 
   const fetchRepository = useCallback(() => {
-    let url = localServer + `/api/v1/namespaces/${namespaceId}/repositories/?limit=${Settings.PageSize}&page=${page}`;
+    let url =
+      localServer +
+      `/api/v1/namespaces/${namespaceId}/repositories/?limit=${Settings.PageSize}&page=${page}`;
     if (searchRepository !== "") url += `&name=${searchRepository}`;
-    if (sortName !== "") url += `&sort=${sortName}&method=${sortOrder.toString()}`;
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        setRepositoryList(response.data as IRepositoryList);
-        setTotal((response.data as IRepositoryList).total);
-      }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    });
+    if (sortName !== "")
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`;
+    axios
+      .get(url)
+      .then((response) => {
+        if (response?.status === 200) {
+          setRepositoryList(response.data as IRepositoryList);
+          setTotal((response.data as IRepositoryList).total);
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
   }, [localServer, namespaceId, page, searchRepository, sortName, sortOrder]);
 
   useEffect(fetchRepository, [fetchRepository, refresh]);
@@ -172,44 +249,81 @@ export default function ({ localServer }: { localServer: string }) {
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
   useEffect(() => {
-    axios.get(localServer + "/api/v1/users/self").then(response => {
-      if (response.status === 200) setUserObj(response.data as IUserSelf);
-    }).catch(() => {});
+    axios
+      .get(localServer + "/api/v1/users/self")
+      .then((response) => {
+        if (response.status === 200) setUserObj(response.data as IUserSelf);
+      })
+      .catch(() => {});
   }, [localServer]);
 
-  const canManage = userObj.role == UserRole.Admin || userObj.role == UserRole.Root ||
-    (namespaceObj.role != undefined && (namespaceObj.role == NamespaceRole.Admin || namespaceObj.role == NamespaceRole.Manager));
+  const canManage =
+    userObj.role == UserRole.Admin ||
+    userObj.role == UserRole.Root ||
+    (namespaceObj.role != undefined &&
+      (namespaceObj.role == NamespaceRole.Admin ||
+        namespaceObj.role == NamespaceRole.Manager));
 
   return (
     <Fragment>
       <HelmetProvider>
-        <Helmet><title>{t("common.repositories")}</title></Helmet>
+        <Helmet>
+          <title>{t("common.repositories")}</title>
+        </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
-        <IMenu localServer={localServer} item="repositories" namespace={namespace} namespace_id={namespaceId || ""} />
+        <IMenu
+          localServer={localServer}
+          item="repositories"
+          namespace={namespace}
+          namespace_id={namespaceId || ""}
+        />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
-            <Header title={t("header.repository")}
+            <Header
+              title={t("header.repository")}
               props={
-                <NamespaceTabs namespace={namespace} namespaceId={namespaceId || ""} active="repositories" />
+                <NamespaceTabs
+                  namespace={namespace}
+                  namespaceId={namespaceId || ""}
+                  active="repositories"
+                />
               }
             />
             <div className="pt-4 pb-4 flex justify-between items-center">
               <div className="px-4">
                 <div className="relative flex items-center">
-                  <Label htmlFor="repositorySearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">
+                  <Label
+                    htmlFor="repositorySearch"
+                    className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10"
+                  >
                     {t("common.repository")}
                   </Label>
-                  <Input id="repositorySearch" placeholder={t("repository.searchPlaceholder")} value={searchRepository}
-                    onChange={e => setSearchRepository(e.target.value)} onKeyDown={e => { if (e.key == "Enter") fetchRepository() }}
-                    className="h-10 pr-14" />
-                  <kbd className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground" aria-hidden="true">
+                  <Input
+                    id="repositorySearch"
+                    placeholder={t("repository.searchPlaceholder")}
+                    value={searchRepository}
+                    onChange={(e) => setSearchRepository(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key == "Enter") fetchRepository();
+                    }}
+                    className="h-10 pr-14"
+                  />
+                  <kbd
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     <CornerDownLeft className="size-3.5" />
                   </kbd>
                 </div>
               </div>
               <div className="px-4">
-                <Button onClick={() => canManage && setCreateRepositoryModal(true)} disabled={!canManage}>{t("common.create")}</Button>
+                <Button
+                  onClick={() => canManage && setCreateRepositoryModal(true)}
+                  disabled={!canManage}
+                >
+                  {t("common.create")}
+                </Button>
               </div>
             </div>
           </main>
@@ -219,49 +333,155 @@ export default function ({ localServer }: { localServer: string }) {
                 <TableHeader className="[&_th]:font-normal">
                   <TableRow>
                     <TableHead>{t("repository.table.name")}</TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("repository.table.size")} orderStatus={sizeOrder} setOrder={e => { resetOrder(); setSizeOrder(e); setSortOrder(e); setSortName("size"); }} /></TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("repository.table.tagCount")} orderStatus={tagCountOrder} setOrder={e => { resetOrder(); setTagCountOrder(e); setSortOrder(e); setSortName("tag_count"); }} /></TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("repository.table.createdAt")} orderStatus={createdAtOrder} setOrder={e => { resetOrder(); setCreatedAtOrder(e); setSortOrder(e); setSortName("created_at"); }} /></TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("repository.table.updatedAt")} orderStatus={updatedAtOrder} setOrder={e => { resetOrder(); setUpdatedAtOrder(e); setSortOrder(e); setSortName("updated_at"); }} /></TableHead>
-                    <TableHead className="text-right">{t("common.action")}</TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("repository.table.size")}
+                        orderStatus={sizeOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setSizeOrder(e);
+                          setSortOrder(e);
+                          setSortName("size");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("repository.table.tagCount")}
+                        orderStatus={tagCountOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setTagCountOrder(e);
+                          setSortOrder(e);
+                          setSortName("tag_count");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("repository.table.createdAt")}
+                        orderStatus={createdAtOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setCreatedAtOrder(e);
+                          setSortOrder(e);
+                          setSortName("created_at");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("repository.table.updatedAt")}
+                        orderStatus={updatedAtOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setUpdatedAtOrder(e);
+                          setSortOrder(e);
+                          setSortName("updated_at");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("common.action")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {repositoryList.items?.map((repo) => (
-                    <TableItem key={repo.id} localServer={localServer} user={userObj} namespace={namespaceObj} repository={repo} setRefresh={setRefresh} />
+                    <TableItem
+                      key={repo.id}
+                      localServer={localServer}
+                      user={userObj}
+                      namespace={namespaceObj}
+                      repository={repo}
+                      setRefresh={setRefresh}
+                    />
                   ))}
                 </TableBody>
               </Table>
             </div>
           </div>
-          <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
+          <Pagination
+            limit={Settings.PageSize}
+            page={page}
+            setPage={setPage}
+            total={total}
+          />
         </div>
       </div>
 
       {/* Create Repository Modal */}
-      <Dialog open={createRepositoryModal} onOpenChange={setCreateRepositoryModal}>
+      <Dialog
+        open={createRepositoryModal}
+        onOpenChange={setCreateRepositoryModal}
+      >
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>{t("common.create")} Repository</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{t("common.create")} Repository</DialogTitle>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label><span className="text-destructive">*</span>Name</Label>
+              <Label>
+                <span className="text-destructive">*</span>Name
+              </Label>
               <div className="flex">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-border bg-muted px-3 text-sm text-muted-foreground">{namespace}/</span>
-                <Input placeholder="2-20 lowercase characters" value={repositoryText} onChange={e => setRepositoryText(e.target.value)} className="rounded-l-none" data-invalid={!repositoryTextValid ? true : undefined} />
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-border bg-muted px-3 text-sm text-muted-foreground">
+                  {namespace}/
+                </span>
+                <Input
+                  placeholder="2-20 lowercase characters"
+                  value={repositoryText}
+                  onChange={(e) => setRepositoryText(e.target.value)}
+                  className="rounded-l-none"
+                  data-invalid={!repositoryTextValid ? true : undefined}
+                />
               </div>
-              {!repositoryTextValid && <p className="text-xs text-destructive">Not a valid repository name.</p>}
+              {!repositoryTextValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid repository name.
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Description</Label>
-              <Input placeholder="30 characters" value={descriptionText} onChange={e => setDescriptionText(e.target.value)} data-invalid={!descriptionTextValid ? true : undefined} />
-              {!descriptionTextValid && <p className="text-xs text-destructive">Not a valid description.</p>}
+              <Input
+                placeholder="30 characters"
+                value={descriptionText}
+                onChange={(e) => setDescriptionText(e.target.value)}
+                data-invalid={!descriptionTextValid ? true : undefined}
+              />
+              {!descriptionTextValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid description.
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Size limit</Label>
               <div className="flex gap-2">
-                <Input type="number" placeholder="0 means no limit" value={sizeLimit} onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!sizeLimitValid ? true : undefined} className="flex-1" />
-                <Select value={sizeLimitUnit} onValueChange={(v) => { if (v) setSizeLimitUnit(v); }}>
-                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={sizeLimit}
+                  onChange={(e) =>
+                    setSizeLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!sizeLimitValid ? true : undefined}
+                  className="flex-1"
+                />
+                <Select
+                  value={sizeLimitUnit}
+                  onValueChange={(v) => {
+                    if (v) setSizeLimitUnit(v);
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MiB">MiB</SelectItem>
                     <SelectItem value="GiB">GiB</SelectItem>
@@ -269,89 +489,191 @@ export default function ({ localServer }: { localServer: string }) {
                   </SelectContent>
                 </Select>
               </div>
-              {!sizeLimitValid && <p className="text-xs text-destructive">Not a valid size limit.</p>}
+              {!sizeLimitValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid size limit.
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Tag count limit</Label>
-              <Input type="number" placeholder="0 means no limit" value={tagCountLimit} onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!tagCountLimitValid ? true : undefined} />
-              {!tagCountLimitValid && <p className="text-xs text-destructive">Not a valid tag count limit.</p>}
+              <Input
+                type="number"
+                placeholder="0 means no limit"
+                value={tagCountLimit}
+                onChange={(e) =>
+                  setTagCountLimit(
+                    Number.isNaN(parseInt(e.target.value))
+                      ? ""
+                      : parseInt(e.target.value),
+                  )
+                }
+                data-invalid={!tagCountLimitValid ? true : undefined}
+              />
+              {!tagCountLimitValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid tag count limit.
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateRepositoryModal(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => setCreateRepositoryModal(false)}
+            >
+              Cancel
+            </Button>
             <Button onClick={createRepository}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </Fragment>
-  )
+  );
 }
 
-function TableItem({ localServer, user, namespace: ns, repository, setRefresh }: {
-  localServer: string; user: IUserSelf; namespace: INamespaceItem;
-  repository: IRepositoryItem; setRefresh: (param: any) => void;
+function TableItem({
+  localServer,
+  user,
+  namespace: ns,
+  repository,
+  setRefresh,
+}: {
+  localServer: string;
+  user: IUserSelf;
+  namespace: INamespaceItem;
+  repository: IRepositoryItem;
+  setRefresh: (param: any) => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [deleteRepositoryModal, setDeleteRepositoryModal] = useState(false);
-  const [descriptionText, setDescriptionText] = useState(repository.description);
-  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
+  const [descriptionText, setDescriptionText] = useState(
+    repository.description,
+  );
+  const descriptionTextValid =
+    descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   useEffect(() => {
     if (descriptionText != "") {
     }
   }, [descriptionText]);
-  const [tagCountLimit, setTagCountLimit] = useState<string | number>(repository.tag_limit);
-  const tagCountLimitValid = Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
+  const [tagCountLimit, setTagCountLimit] = useState<string | number>(
+    repository.tag_limit,
+  );
+  const tagCountLimitValid =
+    Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
   let calcUnitObj = calcUnit(repository.size_limit);
   const [sizeLimit, setSizeLimit] = useState<string | number>(calcUnitObj.size);
-  const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
+  const sizeLimitValid =
+    Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
-  const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
-    (sizeLimitUnit === "TiB" ? 2 ** 40 : sizeLimitUnit === "GiB" ? 2 ** 30 : 2 ** 20);
+  const realSizeLimit =
+    (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
+    (sizeLimitUnit === "TiB"
+      ? 2 ** 40
+      : sizeLimitUnit === "GiB"
+        ? 2 ** 30
+        : 2 ** 20);
   const [updateRepositoryModal, setUpdateRepositoryModal] = useState(false);
 
-  const canManage = user.role == UserRole.Admin || user.role == UserRole.Root ||
-    (ns.role != undefined && (ns.role == NamespaceRole.Admin || ns.role == NamespaceRole.Manager));
+  const canManage =
+    user.role == UserRole.Admin ||
+    user.role == UserRole.Root ||
+    (ns.role != undefined &&
+      (ns.role == NamespaceRole.Admin || ns.role == NamespaceRole.Manager));
 
   const updateRepository = () => {
     if (!(descriptionTextValid && sizeLimitValid && tagCountLimitValid)) {
-      Notification({ level: "warning", title: "Form validate failed", message: "Please check the field in the form." });
+      Notification({
+        level: "warning",
+        title: "Form validate failed",
+        message: "Please check the field in the form.",
+      });
       return;
     }
     setUpdateRepositoryModal(false);
-    axios.put(localServer + `/api/v1/namespaces/${ns.id}/repositories/${repository.id}`, {
-      description: descriptionText, size_limit: realSizeLimit, tag_limit: tagCountLimit,
-    } as IRepositoryItem).then(response => {
-      if (response.status === 204) setRefresh({});
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
-  }
+    axios
+      .put(
+        localServer +
+          `/api/v1/namespaces/${ns.id}/repositories/${repository.id}`,
+        {
+          description: descriptionText,
+          size_limit: realSizeLimit,
+          tag_limit: tagCountLimit,
+        } as IRepositoryItem,
+      )
+      .then((response) => {
+        if (response.status === 204) setRefresh({});
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
+  };
 
   const deleteRepository = () => {
-    axios.delete(localServer + `/api/v1/namespaces/${ns.id}/repositories/${repository.id}`).then(response => {
-      if (response.status === 204) setRefresh({});
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
-  }
+    axios
+      .delete(
+        localServer +
+          `/api/v1/namespaces/${ns.id}/repositories/${repository.id}`,
+      )
+      .then((response) => {
+        if (response.status === 204) setRefresh({});
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
+  };
 
   return (
     <>
       <TableRow>
-        <TableCell className="cursor-pointer" onClick={() => navigate(`/namespaces/${ns.name}/repository/tags?namespace_id=${repository.namespace_id}&repository=${repository.name}&repository_id=${repository.id}`)}>
+        <TableCell
+          className="cursor-pointer"
+          onClick={() =>
+            navigate(
+              `/namespaces/${ns.name}/repository/tags?namespace_id=${repository.namespace_id}&repository=${repository.name}&repository_id=${repository.id}`,
+            )
+          }
+        >
           <div className="truncate">
             <span>{repository.name}</span>
-            <span className="text-muted-foreground font-normal ml-4">{repository.description}</span>
+            <span className="text-muted-foreground font-normal ml-4">
+              {repository.description}
+            </span>
           </div>
         </TableCell>
-        <TableCell className="text-right"><Quota current={repository.size} limit={repository.size_limit} /></TableCell>
-        <TableCell className="text-right"><QuotaSimple current={repository.tag_count} limit={repository.tag_limit} /></TableCell>
-        <TableCell className="text-right text-muted-foreground">{dayjs.utc(repository.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-        <TableCell className="text-right text-muted-foreground">{dayjs.utc(repository.updated_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
+        <TableCell className="text-right">
+          <Quota current={repository.size} limit={repository.size_limit} />
+        </TableCell>
+        <TableCell className="text-right">
+          <QuotaSimple
+            current={repository.tag_count}
+            limit={repository.tag_limit}
+          />
+        </TableCell>
+        <TableCell className="text-right text-muted-foreground">
+          {dayjs
+            .utc(repository.created_at)
+            .tz(dayjs.tz.guess())
+            .format("YYYY-MM-DD HH:mm:ss")}
+        </TableCell>
+        <TableCell className="text-right text-muted-foreground">
+          {dayjs
+            .utc(repository.updated_at)
+            .tz(dayjs.tz.guess())
+            .format("YYYY-MM-DD HH:mm:ss")}
+        </TableCell>
         <TableCell className="text-right">
           {canManage && (
             <div className="flex items-center justify-end gap-1">
@@ -381,9 +703,14 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
       </TableRow>
 
       {/* Update Repository Modal */}
-      <Dialog open={updateRepositoryModal} onOpenChange={setUpdateRepositoryModal}>
+      <Dialog
+        open={updateRepositoryModal}
+        onOpenChange={setUpdateRepositoryModal}
+      >
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Update Repository</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Update Repository</DialogTitle>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Name</Label>
@@ -391,14 +718,39 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
             </div>
             <div className="grid gap-2">
               <Label>Description</Label>
-              <Input placeholder="30 characters" value={descriptionText} onChange={e => setDescriptionText(e.target.value)} data-invalid={!descriptionTextValid ? true : undefined} />
+              <Input
+                placeholder="30 characters"
+                value={descriptionText}
+                onChange={(e) => setDescriptionText(e.target.value)}
+                data-invalid={!descriptionTextValid ? true : undefined}
+              />
             </div>
             <div className="grid gap-2">
               <Label>Size limit</Label>
               <div className="flex gap-2">
-                <Input type="number" placeholder="0 means no limit" value={sizeLimit} onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!sizeLimitValid ? true : undefined} className="flex-1" />
-                <Select value={sizeLimitUnit} onValueChange={(v) => { if (v) setSizeLimitUnit(v); }}>
-                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={sizeLimit}
+                  onChange={(e) =>
+                    setSizeLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!sizeLimitValid ? true : undefined}
+                  className="flex-1"
+                />
+                <Select
+                  value={sizeLimitUnit}
+                  onValueChange={(v) => {
+                    if (v) setSizeLimitUnit(v);
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MiB">MiB</SelectItem>
                     <SelectItem value="GiB">GiB</SelectItem>
@@ -409,26 +761,54 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
             </div>
             <div className="grid gap-2">
               <Label>Tag count limit</Label>
-              <Input type="number" placeholder="0 means no limit" value={tagCountLimit} onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!tagCountLimitValid ? true : undefined} />
+              <Input
+                type="number"
+                placeholder="0 means no limit"
+                value={tagCountLimit}
+                onChange={(e) =>
+                  setTagCountLimit(
+                    Number.isNaN(parseInt(e.target.value))
+                      ? ""
+                      : parseInt(e.target.value),
+                  )
+                }
+                data-invalid={!tagCountLimitValid ? true : undefined}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUpdateRepositoryModal(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateRepositoryModal(false)}
+            >
+              Cancel
+            </Button>
             <Button onClick={updateRepository}>Update</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Repository Dialog */}
-      <AlertDialog open={deleteRepositoryModal} onOpenChange={setDeleteRepositoryModal}>
+      <AlertDialog
+        open={deleteRepositoryModal}
+        onOpenChange={setDeleteRepositoryModal}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete repository</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure you want to delete the repository <strong>{repository.name}</strong>?</AlertDialogDescription>
+            <AlertDialogDescription>
+              Are you sure you want to delete the repository{" "}
+              <strong>{repository.name}</strong>?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteRepository} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={deleteRepository}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

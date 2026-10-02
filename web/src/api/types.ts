@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IOrder } from "../interfaces";
+import { IOrder } from "@/interfaces";
 
 export interface ListParams {
   page?: number;

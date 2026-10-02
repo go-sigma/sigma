@@ -15,8 +15,7 @@
  */
 
 import { z } from "zod";
-
-import { ISizeWithUnit } from "../interfaces";
+import { ISizeWithUnit } from "@/interfaces";
 
 /** Remove the http(s) scheme from an endpoint. */
 export function trimHTTP(str: string) {
@@ -32,25 +31,25 @@ export function trimHTTP(str: string) {
 export function calcUnit(size: number): ISizeWithUnit {
   let unit = "MiB";
   let result = 0;
-  let m = (size / (2 ** 20));
+  let m = size / 2 ** 20;
   if (m < 1024) {
     unit = "MiB";
     result = m;
   } else {
-    m = (size / (2 ** 30));
+    m = size / 2 ** 30;
     if (m < 1024) {
-      unit = "GiB"
+      unit = "GiB";
       result = m;
     } else {
-      m = (size / (2 ** 40));
-      unit = "TiB"
+      m = size / 2 ** 40;
+      unit = "TiB";
       result = m;
     }
   }
   return {
     unit: unit,
     size: result,
-  }
+  };
 }
 
 const emailSchema = z.email();
@@ -70,7 +69,11 @@ export class Tooltip {
   private trigger: HTMLElement | null;
   private timer?: number;
 
-  constructor(target: HTMLElement | null, trigger: HTMLElement | null, _options?: unknown) {
+  constructor(
+    target: HTMLElement | null,
+    trigger: HTMLElement | null,
+    _options?: unknown,
+  ) {
     this.target = target;
     this.trigger = trigger;
   }

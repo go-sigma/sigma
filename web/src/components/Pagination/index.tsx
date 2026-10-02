@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useTranslation } from "../../i18n/useTranslation";
+import { useTranslation } from "@/i18n/useTranslation";
 import {
   Pagination as ShadPagination,
   PaginationContent,

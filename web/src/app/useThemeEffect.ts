@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useUiStore } from "../stores";
+import { useUiStore } from "@/stores";
 import { applyTheme, getSystemPrefersDark, resolveTheme } from "./theme";
 
 export default function useThemeEffect() {

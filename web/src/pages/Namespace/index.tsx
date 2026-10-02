@@ -17,26 +17,37 @@
 import axios from "axios";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-import Header from "../../components/Header";
-import IMenu from "../../components/Menu";
-import Notification from "../../components/Notification";
-import OrderHeader from "../../components/OrderHeader";
-import Pagination from "../../components/Pagination";
-import Quota from "../../components/Quota";
-import QuotaSimple from "../../components/QuotaSimple";
-import RelativeTime from "../../components/RelativeTime";
-import Settings from "../../Settings";
-import { calcUnit } from "../../utils";
-import { useTranslation } from "../../i18n/useTranslation";
-import { IHTTPError, INamespaceItem, INamespaceList, IOrder, IUserSelf } from "../../interfaces";
-import { NamespaceRole, UserRole } from "../../interfaces/enums";
-
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import Notification from "@/components/Notification";
+import OrderHeader from "@/components/OrderHeader";
+import Pagination from "@/components/Pagination";
+import Quota from "@/components/Quota";
+import QuotaSimple from "@/components/QuotaSimple";
+import RelativeTime from "@/components/RelativeTime";
+import Settings from "@/Settings";
+import { calcUnit } from "@/utils";
+import { useTranslation } from "@/i18n/useTranslation";
+import {
+  IHTTPError,
+  INamespaceItem,
+  INamespaceList,
+  IOrder,
+  IUserSelf,
+} from "@/interfaces";
+import { NamespaceRole, UserRole } from "@/interfaces/enums";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +66,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -63,25 +80,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CornerDownLeft, SquarePen, Trash2 } from "lucide-react";
+import {
+  CornerDownLeft,
+  EllipsisVertical,
+  SquarePen,
+  Trash2,
+} from "lucide-react";
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
-  const [namespaceList, setNamespaceList] = useState<INamespaceList>({} as INamespaceList);
+  const [namespaceList, setNamespaceList] = useState<INamespaceList>(
+    {} as INamespaceList,
+  );
 
   const [namespaceText, setNamespaceText] = useState("");
-  const namespaceTextValid = namespaceText === "" || /^[a-z][0-9a-z-]{0,20}$/.test(namespaceText);
+  const namespaceTextValid =
+    namespaceText === "" || /^[a-z][0-9a-z-]{0,20}$/.test(namespaceText);
   const [descriptionText, setDescriptionText] = useState("");
-  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
-  const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(0);
-  const repositoryCountLimitValid = Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0;
+  const descriptionTextValid =
+    descriptionText === "" || /^.{0,30}$/.test(descriptionText);
+  const [repositoryCountLimit, setRepositoryCountLimit] = useState<
+    string | number
+  >(0);
+  const repositoryCountLimitValid =
+    Number.isInteger(repositoryCountLimit) &&
+    parseInt(repositoryCountLimit.toString()) >= 0;
   const [tagCountLimit, setTagCountLimit] = useState<string | number>(0);
-  const tagCountLimitValid = Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
+  const tagCountLimitValid =
+    Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
   const [sizeLimit, setSizeLimit] = useState<string | number>(0);
-  const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
+  const sizeLimitValid =
+    Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState("MiB");
-  const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
-    (sizeLimitUnit === "TiB" ? 1 << 40 : sizeLimitUnit === "GiB" ? 1 << 30 : 1 << 20);
+  const realSizeLimit =
+    (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
+    (sizeLimitUnit === "TiB"
+      ? 2 ** 40
+      : sizeLimitUnit === "GiB"
+        ? 2 ** 30
+        : 2 ** 20);
   const [namespaceVisibility, setNamespaceVisibility] = useState("private");
 
   const [page, setPage] = useState(1);
@@ -102,26 +139,40 @@ export default function Namespace({ localServer }: { localServer: string }) {
     setTagCountOrder(IOrder.None);
     setCreatedAtOrder(IOrder.None);
     setUpdatedAtOrder(IOrder.None);
-  }
+  };
 
   const [createNamespaceModal, setCreateNamespaceModal] = useState(false);
 
   const fetchNamespace = useCallback(() => {
-    let url = localServer + `/api/v1/namespaces/?limit=${Settings.PageSize}&page=${page}`;
+    let url =
+      localServer +
+      `/api/v1/namespaces/?limit=${Settings.PageSize}&page=${page}`;
     if (searchNamespace !== "") url += `&name=${searchNamespace}`;
-    if (sortName !== "") url += `&sort=${sortName}&method=${sortOrder.toString()}`
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        setNamespaceList(response.data as INamespaceList);
-        setTotal((response.data as INamespaceList).total);
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    });
+    if (sortName !== "")
+      url += `&sort=${sortName}&method=${sortOrder.toString()}`;
+    axios
+      .get(url)
+      .then((response) => {
+        if (response?.status === 200) {
+          setNamespaceList(response.data as INamespaceList);
+          setTotal((response.data as INamespaceList).total);
+        } else {
+          const errorcode = response.data as IHTTPError;
+          Notification({
+            level: "warning",
+            title: errorcode.title,
+            message: errorcode.description,
+          });
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
   }, [localServer, page, searchNamespace, sortName, sortOrder]);
 
   useEffect(() => {
@@ -131,38 +182,68 @@ export default function Namespace({ localServer }: { localServer: string }) {
   const [userObj, setUserObj] = useState<IUserSelf>({} as IUserSelf);
 
   useEffect(() => {
-    axios.get(localServer + "/api/v1/users/self").then(response => {
-      if (response.status === 200) {
-        setUserObj(response.data as IUserSelf);
-      }
-    }).catch(() => {});
+    axios
+      .get(localServer + "/api/v1/users/self")
+      .then((response) => {
+        if (response.status === 200) {
+          setUserObj(response.data as IUserSelf);
+        }
+      })
+      .catch(() => {});
   }, [localServer]);
 
   const createNamespace = () => {
-    if (!(namespaceTextValid && descriptionTextValid && sizeLimitValid && repositoryCountLimitValid && tagCountLimitValid)) {
-      Notification({ level: "warning", title: t("common.formValidateFailed"), message: t("common.checkForm") });
+    if (!(
+      namespaceTextValid &&
+      descriptionTextValid &&
+      sizeLimitValid &&
+      repositoryCountLimitValid &&
+      tagCountLimitValid
+    )) {
+      Notification({
+        level: "warning",
+        title: t("common.formValidateFailed"),
+        message: t("common.checkForm"),
+      });
       return;
     }
     setCreateNamespaceModal(false);
-    axios.post(localServer + '/api/v1/namespaces/', {
-      name: namespaceText, description: descriptionText, size_limit: realSizeLimit,
-      repository_limit: repositoryCountLimit, tag_limit: tagCountLimit, visibility: namespaceVisibility,
-    } as INamespaceItem).then(response => {
-      if (response.status === 201) {
-        setNamespaceText(""); setDescriptionText(""); setNamespaceVisibility("private");
-        setRepositoryCountLimit(0); setTagCountLimit(0); setSizeLimit(0);
-        fetchNamespace();
-      }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
-  }
+    axios
+      .post(localServer + "/api/v1/namespaces/", {
+        name: namespaceText,
+        description: descriptionText,
+        size_limit: realSizeLimit,
+        repository_limit: repositoryCountLimit,
+        tag_limit: tagCountLimit,
+        visibility: namespaceVisibility,
+      } as INamespaceItem)
+      .then((response) => {
+        if (response.status === 201) {
+          setNamespaceText("");
+          setDescriptionText("");
+          setNamespaceVisibility("private");
+          setRepositoryCountLimit(0);
+          setTagCountLimit(0);
+          setSizeLimit(0);
+          fetchNamespace();
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
+  };
 
   return (
     <Fragment>
       <HelmetProvider>
-        <Helmet><title>{t("common.namespaces")}</title></Helmet>
+        <Helmet>
+          <title>{t("common.namespaces")}</title>
+        </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
         <IMenu localServer={localServer} item="namespaces" />
@@ -172,24 +253,34 @@ export default function Namespace({ localServer }: { localServer: string }) {
             <div className="pt-4 pb-4 flex justify-between items-center">
               <div className="px-4">
                 <div className="relative flex items-center">
-                  <Label htmlFor="namespaceSearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">
+                  <Label
+                    htmlFor="namespaceSearch"
+                    className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10"
+                  >
                     {t("common.namespace")}
                   </Label>
                   <Input
                     id="namespaceSearch"
                     placeholder={t("namespace.searchPlaceholder")}
                     value={searchNamespace}
-                    onChange={e => setSearchNamespace(e.target.value)}
-                    onKeyDown={e => { if (e.key == "Enter") fetchNamespace() }}
+                    onChange={(e) => setSearchNamespace(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key == "Enter") fetchNamespace();
+                    }}
                     className="h-10 pr-14"
                   />
-                  <kbd className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground" aria-hidden="true">
+                  <kbd
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     <CornerDownLeft className="size-3.5" />
                   </kbd>
                 </div>
               </div>
               <div className="px-4">
-                <Button onClick={() => setCreateNamespaceModal(true)}>{t("common.create")}</Button>
+                <Button onClick={() => setCreateNamespaceModal(true)}>
+                  {t("common.create")}
+                </Button>
               </div>
             </div>
           </main>
@@ -199,48 +290,150 @@ export default function Namespace({ localServer }: { localServer: string }) {
                 <TableHeader className="[&_th]:font-normal">
                   <TableRow>
                     <TableHead>{t("namespace.table.name")}</TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("namespace.table.size")} orderStatus={sizeOrder} setOrder={e => { resetOrder(); setSizeOrder(e); setSortOrder(e); setSortName("size"); }} /></TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("namespace.table.repositoryCount")} orderStatus={repositoryCountOrder} setOrder={e => { resetOrder(); setRepositoryOrder(e); setSortOrder(e); setSortName("repository_count"); }} /></TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("namespace.table.tagCount")} orderStatus={tagCountOrder} setOrder={e => { resetOrder(); setTagCountOrder(e); setSortOrder(e); setSortName("tag_count"); }} /></TableHead>
-                    <TableHead className="text-right">{t("namespace.table.visibility")}</TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("namespace.table.createdAt")} orderStatus={createdAtOrder} setOrder={e => { resetOrder(); setCreatedAtOrder(e); setSortOrder(e); setSortName("created_at"); }} /></TableHead>
-                    <TableHead className="text-right"><OrderHeader text={t("namespace.table.updatedAt")} orderStatus={updatedAtOrder} setOrder={e => { resetOrder(); setUpdatedAtOrder(e); setSortOrder(e); setSortName("updated_at"); }} /></TableHead>
-                    <TableHead className="text-right">{t("common.action")}</TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("namespace.table.size")}
+                        orderStatus={sizeOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setSizeOrder(e);
+                          setSortOrder(e);
+                          setSortName("size");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("namespace.table.repositoryCount")}
+                        orderStatus={repositoryCountOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setRepositoryOrder(e);
+                          setSortOrder(e);
+                          setSortName("repository_count");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("namespace.table.tagCount")}
+                        orderStatus={tagCountOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setTagCountOrder(e);
+                          setSortOrder(e);
+                          setSortName("tag_count");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("namespace.table.visibility")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("namespace.table.createdAt")}
+                        orderStatus={createdAtOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setCreatedAtOrder(e);
+                          setSortOrder(e);
+                          setSortName("created_at");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <OrderHeader
+                        text={t("namespace.table.updatedAt")}
+                        orderStatus={updatedAtOrder}
+                        setOrder={(e) => {
+                          resetOrder();
+                          setUpdatedAtOrder(e);
+                          setSortOrder(e);
+                          setSortName("updated_at");
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="text-center">
+                      {t("common.action")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {namespaceList.items?.map((ns) => (
-                    <TableItem key={ns.id} user={userObj} namespace={ns} localServer={localServer} onChanged={fetchNamespace} />
+                    <TableItem
+                      key={ns.id}
+                      user={userObj}
+                      namespace={ns}
+                      localServer={localServer}
+                      onChanged={fetchNamespace}
+                    />
                   ))}
                 </TableBody>
               </Table>
             </div>
           </div>
-          <Pagination limit={Settings.PageSize} page={page} setPage={setPage} total={total} />
+          <Pagination
+            limit={Settings.PageSize}
+            page={page}
+            setPage={setPage}
+            total={total}
+          />
         </div>
       </div>
 
       {/* Create Namespace Modal */}
-      <Dialog open={createNamespaceModal} onOpenChange={setCreateNamespaceModal}>
+      <Dialog
+        open={createNamespaceModal}
+        onOpenChange={setCreateNamespaceModal}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t("common.create")} {t("common.namespace")}</DialogTitle>
+            <DialogTitle>
+              {t("common.create")} {t("common.namespace")}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label><span className="text-destructive">*</span>Name</Label>
-              <Input placeholder="2-20 lowercase characters" value={namespaceText} onChange={e => setNamespaceText(e.target.value)} data-invalid={!namespaceTextValid ? true : undefined} />
-              {!namespaceTextValid && <p className="text-xs text-destructive">Not a valid namespace name, 2-20 lowercase characters.</p>}
+              <Label>
+                <span className="text-destructive">*</span>Name
+              </Label>
+              <Input
+                placeholder="2-20 lowercase characters"
+                value={namespaceText}
+                onChange={(e) => setNamespaceText(e.target.value)}
+                data-invalid={!namespaceTextValid ? true : undefined}
+              />
+              {!namespaceTextValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid namespace name, 2-20 lowercase characters.
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Description</Label>
-              <Input placeholder="30 characters" value={descriptionText} onChange={e => setDescriptionText(e.target.value)} data-invalid={!descriptionTextValid ? true : undefined} />
-              {!descriptionTextValid && <p className="text-xs text-destructive">Not a valid description, max 30 characters.</p>}
+              <Input
+                placeholder="30 characters"
+                value={descriptionText}
+                onChange={(e) => setDescriptionText(e.target.value)}
+                data-invalid={!descriptionTextValid ? true : undefined}
+              />
+              {!descriptionTextValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid description, max 30 characters.
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Visibility</Label>
-              <Select value={namespaceVisibility} onValueChange={(v) => { if (v) setNamespaceVisibility(v); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={namespaceVisibility}
+                onValueChange={(v) => {
+                  if (v) setNamespaceVisibility(v);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="private">Private</SelectItem>
                   <SelectItem value="public">Public</SelectItem>
@@ -250,9 +443,29 @@ export default function Namespace({ localServer }: { localServer: string }) {
             <div className="grid gap-2">
               <Label>Size limit</Label>
               <div className="flex gap-2">
-                <Input type="number" placeholder="0 means no limit" value={sizeLimit} onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!sizeLimitValid ? true : undefined} className="flex-1" />
-                <Select value={sizeLimitUnit} onValueChange={(v) => { if (v) setSizeLimitUnit(v); }}>
-                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={sizeLimit}
+                  onChange={(e) =>
+                    setSizeLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!sizeLimitValid ? true : undefined}
+                  className="flex-1"
+                />
+                <Select
+                  value={sizeLimitUnit}
+                  onValueChange={(v) => {
+                    if (v) setSizeLimitUnit(v);
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MiB">MiB</SelectItem>
                     <SelectItem value="GiB">GiB</SelectItem>
@@ -260,32 +473,83 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   </SelectContent>
                 </Select>
               </div>
-              {!sizeLimitValid && <p className="text-xs text-destructive">Not a valid size limit, should be non-negative integer.</p>}
+              {!sizeLimitValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid size limit, should be non-negative integer.
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Repository count limit</Label>
-                <Input type="number" placeholder="0 means no limit" value={repositoryCountLimit} onChange={e => setRepositoryCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!repositoryCountLimitValid ? true : undefined} />
-                {!repositoryCountLimitValid && <p className="text-xs text-destructive">Not a valid repository count limit.</p>}
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={repositoryCountLimit}
+                  onChange={(e) =>
+                    setRepositoryCountLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!repositoryCountLimitValid ? true : undefined}
+                />
+                {!repositoryCountLimitValid && (
+                  <p className="text-xs text-destructive">
+                    Not a valid repository count limit.
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label>Tag count limit</Label>
-                <Input type="number" placeholder="0 means no limit" value={tagCountLimit} onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!tagCountLimitValid ? true : undefined} />
-                {!tagCountLimitValid && <p className="text-xs text-destructive">Not a valid tag count limit.</p>}
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={tagCountLimit}
+                  onChange={(e) =>
+                    setTagCountLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!tagCountLimitValid ? true : undefined}
+                />
+                {!tagCountLimitValid && (
+                  <p className="text-xs text-destructive">
+                    Not a valid tag count limit.
+                  </p>
+                )}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateNamespaceModal(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => setCreateNamespaceModal(false)}
+            >
+              Cancel
+            </Button>
             <Button onClick={createNamespace}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </Fragment>
-  )
+  );
 }
 
-function TableItem({ localServer, user, namespace: ns, onChanged }: { localServer: string, user: IUserSelf, namespace: INamespaceItem, onChanged: () => void }) {
+function TableItem({
+  localServer,
+  user,
+  namespace: ns,
+  onChanged,
+}: {
+  localServer: string;
+  user: IUserSelf;
+  namespace: INamespaceItem;
+  onChanged: () => void;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -293,94 +557,174 @@ function TableItem({ localServer, user, namespace: ns, onChanged }: { localServe
   const [deleteNamespaceModal, setDeleteNamespaceModal] = useState(false);
 
   const [descriptionText, setDescriptionText] = useState(ns.description);
-  const descriptionTextValid = descriptionText === "" || /^.{0,30}$/.test(descriptionText);
+  const descriptionTextValid =
+    descriptionText === "" || /^.{0,30}$/.test(descriptionText);
   useEffect(() => {
     if (descriptionText != "") {
     }
   }, [descriptionText]);
-  const [repositoryCountLimit, setRepositoryCountLimit] = useState<string | number>(ns.repository_limit);
-  const repositoryCountLimitValid = Number.isInteger(repositoryCountLimit) && parseInt(repositoryCountLimit.toString()) >= 0;
-  const [tagCountLimit, setTagCountLimit] = useState<string | number>(ns.tag_limit);
-  const tagCountLimitValid = Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
+  const [repositoryCountLimit, setRepositoryCountLimit] = useState<
+    string | number
+  >(ns.repository_limit);
+  const repositoryCountLimitValid =
+    Number.isInteger(repositoryCountLimit) &&
+    parseInt(repositoryCountLimit.toString()) >= 0;
+  const [tagCountLimit, setTagCountLimit] = useState<string | number>(
+    ns.tag_limit,
+  );
+  const tagCountLimitValid =
+    Number.isInteger(tagCountLimit) && parseInt(tagCountLimit.toString()) >= 0;
   let calcUnitObj = calcUnit(ns.size_limit);
   const [sizeLimit, setSizeLimit] = useState<string | number>(calcUnitObj.size);
-  const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
+  const sizeLimitValid =
+    Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
-  const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
-    (sizeLimitUnit === "TiB" ? 1 << 40 : sizeLimitUnit === "GiB" ? 1 << 30 : 1 << 20);
+  const realSizeLimit =
+    (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
+    (sizeLimitUnit === "TiB"
+      ? 2 ** 40
+      : sizeLimitUnit === "GiB"
+        ? 2 ** 30
+        : 2 ** 20);
   const [namespaceVisibility, setNamespaceVisibility] = useState("private");
 
-  const canManage = user.role == UserRole.Admin || user.role == UserRole.Root || (ns.role != undefined && (ns.role == NamespaceRole.Admin || ns.role == NamespaceRole.Manager));
+  const canManage =
+    user.role == UserRole.Admin ||
+    user.role == UserRole.Root ||
+    (ns.role != undefined &&
+      (ns.role == NamespaceRole.Admin || ns.role == NamespaceRole.Manager));
 
   const updateNamespace = () => {
     setUpdateNamespaceModal(false);
-    axios.put(localServer + `/api/v1/namespaces/${ns.id}`, {
-      description: descriptionText, size_limit: realSizeLimit,
-      repository_limit: repositoryCountLimit, tag_limit: tagCountLimit, visibility: namespaceVisibility,
-    } as INamespaceItem).then(response => {
-      if (response.status === 204) { onChanged(); }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
-  }
+    axios
+      .put(localServer + `/api/v1/namespaces/${ns.id}`, {
+        description: descriptionText,
+        size_limit: realSizeLimit,
+        repository_limit: repositoryCountLimit,
+        tag_limit: tagCountLimit,
+        visibility: namespaceVisibility,
+      } as INamespaceItem)
+      .then((response) => {
+        if (response.status === 204) {
+          onChanged();
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
+  };
 
   const deleteNamespace = () => {
-    axios.delete(localServer + `/api/v1/namespaces/${ns.id}`).then(response => {
-      if (response.status === 204) { onChanged(); }
-    }).catch(error => {
-      const errorcode = error.response?.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
-    })
-  }
+    axios
+      .delete(localServer + `/api/v1/namespaces/${ns.id}`)
+      .then((response) => {
+        if (response.status === 204) {
+          onChanged();
+        }
+      })
+      .catch((error) => {
+        const errorcode = error.response?.data as IHTTPError;
+        Notification({
+          level: "warning",
+          title: errorcode?.title,
+          message: errorcode?.description,
+        });
+      });
+  };
 
   return (
     <>
       <TableRow className="align-middle">
-        <TableCell className="cursor-pointer" onClick={() => navigate(`/namespaces/${ns.name}/repositories?namespace_id=${ns.id}`)}>
+        <TableCell
+          className="cursor-pointer"
+          onClick={() =>
+            navigate(
+              `/namespaces/${ns.name}/repositories?namespace_id=${ns.id}`,
+            )
+          }
+        >
           <div className="truncate">
             <span>{ns.name}</span>
-            <span className="text-muted-foreground font-normal ml-4">{ns.description}</span>
+            <span className="text-muted-foreground font-normal ml-4">
+              {ns.description}
+            </span>
           </div>
         </TableCell>
-        <TableCell className="text-right"><Quota current={ns.size} limit={ns.size_limit} /></TableCell>
-        <TableCell className="text-right"><QuotaSimple current={ns.repository_count} limit={ns.repository_limit} /></TableCell>
-        <TableCell className="text-right"><QuotaSimple current={ns.tag_count} limit={ns.tag_limit} /></TableCell>
-        <TableCell className="text-right"><Badge variant="outline" className="capitalize">{ns.visibility}</Badge></TableCell>
-        <TableCell className="text-right text-muted-foreground"><RelativeTime time={ns.created_at} /></TableCell>
-        <TableCell className="text-right text-muted-foreground"><RelativeTime time={ns.updated_at} /></TableCell>
         <TableCell className="text-right">
+          <Quota current={ns.size} limit={ns.size_limit} />
+        </TableCell>
+        <TableCell className="text-right">
+          <QuotaSimple
+            current={ns.repository_count}
+            limit={ns.repository_limit}
+          />
+        </TableCell>
+        <TableCell className="text-right">
+          <QuotaSimple current={ns.tag_count} limit={ns.tag_limit} />
+        </TableCell>
+        <TableCell className="text-right">
+          <Badge variant="outline" className="capitalize">
+            {ns.visibility}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-right text-muted-foreground">
+          <RelativeTime time={ns.created_at} />
+        </TableCell>
+        <TableCell className="text-right text-muted-foreground">
+          <RelativeTime time={ns.updated_at} />
+        </TableCell>
+        <TableCell className="text-center">
           {canManage && (
-            <div className="flex items-center justify-end gap-1">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="size-6"
-                title={t("common.update")}
-                aria-label={t("common.update")}
-                onClick={() => { setUpdateNamespaceModal(true); setNamespaceVisibility(ns.visibility); }}
-              >
-                <SquarePen />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="size-6 text-destructive hover:text-destructive"
-                title={t("common.delete")}
-                aria-label={t("common.delete")}
-                onClick={() => setDeleteNamespaceModal(true)}
-              >
-                <Trash2 />
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 text-muted-foreground data-popup-open:bg-muted"
+                  >
+                    <EllipsisVertical />
+                    <span className="sr-only">{t("common.openOptions")}</span>
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-32">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setUpdateNamespaceModal(true);
+                    setNamespaceVisibility(ns.visibility);
+                  }}
+                >
+                  <SquarePen />
+                  <span>{t("common.update")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteNamespaceModal(true)}
+                >
+                  <Trash2 />
+                  <span>{t("common.delete")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </TableCell>
       </TableRow>
 
       {/* Update Namespace Modal */}
-      <Dialog open={updateNamespaceModal} onOpenChange={setUpdateNamespaceModal}>
+      <Dialog
+        open={updateNamespaceModal}
+        onOpenChange={setUpdateNamespaceModal}
+      >
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Update Namespace</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Update Namespace</DialogTitle>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Name</Label>
@@ -388,13 +732,29 @@ function TableItem({ localServer, user, namespace: ns, onChanged }: { localServe
             </div>
             <div className="grid gap-2">
               <Label>Description</Label>
-              <Input placeholder="30 characters" value={descriptionText} onChange={e => setDescriptionText(e.target.value)} data-invalid={!descriptionTextValid ? true : undefined} />
-              {!descriptionTextValid && <p className="text-xs text-destructive">Not a valid description, max 30 characters.</p>}
+              <Input
+                placeholder="30 characters"
+                value={descriptionText}
+                onChange={(e) => setDescriptionText(e.target.value)}
+                data-invalid={!descriptionTextValid ? true : undefined}
+              />
+              {!descriptionTextValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid description, max 30 characters.
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Visibility</Label>
-              <Select value={namespaceVisibility} onValueChange={(v) => { if (v) setNamespaceVisibility(v); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={namespaceVisibility}
+                onValueChange={(v) => {
+                  if (v) setNamespaceVisibility(v);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="private">Private</SelectItem>
                   <SelectItem value="public">Public</SelectItem>
@@ -404,9 +764,29 @@ function TableItem({ localServer, user, namespace: ns, onChanged }: { localServe
             <div className="grid gap-2">
               <Label>Size limit</Label>
               <div className="flex gap-2">
-                <Input type="number" placeholder="0 means no limit" value={sizeLimit} onChange={e => setSizeLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!sizeLimitValid ? true : undefined} className="flex-1" />
-                <Select value={sizeLimitUnit} onValueChange={(v) => { if (v) setSizeLimitUnit(v); }}>
-                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={sizeLimit}
+                  onChange={(e) =>
+                    setSizeLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!sizeLimitValid ? true : undefined}
+                  className="flex-1"
+                />
+                <Select
+                  value={sizeLimitUnit}
+                  onValueChange={(v) => {
+                    if (v) setSizeLimitUnit(v);
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="MiB">MiB</SelectItem>
                     <SelectItem value="GiB">GiB</SelectItem>
@@ -414,36 +794,80 @@ function TableItem({ localServer, user, namespace: ns, onChanged }: { localServe
                   </SelectContent>
                 </Select>
               </div>
-              {!sizeLimitValid && <p className="text-xs text-destructive">Not a valid size limit.</p>}
+              {!sizeLimitValid && (
+                <p className="text-xs text-destructive">
+                  Not a valid size limit.
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Repository count limit</Label>
-                <Input type="number" placeholder="0 means no limit" value={repositoryCountLimit} onChange={e => setRepositoryCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!repositoryCountLimitValid ? true : undefined} />
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={repositoryCountLimit}
+                  onChange={(e) =>
+                    setRepositoryCountLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!repositoryCountLimitValid ? true : undefined}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Tag count limit</Label>
-                <Input type="number" placeholder="0 means no limit" value={tagCountLimit} onChange={e => setTagCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} data-invalid={!tagCountLimitValid ? true : undefined} />
+                <Input
+                  type="number"
+                  placeholder="0 means no limit"
+                  value={tagCountLimit}
+                  onChange={(e) =>
+                    setTagCountLimit(
+                      Number.isNaN(parseInt(e.target.value))
+                        ? ""
+                        : parseInt(e.target.value),
+                    )
+                  }
+                  data-invalid={!tagCountLimitValid ? true : undefined}
+                />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUpdateNamespaceModal(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateNamespaceModal(false)}
+            >
+              Cancel
+            </Button>
             <Button onClick={updateNamespace}>Update</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Namespace Dialog */}
-      <AlertDialog open={deleteNamespaceModal} onOpenChange={setDeleteNamespaceModal}>
+      <AlertDialog
+        open={deleteNamespaceModal}
+        onOpenChange={setDeleteNamespaceModal}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete namespace</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure you want to delete the namespace <strong>{ns.name}</strong>?</AlertDialogDescription>
+            <AlertDialogDescription>
+              Are you sure you want to delete the namespace{" "}
+              <strong>{ns.name}</strong>?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteNamespace} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={deleteNamespace}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

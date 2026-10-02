@@ -21,15 +21,15 @@ import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Tooltip } from '../../utils';
+import { Tooltip } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 
-import Header from "../../components/Header";
-import Menu from "../../components/Menu";
-import OrderHeader from "../../components/OrderHeader";
-import Pagination from "../../components/Pagination";
-import Settings from "../../Settings";
-import Notification from "../../components/Notification";
+import Header from "@/components/Header";
+import Menu from "@/components/Menu";
+import OrderHeader from "@/components/OrderHeader";
+import Pagination from "@/components/Pagination";
+import Settings from "@/Settings";
+import Notification from "@/components/Notification";
 import {
   IBuilderItem,
   IBuilderRunnerItem,
@@ -38,7 +38,7 @@ import {
   IOrder,
   IRepositoryItem,
   IRunOrRerunRunnerResponse
-} from "../../interfaces";
+} from "@/interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();

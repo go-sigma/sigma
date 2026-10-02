@@ -16,7 +16,7 @@
 
 import { AxiosError } from 'axios';
 
-import { IHTTPError } from "../interfaces";
+import { IHTTPError } from "@/interfaces";
 
 export class ApiError extends Error {
   status?: number;

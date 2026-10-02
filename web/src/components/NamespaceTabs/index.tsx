@@ -16,8 +16,8 @@
 
 import { Link } from "react-router-dom";
 
-import { useTranslation } from "../../i18n/useTranslation";
-import { MessageKey } from "../../i18n/types";
+import { useTranslation } from "@/i18n/useTranslation";
+import { MessageKey } from "@/i18n/types";
 
 import { cn } from "@/lib/utils";
 

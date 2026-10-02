@@ -19,16 +19,16 @@ import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-import Header from "../../components/Header";
-import Menu from "../../components/Menu";
-import OrderHeader from "../../components/OrderHeader";
-import Pagination from "../../components/Pagination";
-import QuotaSimple from "../../components/QuotaSimple";
-import { isEmail, Regex } from "../../utils";
-import Settings from "../../Settings";
-import Toast from "../../components/Notification";
-import { useTranslation } from "../../i18n/useTranslation";
-import { IHTTPError, IOrder, IUserItem, IUserList } from "../../interfaces";
+import Header from "@/components/Header";
+import Menu from "@/components/Menu";
+import OrderHeader from "@/components/OrderHeader";
+import Pagination from "@/components/Pagination";
+import QuotaSimple from "@/components/QuotaSimple";
+import { isEmail, Regex } from "@/utils";
+import Settings from "@/Settings";
+import Toast from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IHTTPError, IOrder, IUserItem, IUserList } from "@/interfaces";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

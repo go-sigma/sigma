@@ -19,12 +19,12 @@ import axios from "axios";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
-import { isEmail, Regex } from "../../utils";
-import Toast from "../../components/Notification";
-import { useTranslation } from "../../i18n/useTranslation";
-import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "../../interfaces";
-import { Locale, ThemeMode, useUiStore } from "../../stores";
-import { setupAutoRefreshToken, teardownAutoRefreshToken } from "../../utils/request";
+import { isEmail, Regex } from "@/utils";
+import Toast from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "@/interfaces";
+import { Locale, ThemeMode, useUiStore } from "@/stores";
+import { setupAutoRefreshToken, teardownAutoRefreshToken } from "@/utils/request";
 
 import { Button } from "@/components/ui/button";
 import {

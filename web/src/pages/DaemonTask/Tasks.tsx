@@ -22,13 +22,13 @@ import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Tooltip } from '../../utils';
+import { Tooltip } from '@/utils';
 
-import Header from "../../components/Header";
-import IMenu from "../../components/Menu";
-import NamespaceTabs from "../../components/NamespaceTabs";
-import Notification from "../../components/Notification";
-import { useTranslation } from "../../i18n/useTranslation";
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import NamespaceTabs from "@/components/NamespaceTabs";
+import Notification from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -60,7 +60,7 @@ import {
   IGcTagRule,
   IGcTagRunnerItem,
   IHTTPError
-} from "../../interfaces";
+} from "@/interfaces";
 
 const retentionAmountType = [
   { id: 1, name: 'Day' },

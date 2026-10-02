@@ -15,7 +15,7 @@
  */
 
 import { ArrowUp, ArrowDown } from "lucide-react";
-import { IOrder } from "../../interfaces";
+import { IOrder } from "@/interfaces";
 
 export default function ({ text, orderStatus, setOrder }: { text: string, orderStatus: IOrder, setOrder: (order: IOrder) => void }) {
   return (

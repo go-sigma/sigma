@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { useUiStore } from "../stores";
+import { useUiStore } from "@/stores";
 import { MessageKey, MessageParams } from "./types";
 import { messagesByLocale } from "./messages";
 

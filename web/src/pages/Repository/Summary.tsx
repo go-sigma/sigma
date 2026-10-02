@@ -25,10 +25,10 @@ import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import Header from "../../components/Header";
-import Menu from "../../components/Menu";
-import Toast from "../../components/Notification";
-import { IHTTPError, IRepositoryItem, ISystemConfig } from "../../interfaces";
+import Header from "@/components/Header";
+import Menu from "@/components/Menu";
+import Toast from "@/components/Notification";
+import { IHTTPError, IRepositoryItem, ISystemConfig } from "@/interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();

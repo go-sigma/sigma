@@ -15,11 +15,10 @@
  */
 
 import { Fragment } from "react";
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-
-import Header from "../../components/Header";
-import Menu from "../../components/Menu";
-import { useTranslation } from "../../i18n/useTranslation";
+import { Helmet, HelmetProvider } from "react-helmet-async";
+import Header from "@/components/Header";
+import Menu from "@/components/Menu";
+import { useTranslation } from "@/i18n/useTranslation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ({ localServer }: { localServer: string }) {
@@ -44,12 +43,14 @@ export default function ({ localServer }: { localServer: string }) {
                 <CardTitle>{t("header.setting")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Select a setting from the sidebar.</p>
+                <p className="text-sm text-muted-foreground">
+                  Select a setting from the sidebar.
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-    </Fragment >
+    </Fragment>
   );
 }

@@ -1,4 +1,4 @@
-import { ResolvedTheme, ThemeMode, uiPreferencesStorageKey } from "../stores";
+import { ResolvedTheme, ThemeMode, uiPreferencesStorageKey } from "@/stores";
 
 export function getSystemPrefersDark(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {

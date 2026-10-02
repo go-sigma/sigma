@@ -14,34 +14,50 @@
  * limitations under the License.
  */
 
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import {
   ICodeRepositoryItem,
   ICodeRepositoryList,
   ICodeRepositoryOwnerItem,
   ICodeRepositoryOwnerList,
-  ICodeRepositoryUser3rdParty
-} from '../../interfaces';
-import { useNavigate, useParams } from 'react-router-dom';
-
-import Header from '../../components/Header';
-import HeaderMenu from '../../components/Menu';
-import Pagination from '../../components/Pagination';
-import Settings from '../../Settings';
-import Toast from "../../components/Notification";
-import { useTranslation } from "../../i18n/useTranslation";
-import _ from 'lodash';
-import axios from 'axios';
-import dayjs from 'dayjs';
+  ICodeRepositoryUser3rdParty,
+} from "@/interfaces";
+import { useNavigate, useParams } from "react-router-dom";
+import Header from "@/components/Header";
+import HeaderMenu from "@/components/Menu";
+import Pagination from "@/components/Pagination";
+import Settings from "@/Settings";
+import Toast from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
+import _ from "lodash";
+import axios from "axios";
+import dayjs from "dayjs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { RefreshCw, UserPlus } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -55,8 +71,9 @@ export default function ({ localServer }: { localServer: string }) {
   const [searchCodeRepo, setSearchCodeRepo] = useState("");
   const [searchCodeRepoEvent, setSearchCodeRepoEvent] = useState(0);
 
-
-  const [codeRepositoryOwners, setCodeRepositoryOwners] = useState<ICodeRepositoryOwnerItem[]>([]);
+  const [codeRepositoryOwners, setCodeRepositoryOwners] = useState<
+    ICodeRepositoryOwnerItem[]
+  >([]);
   const [organization, setOrganization] = useState("");
 
   const [repositories, setRepositories] = useState<ICodeRepositoryItem[]>([]);
@@ -64,27 +81,35 @@ export default function ({ localServer }: { localServer: string }) {
 
   useEffect(() => {
     if (!provider) return;
-    axios.get(`${localServer}/api/v1/coderepos/${provider}/owners`).then(response => {
-      if (response.status == 200) {
-        const data = response.data as ICodeRepositoryOwnerList;
-        setCodeRepositoryOwners(_.orderBy(data.items, ['is_org']));
-        for (let i = 0; i < data.items.length; i++) {
-          if (!data.items[i].is_org) {
-            setOrganization(data.items[i].owner);
-            break;
+    axios
+      .get(`${localServer}/api/v1/coderepos/${provider}/owners`)
+      .then((response) => {
+        if (response.status == 200) {
+          const data = response.data as ICodeRepositoryOwnerList;
+          setCodeRepositoryOwners(_.orderBy(data.items, ["is_org"]));
+          for (let i = 0; i < data.items.length; i++) {
+            if (!data.items[i].is_org) {
+              setOrganization(data.items[i].owner);
+              break;
+            }
           }
         }
-      }
-    }).catch(() => {});
+      })
+      .catch(() => {});
   }, [provider, refresh, localServer]);
 
-  const [user3rdparty, setUser3rdparty] = useState<ICodeRepositoryUser3rdParty>();
+  const [user3rdparty, setUser3rdparty] =
+    useState<ICodeRepositoryUser3rdParty>();
   const [refreshUser3rdparty, setRefreshUser3rdparty] = useState({});
   useEffect(() => {
     if (!provider) return;
-    axios.get(`${localServer}/api/v1/coderepos/${provider}/user3rdparty`).then(response => {
-      if (response.status == 200) setUser3rdparty(response.data as ICodeRepositoryUser3rdParty);
-    }).catch(() => {});
+    axios
+      .get(`${localServer}/api/v1/coderepos/${provider}/user3rdparty`)
+      .then((response) => {
+        if (response.status == 200)
+          setUser3rdparty(response.data as ICodeRepositoryUser3rdParty);
+      })
+      .catch(() => {});
   }, [provider, refresh, refreshUser3rdparty, localServer]);
 
   useEffect(() => {
@@ -98,37 +123,60 @@ export default function ({ localServer }: { localServer: string }) {
     if (searchCodeRepo != "") {
       url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&name=${searchCodeRepo}&limit=${Settings.PageSize}&page=${page}`;
     }
-    axios.get(url).then(response => {
-      if (response.status == 200) {
-        setRepositories((response.data as ICodeRepositoryList).items);
-        setTotal((response.data as ICodeRepositoryList).total);
-      }
-    }).catch(() => {});
-  }, [provider, organization, page, searchCodeRepoEvent, localServer, searchCodeRepo]);
+    axios
+      .get(url)
+      .then((response) => {
+        if (response.status == 200) {
+          setRepositories((response.data as ICodeRepositoryList).items);
+          setTotal((response.data as ICodeRepositoryList).total);
+        }
+      })
+      .catch(() => {});
+  }, [
+    provider,
+    organization,
+    page,
+    searchCodeRepoEvent,
+    localServer,
+    searchCodeRepo,
+  ]);
 
   const setPageAndScrollTop = (nextPage: number) => {
     if (coderepoRef?.current) coderepoRef.current.scrollTop = 0;
     setPage(nextPage);
-  }
+  };
 
   const crResync = () => {
     if (!provider) return;
     if (user3rdparty?.cr_last_update_status == "Doing") {
-      Toast({ level: "warning", title: "Code repository is already synchronizing", message: "" });
+      Toast({
+        level: "warning",
+        title: "Code repository is already synchronizing",
+        message: "",
+      });
       return;
     }
-    axios.get(`${localServer}/api/v1/coderepos/${provider}/resync`).then(response => {
-      if (response.status == 202) {
-        setTimeout(() => setRefresh({}), 200);
-        Toast({ level: "success", title: "Code Repository is synchronizing", message: "" });
-      }
-    }).catch(() => {});
-  }
+    axios
+      .get(`${localServer}/api/v1/coderepos/${provider}/resync`)
+      .then((response) => {
+        if (response.status == 202) {
+          setTimeout(() => setRefresh({}), 200);
+          Toast({
+            level: "success",
+            title: "Code Repository is synchronizing",
+            message: "",
+          });
+        }
+      })
+      .catch(() => {});
+  };
 
   return (
     <Fragment>
       <HelmetProvider>
-        <Helmet><title>{t("common.codeRepository")}</title></Helmet>
+        <Helmet>
+          <title>{t("common.codeRepository")}</title>
+        </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background min-w-400">
         <HeaderMenu localServer={localServer} item="coderepos" />
@@ -139,24 +187,46 @@ export default function ({ localServer }: { localServer: string }) {
               <div className="px-4 flex-1">
                 <div className="flex items-end gap-2">
                   <div className="grid gap-1 relative w-40">
-                    <Label htmlFor="codeRepositorySearch" className="text-xs text-foreground">Organization</Label>
-                    <Select value={organization} onValueChange={(v) => { if (v) setOrganization(v); }}>
-                      <SelectTrigger id="codeRepositorySearch" className="h-10"><SelectValue /></SelectTrigger>
+                    <Label
+                      htmlFor="codeRepositorySearch"
+                      className="text-xs text-foreground"
+                    >
+                      Organization
+                    </Label>
+                    <Select
+                      value={organization}
+                      onValueChange={(v) => {
+                        if (v) setOrganization(v);
+                      }}
+                    >
+                      <SelectTrigger id="codeRepositorySearch" className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
-                        {codeRepositoryOwners.map(cro => (
-                          <SelectItem key={cro.id} value={cro.owner}>{cro.owner}</SelectItem>
+                        {codeRepositoryOwners.map((cro) => (
+                          <SelectItem key={cro.id} value={cro.owner}>
+                            {cro.owner}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-1 relative flex-1 max-w-xs">
-                    <Label htmlFor="codeRepoSearchInput" className="text-xs text-foreground">Code Repository</Label>
+                    <Label
+                      htmlFor="codeRepoSearchInput"
+                      className="text-xs text-foreground"
+                    >
+                      Code Repository
+                    </Label>
                     <Input
                       id="codeRepoSearchInput"
                       placeholder="search code repository"
                       value={searchCodeRepo}
-                      onChange={e => setSearchCodeRepo(e.target.value)}
-                      onKeyDown={e => { if (e.key == "Enter") setSearchCodeRepoEvent(searchCodeRepoEvent + 1); }}
+                      onChange={(e) => setSearchCodeRepo(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key == "Enter")
+                          setSearchCodeRepoEvent(searchCodeRepoEvent + 1);
+                      }}
                       className="h-10 pr-14"
                     />
                   </div>
@@ -171,7 +241,13 @@ export default function ({ localServer }: { localServer: string }) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {user3rdparty?.cr_last_update_status || ""}{user3rdparty?.cr_last_update_status == "Failed" && user3rdparty?.cr_last_update_message != "" ? ", " + user3rdparty?.cr_last_update_message : ""}. Last updated {dayjs().to(dayjs(user3rdparty?.cr_last_update_timestamp))}
+                    {user3rdparty?.cr_last_update_status || ""}
+                    {user3rdparty?.cr_last_update_status == "Failed" &&
+                    user3rdparty?.cr_last_update_message != ""
+                      ? ", " + user3rdparty?.cr_last_update_message
+                      : ""}
+                    . Last updated{" "}
+                    {dayjs().to(dayjs(user3rdparty?.cr_last_update_timestamp))}
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -195,39 +271,64 @@ export default function ({ localServer }: { localServer: string }) {
                 </TableHeader>
                 <TableBody>
                   {repositories?.map((repository) => (
-                    <TableItem key={repository.id} provider={provider || ""} repository={repository} />
+                    <TableItem
+                      key={repository.id}
+                      provider={provider || ""}
+                      repository={repository}
+                    />
                   ))}
                 </TableBody>
               </Table>
             </div>
           </div>
           <div style={{ marginTop: "auto" }}>
-            <Pagination limit={Settings.PageSize} page={page} setPage={setPageAndScrollTop} total={total} />
+            <Pagination
+              limit={Settings.PageSize}
+              page={page}
+              setPage={setPageAndScrollTop}
+              total={total}
+            />
           </div>
         </div>
       </div>
     </Fragment>
-  )
+  );
 }
 
-function TableItem({ provider, repository }: { provider: string, repository: ICodeRepositoryItem }) {
+function TableItem({
+  provider,
+  repository,
+}: {
+  provider: string;
+  repository: ICodeRepositoryItem;
+}) {
   const navigate = useNavigate();
   return (
     <TableRow className="align-middle">
-      <TableCell className="cursor-pointer" onClick={() => window.open(repository.clone_url, "_blank")}>
+      <TableCell
+        className="cursor-pointer"
+        onClick={() => window.open(repository.clone_url, "_blank")}
+      >
         <div className="truncate">
           <span className="font-medium">{repository.name}</span>
-          <span className="text-muted-foreground font-normal ml-2">{repository.clone_url}</span>
+          <span className="text-muted-foreground font-normal ml-2">
+            {repository.clone_url}
+          </span>
         </div>
       </TableCell>
-      <TableCell className="text-right text-muted-foreground cursor-pointer">{repository.oci_repo_count}</TableCell>
-      <TableCell className="text-right text-muted-foreground cursor-pointer hover:text-foreground"
+      <TableCell className="text-right text-muted-foreground cursor-pointer">
+        {repository.oci_repo_count}
+      </TableCell>
+      <TableCell
+        className="text-right text-muted-foreground cursor-pointer hover:text-foreground"
         onClick={() => {
-          navigate(`/builders/setup?builder_source=CodeRepository&provider=${provider}&code_repository_stick=true&code_repository_owner=${repository.owner}&code_repository_owner_id=${repository.owner_id}&code_repository_name=${repository.name}&code_repository_id=${repository.id}&back_to=/coderepos/${provider}`)
+          navigate(
+            `/builders/setup?builder_source=CodeRepository&provider=${provider}&code_repository_stick=true&code_repository_owner=${repository.owner}&code_repository_owner_id=${repository.owner_id}&code_repository_name=${repository.name}&code_repository_id=${repository.id}&back_to=/coderepos/${provider}`,
+          );
         }}
       >
         Setup
       </TableCell>
     </TableRow>
-  )
+  );
 }
