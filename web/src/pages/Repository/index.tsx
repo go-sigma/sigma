@@ -107,9 +107,9 @@ export default function ({ localServer }: { localServer: string }) {
     let sl = 0;
     if (Number.isInteger(sizeLimit)) sl = parseInt(sizeLimit.toString());
     switch (sizeLimitUnit) {
-      case "MiB": setRealSizeLimit(sl * 1 << 20); break;
-      case "GiB": setRealSizeLimit(sl * 1 << 30); break;
-      case "TiB": setRealSizeLimit(sl * 1 << 40); break;
+      case "MiB": setRealSizeLimit(sl * 2 ** 20); break;
+      case "GiB": setRealSizeLimit(sl * 2 ** 30); break;
+      case "TiB": setRealSizeLimit(sl * 2 ** 40); break;
     }
   }, [sizeLimit, sizeLimitUnit]);
   const [createRepositoryModal, setCreateRepositoryModal] = useState(false);
@@ -308,7 +308,7 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
   const sizeLimitValid = Number.isInteger(sizeLimit) && parseInt(sizeLimit.toString()) >= 0;
   const [sizeLimitUnit, setSizeLimitUnit] = useState(calcUnitObj.unit);
   const realSizeLimit = (Number.isInteger(sizeLimit) ? parseInt(sizeLimit.toString()) : 0) *
-    (sizeLimitUnit === "TiB" ? 1 << 40 : sizeLimitUnit === "GiB" ? 1 << 30 : 1 << 20);
+    (sizeLimitUnit === "TiB" ? 2 ** 40 : sizeLimitUnit === "GiB" ? 2 ** 30 : 2 ** 20);
   const [updateRepositoryModal, setUpdateRepositoryModal] = useState(false);
 
   const canManage = user.role == UserRole.Admin || user.role == UserRole.Root ||

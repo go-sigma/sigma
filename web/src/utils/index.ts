@@ -32,17 +32,17 @@ export function trimHTTP(str: string) {
 export function calcUnit(size: number): ISizeWithUnit {
   let unit = "MiB";
   let result = 0;
-  let m = (size / (1 << 20));
+  let m = (size / (2 ** 20));
   if (m < 1024) {
     unit = "MiB";
     result = m;
   } else {
-    m = (size / (1 << 30));
+    m = (size / (2 ** 30));
     if (m < 1024) {
       unit = "GiB"
       result = m;
     } else {
-      m = (size / (1 << 40));
+      m = (size / (2 ** 40));
       unit = "TiB"
       result = m;
     }
