@@ -18,14 +18,24 @@
   margin-top: -7rem;
 }
 
+.editor > div {
+  height: 100%;
+}
+
+.editor > div > div {
+  height: 100%;
+}
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /*light*/
@@ -176,6 +186,7 @@ input[type="number"] {
 .markdown-body [type="reset"],
 .markdown-body [type="submit"] {
   -webkit-appearance: button;
+  appearance: button;
 }
 
 .markdown-body [type="checkbox"],
@@ -192,6 +203,7 @@ input[type="number"] {
 .markdown-body [type="search"]::-webkit-search-cancel-button,
 .markdown-body [type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .markdown-body ::-webkit-input-placeholder {
@@ -201,6 +213,7 @@ input[type="number"] {
 
 .markdown-body ::-webkit-file-upload-button {
   -webkit-appearance: button;
+  appearance: button;
   font: inherit;
 }
 

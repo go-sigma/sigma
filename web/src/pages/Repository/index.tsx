@@ -19,10 +19,11 @@ import dayjs from "dayjs";
 import { useDebounce } from "react-use";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
+import NamespaceTabs from "../../components/NamespaceTabs";
 import Notification from "../../components/Notification";
 import OrderHeader from "../../components/OrderHeader";
 import Pagination from "../../components/Pagination";
@@ -38,7 +39,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -191,18 +191,10 @@ export default function ({ localServer }: { localServer: string }) {
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.repository")}
               props={
-                <Tabs value="repositoryList" className="h-full">
-                  <TabsList className="h-full">
-                    <TabsTrigger value="summary" render={<Link to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`} />}>{t("common.summary")}</TabsTrigger>
-                    <TabsTrigger value="repositoryList">{t("common.repositoryList")}</TabsTrigger>
-                    <TabsTrigger value="members" render={<Link to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`} />}>{t("common.members")}</TabsTrigger>
-                    <TabsTrigger value="daemon" render={<Link to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`} />}>{t("common.daemonTask")}</TabsTrigger>
-                    <TabsTrigger value="webhook" render={<Link to={`/namespaces/${namespace}/webhooks?namespace_id=${namespaceId}`} />}>{t("common.webhook")}</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <NamespaceTabs namespace={namespace} namespaceId={namespaceId || ""} active="repositories" />
               }
             />
-            <div className="pt-3 pb-3 flex justify-between items-center min-h-15">
+            <div className="pt-4 pb-4 flex justify-between items-center">
               <div className="px-4">
                 <div className="relative flex items-center">
                   <Label htmlFor="repositorySearch" className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10">
@@ -224,7 +216,7 @@ export default function ({ localServer }: { localServer: string }) {
           <div className="flex flex-1 overflow-y-auto">
             <div className="w-full">
               <Table>
-                <TableHeader>
+                <TableHeader className="[&_th]:font-normal">
                   <TableRow>
                     <TableHead>{t("repository.table.name")}</TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("repository.table.size")} orderStatus={sizeOrder} setOrder={e => { resetOrder(); setSizeOrder(e); setSortOrder(e); setSortName("size"); }} /></TableHead>
@@ -352,7 +344,7 @@ function TableItem({ localServer, user, namespace: ns, repository, setRefresh }:
       <TableRow>
         <TableCell className="cursor-pointer" onClick={() => navigate(`/namespaces/${ns.name}/repository/tags?namespace_id=${repository.namespace_id}&repository=${repository.name}&repository_id=${repository.id}`)}>
           <div className="truncate">
-            <span className="font-medium">{repository.name}</span>
+            <span>{repository.name}</span>
             <span className="text-muted-foreground font-normal ml-4">{repository.description}</span>
           </div>
         </TableCell>

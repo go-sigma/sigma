@@ -21,11 +21,12 @@ import parser from 'cron-parser';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Tooltip } from '../../utils';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
+import NamespaceTabs from "../../components/NamespaceTabs";
 import Notification from "../../components/Notification";
 import { useTranslation } from "../../i18n/useTranslation";
 
@@ -620,61 +621,27 @@ export default function ({ localServer }: { localServer: string }) {
             <Header title={location.pathname.startsWith("/settings") ? t("header.settingDaemonTask") : t("header.namespaceDaemonTask")}
               props={
                 location.pathname.startsWith("/settings") ? null : (
-                  <div className="flex space-x-8">
-                    <Link
-                      to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      {t("common.summary")}
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/repositories?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      {t("common.repositoryList")}
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      {t("common.members")}
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
-                      onClick={e => {
-                        e.preventDefault();
-                      }}
-                    >
-                      {t("common.daemonTask")}
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/webhooks?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      {t("common.webhook")}
-                    </Link>
-                  </div>
+                  <NamespaceTabs namespace={namespace} namespaceId={namespaceId ? namespaceId.toString() : ""} active="daemon-tasks" />
                 )
               } />
             <div className="flex flex-1 overflow-visible">
               <div className="align-middle inline-block min-w-full border-gray-200">
                 <table className="min-w-full flex-1 overflow-visible">
                   <thead>
-                    <tr className="border-gray-200 dark:border-gray-800">
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                    <tr className="border-b">
+                      <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-left text-sm font-normal text-muted-foreground whitespace-nowrap">
                         <span className="lg:pl-2">{t("common.task")}</span>
                       </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                      <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                         <span className="lg:pl-2">{t("common.running")}</span>
                       </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                      <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                         <span className="lg:pl-2">{t("daemon.lastTrigger")}</span>
                       </th>
-                      <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                      <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                         <span className="lg:pl-2">{t("daemon.nextTrigger")}</span>
                       </th>
-                      <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                      <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-center text-sm font-normal text-muted-foreground whitespace-nowrap">
                         <span className="lg:pl-2">{t("common.action")}</span>
                       </th>
                     </tr>
@@ -706,7 +673,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                         {gcRepositoryRuleExist && gcRepositoryRule.cron_enabled && gcRepositoryRule.cron_next_trigger != undefined ? gcRepositoryRule.cron_next_trigger : "-"}
                       </td>
-                      <td className="pr-3 whitespace-nowrap">
+                      <td className="px-6 text-center whitespace-nowrap">
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
@@ -718,7 +685,7 @@ export default function ({ localServer }: { localServer: string }) {
                           />
                           <DropdownMenuContent align="end" className="w-30">
                             <DropdownMenuItem onClick={() => setGcRepositoryRuleConfigModal(true)}>
-                              {gcRepositoryRuleExist ? "Update" : "Configuration"}
+                              Update
                             </DropdownMenuItem>
                             <DropdownMenuItem disabled={!gcRepositoryRuleExist} onClick={() => createGcRepositoryRunner()}>
                               Run
@@ -753,7 +720,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                         {gcTagRuleExist && gcTagRule.cron_enabled && gcTagRule.cron_next_trigger != undefined ? gcTagRule.cron_next_trigger : "-"}
                       </td>
-                      <td className="pr-3 whitespace-nowrap">
+                      <td className="px-6 text-center whitespace-nowrap">
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
@@ -765,7 +732,7 @@ export default function ({ localServer }: { localServer: string }) {
                           />
                           <DropdownMenuContent align="end" className="w-30">
                             <DropdownMenuItem onClick={() => setGcTagRuleConfigModal(true)}>
-                              {gcTagRuleExist ? "Update" : "Configuration"}
+                              Update
                             </DropdownMenuItem>
                             <DropdownMenuItem disabled={!gcTagRuleExist} onClick={() => createGcTagRunner()}>
                               Run
@@ -800,7 +767,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                         {gcArtifactRuleExist && gcArtifactRule.cron_enabled && gcArtifactRule.cron_next_trigger != undefined ? gcArtifactRule.cron_next_trigger : "-"}
                       </td>
-                      <td className="pr-3 whitespace-nowrap">
+                      <td className="px-6 text-center whitespace-nowrap">
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
@@ -812,7 +779,7 @@ export default function ({ localServer }: { localServer: string }) {
                           />
                           <DropdownMenuContent align="end" className="w-30">
                             <DropdownMenuItem onClick={() => setGcArtifactRuleConfigModal(true)}>
-                              {gcArtifactRuleExist ? "Update" : "Configuration"}
+                              Update
                             </DropdownMenuItem>
                             <DropdownMenuItem disabled={!gcArtifactRuleExist} onClick={() => createGcArtifactRunner()}>
                               Run
@@ -849,7 +816,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                             {gcBlobRuleExist && gcBlobRule.cron_enabled && gcBlobRule.cron_next_trigger != undefined ? gcBlobRule.cron_next_trigger : "-"}
                           </td>
-                          <td className="pr-3 whitespace-nowrap">
+                          <td className="px-6 text-center whitespace-nowrap">
                             <DropdownMenu>
                               <DropdownMenuTrigger
                                 render={
@@ -861,7 +828,7 @@ export default function ({ localServer }: { localServer: string }) {
                               />
                               <DropdownMenuContent align="end" className="w-30">
                                 <DropdownMenuItem onClick={() => setGcBlobRuleConfigModal(true)}>
-                                  {gcBlobRuleExist ? "Update" : "Configuration"}
+                                  Update
                                 </DropdownMenuItem>
                                 <DropdownMenuItem disabled={!gcBlobRuleExist} onClick={() => createGcBlobRunner()}>
                                   Run
@@ -971,7 +938,7 @@ export default function ({ localServer }: { localServer: string }) {
                       id="namespace_count_limit"
                       name="namespace_count_limit"
                       placeholder="0 means no limit"
-                      className={(gcBlobRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      className={(gcBlobRuleRetentionDaysValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                       value={gcBlobRuleRetentionDays}
                       onChange={e => setGcBlobRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
@@ -1055,7 +1022,7 @@ export default function ({ localServer }: { localServer: string }) {
                             id="gc_repository_cron_rule"
                             name="gc_repository_cron_rule"
                             placeholder="cron rule"
-                            className={(gcBlobRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            className={(gcBlobRuleCronRuleValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                             value={gcBlobRuleCronRule}
                             onChange={e => setGcBlobRuleCronRule(e.target.value)}
                           />
@@ -1139,7 +1106,7 @@ export default function ({ localServer }: { localServer: string }) {
                       id="namespace_count_limit"
                       name="namespace_count_limit"
                       placeholder="0 means no limit"
-                      className={(gcRepositoryRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      className={(gcRepositoryRuleRetentionDaysValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                       value={gcRepositoryRuleRetentionDays}
                       onChange={e => setGcRepositoryRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
@@ -1223,7 +1190,7 @@ export default function ({ localServer }: { localServer: string }) {
                             id="gc_repository_cron_rule"
                             name="gc_repository_cron_rule"
                             placeholder="cron rule"
-                            className={(gcRepositoryRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            className={(gcRepositoryRuleCronRuleValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                             value={gcRepositoryRuleCronRule}
                             onChange={e => setGcRepositoryRuleCronRule(e.target.value)}
                           />
@@ -1308,7 +1275,7 @@ export default function ({ localServer }: { localServer: string }) {
                       id="namespace_count_limit"
                       name="namespace_count_limit"
                       placeholder="0 means no limit"
-                      className={(gcArtifactRuleRetentionDaysValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      className={(gcArtifactRuleRetentionDaysValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                       value={gcArtifactRuleRetentionDays}
                       onChange={e => setGcArtifactRuleRetentionDays(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
@@ -1391,7 +1358,7 @@ export default function ({ localServer }: { localServer: string }) {
                             id="gc_repository_cron_rule"
                             name="gc_repository_cron_rule"
                             placeholder="cron rule"
-                            className={(gcArtifactRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            className={(gcArtifactRuleCronRuleValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                             value={gcArtifactRuleCronRule}
                             onChange={e => setGcArtifactRuleCronRule(e.target.value)}
                           />
@@ -1492,7 +1459,7 @@ export default function ({ localServer }: { localServer: string }) {
                       id="namespace_count_limit"
                       name="namespace_count_limit"
                       placeholder="0 means no limit"
-                      className={(gcTagRuleRetentionAmountValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      className={(gcTagRuleRetentionAmountValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                       value={gcTagRuleRetentionAmount}
                       onChange={e => setGcTagRuleRetentionAmount(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
                     />
@@ -1552,7 +1519,7 @@ export default function ({ localServer }: { localServer: string }) {
                       id="namespace_count_limit"
                       name="namespace_count_limit"
                       placeholder="regexp"
-                      className={(gcTagRuleRetentionPatternValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                      className={(gcTagRuleRetentionPatternValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                       value={gcTagRuleRetentionPattern}
                       onChange={e => setGcTagRuleRetentionPattern(e.target.value)}
                     />
@@ -1635,7 +1602,7 @@ export default function ({ localServer }: { localServer: string }) {
                             id="gc_repository_cron_rule"
                             name="gc_repository_cron_rule"
                             placeholder="cron rule"
-                            className={(gcTagRuleCronRuleValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
+                            className={(gcTagRuleCronRuleValid ? "h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30" : "h-9 w-full min-w-0 rounded-lg border border-destructive bg-transparent px-3 py-1 pr-10 text-base text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-destructive focus-visible:ring-3 focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30")}
                             value={gcTagRuleCronRule}
                             onChange={e => setGcTagRuleCronRule(e.target.value)}
                           />

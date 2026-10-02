@@ -22,13 +22,16 @@ import axios from "axios";
 import gfm from "@bytemd/plugin-gfm";
 import { Editor, Viewer } from "@bytemd/react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
+import NamespaceTabs from "../../components/NamespaceTabs";
 import Notification from "../../components/Notification";
 import { IHTTPError, INamespaceItem } from "../../interfaces";
+
+import { Button } from "@/components/ui/button";
 
 export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
@@ -48,13 +51,17 @@ export default function ({ localServer }: { localServer: string }) {
         const r = response.data as INamespaceItem;
         setNamespaceObj(r);
         setOverview(r.overview);
-      } else {
+      } else if (response.status !== 404) {
         const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      // A missing namespace means there is no overview yet, so stay silent.
+      if (error.response?.status === 404) {
+        return;
+      }
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
   }, [namespace, repositoryId, localServer, namespaceId]);
 
@@ -94,39 +101,7 @@ export default function ({ localServer }: { localServer: string }) {
           <main className="relative z-0 focus:outline-none">
             <Header title="Repository"
               props={
-                (
-                  <div className="flex space-x-8">
-                    <span
-                      className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
-                    >
-                      Summary
-                    </span>
-                    <Link
-                      to={`/namespaces/${namespace}/repositories?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Repository list
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Members
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Daemon task
-                    </Link>
-                    <Link
-                      to={`/namespaces/${namespace}/webhooks?namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Webhook
-                    </Link>
-                  </div>
-                )
+                <NamespaceTabs namespace={namespace} namespaceId={Number.isNaN(namespaceId) ? "" : namespaceId.toString()} active="summary" />
               } />
           </main>
           <div className="flex flex-1 overflow-y-auto">
@@ -135,9 +110,9 @@ export default function ({ localServer }: { localServer: string }) {
                 editorState ? (
                   <span></span>
                 ) : (
-                  <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3 absolute right-4 top-2"
-                    onClick={() => { setEditorState(true) }}
-                  >Edit</button>
+                  <Button variant="outline" className="absolute right-4 top-2"
+                    onClick={() => setEditorState(true)}
+                  >Edit</Button>
                 )
               }
               {
@@ -158,20 +133,9 @@ export default function ({ localServer }: { localServer: string }) {
           </div>
           {
             editorState ? (
-              <div
-                className="flex flex-2 items-center justify-between border-gray-200 px-4 py-3 sm:px-6 border-t-0 bg-slate-100"
-                aria-label="Pagination"
-              >
-                <div>
-                </div>
-                <div className="flex flex-1 justify-between sm:justify-end">
-                  <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                    onClick={() => setEditorState(false)}
-                  >Cancel</button>
-                  <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                    onClick={() => { updateNamespace() }}
-                  >Update</button>
-                </div>
+              <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/40 px-4 py-3 sm:px-6">
+                <Button variant="outline" onClick={() => setEditorState(false)}>Cancel</Button>
+                <Button onClick={() => updateNamespace()}>Update</Button>
               </div>
             ) : (
               <div></div>

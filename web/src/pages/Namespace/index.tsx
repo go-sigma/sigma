@@ -196,7 +196,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
           <div className="flex-1 flex overflow-y-auto">
             <div className="w-full">
               <Table>
-                <TableHeader>
+                <TableHeader className="[&_th]:font-normal">
                   <TableRow>
                     <TableHead>{t("namespace.table.name")}</TableHead>
                     <TableHead className="text-right"><OrderHeader text={t("namespace.table.size")} orderStatus={sizeOrder} setOrder={e => { resetOrder(); setSizeOrder(e); setSortOrder(e); setSortName("size"); }} /></TableHead>
@@ -339,7 +339,7 @@ function TableItem({ localServer, user, namespace: ns, onChanged }: { localServe
       <TableRow className="align-middle">
         <TableCell className="cursor-pointer" onClick={() => navigate(`/namespaces/${ns.name}/repositories?namespace_id=${ns.id}`)}>
           <div className="truncate">
-            <span className="font-medium">{ns.name}</span>
+            <span>{ns.name}</span>
             <span className="text-muted-foreground font-normal ml-4">{ns.description}</span>
           </div>
         </TableCell>

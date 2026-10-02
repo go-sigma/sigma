@@ -27,37 +27,47 @@ export default function ({ limit, page, total, setPage }: { limit: number, page:
   const { t } = useTranslation();
   const start = (page - 1) * limit + 1 > total ? total : (page - 1) * limit + 1;
   const end = total > page * limit ? page * limit : total;
+  const pageCount = Math.max(1, Math.ceil(total / limit));
+  const hasPrevious = page > 1;
+  const hasNext = total / limit > page;
 
   return (
     <div
-      className="flex items-center justify-between border-gray-200 px-4 py-3 border-t-0 bg-slate-100 dark:border-gray-800 dark:bg-gray-900"
+      className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/40 px-4 py-3"
       aria-label="Pagination"
     >
-      <div>
-        <p className="text-sm text-gray-700 dark:text-gray-200">
-          {t("pagination.summary", { start, end, total })}
-        </p>
-      </div>
-      <ShadPagination>
-        <PaginationContent>
+      <p className="text-sm text-muted-foreground">
+        {t("pagination.summary", { start, end, total })}
+      </p>
+      <ShadPagination className="mx-0 w-auto">
+        <PaginationContent className="gap-2">
           <PaginationItem>
             <PaginationPrevious
               text={t("common.previous")}
+              aria-disabled={!hasPrevious}
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
-                if (page > 1) setPage(page - 1);
+                if (hasPrevious) setPage(page - 1);
               }}
-              className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+              className={hasPrevious ? "cursor-pointer" : "cursor-not-allowed opacity-50 hover:bg-transparent"}
             />
           </PaginationItem>
+          {total > 0 && (
+            <PaginationItem>
+              <span className="min-w-14 text-center text-sm tabular-nums text-muted-foreground">
+                {page} / {pageCount}
+              </span>
+            </PaginationItem>
+          )}
           <PaginationItem>
             <PaginationNext
               text={t("common.next")}
+              aria-disabled={!hasNext}
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
-                if (total / limit > page) setPage(page + 1);
+                if (hasNext) setPage(page + 1);
               }}
-              className={total / limit <= page ? "pointer-events-none opacity-50" : ""}
+              className={hasNext ? "cursor-pointer" : "cursor-not-allowed opacity-50 hover:bg-transparent"}
             />
           </PaginationItem>
         </PaginationContent>

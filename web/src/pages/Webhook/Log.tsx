@@ -21,10 +21,11 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation } from 'react-router-dom';
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
+import NamespaceTabs from "../../components/NamespaceTabs";
 import Notification from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
@@ -55,13 +56,17 @@ export default function ({ localServer }: { localServer: string }) {
       if (response.status == 200) {
         const namespaceData = response.data as INamespaceItem;
         setNamespaceObj(namespaceData);
-      } else {
+      } else if (response.status !== 404) {
         const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      // A missing namespace means there are no webhook logs, so stay silent.
+      if (error.response?.status === 404) {
+        return;
+      }
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     })
   }, [localServer, location.pathname, namespaceId]);
 
@@ -77,8 +82,8 @@ export default function ({ localServer }: { localServer: string }) {
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
   }, [localServer]);
 
@@ -108,14 +113,21 @@ export default function ({ localServer }: { localServer: string }) {
         setTotal(webhookLogListData.total);
         setFetchWebhookSuccess(true);
       } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
         setFetchWebhookSuccess(false);
+        if (response.status === 404) {
+          return;
+        }
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       setFetchWebhookSuccess(false);
+      // An empty webhook log list is not an error, so stay silent.
+      if (error.response?.status === 404) {
+        return;
+      }
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
   }, [refresh, page, sortOrder, sortName, localServer, webhookId]);
 
@@ -165,38 +177,7 @@ export default function ({ localServer }: { localServer: string }) {
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title="Webhook" props={
               location.pathname.startsWith("/settings") ? null : (
-                <div className="flex space-x-8">
-                  <Link
-                    to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Summary
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/repositories?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Repository list
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Members
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    Daemon task
-                  </Link>
-                  <Link
-                    to="#"
-                    className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
-                  >
-                    Webhook
-                  </Link>
-                </div>
+                <NamespaceTabs namespace={namespace} namespaceId={namespaceId || ""} active="webhooks" />
               )
             } />
             <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
@@ -217,17 +198,17 @@ export default function ({ localServer }: { localServer: string }) {
             <div className="align-middle inline-block min-w-full border-b border-gray-200">
               <table className="min-w-full flex-1">
                 <thead>
-                  <tr>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  <tr className="border-b">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-left text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <span className="lg:pl-2">Event</span>
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <span className="lg:pl-2">Action</span>
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <span className="lg:pl-2">Status</span>
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
                         resetOrder();
                         setCreatedAtOrder(e);
@@ -235,7 +216,7 @@ export default function ({ localServer }: { localServer: string }) {
                         setSortName("created_at");
                       }} />
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={(e) => {
                         resetOrder();
                         setUpdatedAtOrder(e);
@@ -243,7 +224,7 @@ export default function ({ localServer }: { localServer: string }) {
                         setSortName("updated_at");
                       }} />
                     </th>
-                    <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 pr-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       Action
                     </th>
                   </tr>

@@ -16,16 +16,20 @@
 
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Link, useParams, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { Tooltip } from '../../utils';
 import dayjs from "dayjs";
 
 import Header from "../../components/Header";
 import IMenu from "../../components/Menu";
+import NamespaceTabs from "../../components/NamespaceTabs";
 import Notification from "../../components/Notification";
 import Pagination from "../../components/Pagination";
 import Settings from "../../Settings";
@@ -54,13 +58,17 @@ export default function ({ localServer }: { localServer: string }) {
       if (response.status == 200) {
         const namespaceData = response.data as INamespaceItem;
         setNamespaceObj(namespaceData);
-      } else {
+      } else if (response.status !== 404) {
         const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      // A missing namespace means there are no webhooks, so stay silent.
+      if (error.response?.status === 404) {
+        return;
+      }
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     })
   }, [localServer, location.pathname, namespaceId]);
 
@@ -76,8 +84,8 @@ export default function ({ localServer }: { localServer: string }) {
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
   }, [localServer]);
 
@@ -133,13 +141,17 @@ export default function ({ localServer }: { localServer: string }) {
         const webhookListData = response.data as IWebhookList;
         setWebhookList(webhookListData);
         setTotal(webhookListData.total);
-      } else {
+      } else if (response.status !== 404) {
         const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       }
     }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      // An empty webhook list is not an error, so stay silent.
+      if (error.response?.status === 404) {
+        return;
+      }
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
   }, [localServer, page, sortName, sortOrder, namespaceId]);
 
@@ -226,51 +238,12 @@ export default function ({ localServer }: { localServer: string }) {
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title={t("header.webhook")} props={
               location.pathname.startsWith("/settings") ? null : (
-                <div className="flex space-x-8">
-                  <Link
-                    to={`/namespaces/${namespace}/namespace-summary?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    {t("common.summary")}
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/repositories?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    {t("common.repositoryList")}
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/members?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    {t("common.members")}
-                  </Link>
-                  <Link
-                    to={`/namespaces/${namespace}/daemon-tasks?namespace_id=${namespaceId}`}
-                    className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                  >
-                    {t("common.daemonTask")}
-                  </Link>
-                  <Link
-                    to="#"
-                    className="inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize"
-                  >
-                    {t("common.webhook")}
-                  </Link>
-                </div>
+                <NamespaceTabs namespace={namespace} namespaceId={namespaceId || ""} active="webhooks" />
               )
             } />
-            <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
+            <div className="pt-4 pb-4 flex justify-end items-center">
               <div className="px-4">
-                <div className="flex gap-4">
-                  <div className="relative mt-2 flex items-center">
-                  </div>
-                </div>
-              </div>
-              <div className="px-4 flex flex-col">
-                <button className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
-                  onClick={() => { setCreateWebhookModal(true) }}
-                >{t("common.create")}</button>
+                <Button onClick={() => setCreateWebhookModal(true)}>{t("common.create")}</Button>
               </div>
             </div>
           </main>
@@ -278,17 +251,17 @@ export default function ({ localServer }: { localServer: string }) {
             <div className="align-middle inline-block min-w-full border-b border-gray-200">
               <table className="min-w-full flex-1">
                 <thead>
-                  <tr>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  <tr className="border-b">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-left text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <span className="lg:pl-2">URL</span>
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <span className="lg:pl-2">Enable</span>
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <span className="lg:pl-2">SSL Verify</span>
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <OrderHeader text={"Created at"} orderStatus={createdAtOrder} setOrder={(e) => {
                         resetOrder();
                         setCreatedAtOrder(e);
@@ -296,7 +269,7 @@ export default function ({ localServer }: { localServer: string }) {
                         setSortName("created_at");
                       }} />
                     </th>
-                    <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 px-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       <OrderHeader text={"Updated at"} orderStatus={updatedAtOrder} setOrder={(e) => {
                         resetOrder();
                         setUpdatedAtOrder(e);
@@ -304,7 +277,7 @@ export default function ({ localServer }: { localServer: string }) {
                         setSortName("updated_at");
                       }} />
                     </th>
-                    <th className="sticky top-0 z-10 pr-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                    <th className="sticky top-0 z-10 pr-6 py-3 bg-muted text-right text-sm font-normal text-muted-foreground whitespace-nowrap">
                       Action
                     </th>
                   </tr>
@@ -326,188 +299,95 @@ export default function ({ localServer }: { localServer: string }) {
       </div>
       <Dialog open={createWebhookModal} onOpenChange={setCreateWebhookModal}>
         <DialogContent className="sm:max-w-lg">
-          <DialogTitle className="border-b pb-4">Create webhook</DialogTitle>
-          <div className="flex flex-col gap-0 mt-4">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2 flex flex-row">
-                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                  <div className="flex">
-                    <span className="text-red-600">*</span>
-                    <span className="leading-6 ">URL</span>
-                    <span>:</span>
-                  </div>
-                </label>
-              </div>
-              <div className="col-span-10">
-                <input
-                  type="text"
-                  name="description"
-                  placeholder="128 characters"
-                  className={(urlValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                  value={url}
-                  onChange={e => setUrl(e.target.value)}
-                />
-              </div>
+          <DialogHeader>
+            <DialogTitle>Create webhook</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="webhookUrl"><span className="text-destructive">*</span>URL</Label>
+              <Input
+                id="webhookUrl"
+                placeholder="128 characters"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                aria-invalid={!urlValid || undefined}
+                className="h-10"
+              />
+              {!urlValid && <p className="text-xs text-destructive">Not a valid URL, max 128 characters.</p>}
             </div>
-            <div className="grid grid-cols-12 gap-4 mt-4">
-              <div className="col-span-2 flex flex-row">
-                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                  <div className="flex">
-                    <span className="leading-6 ">Secret</span>
-                    <span>:</span>
-                  </div>
-                </label>
-              </div>
-              <div className="col-span-10">
-                <input
-                  type="text"
-                  name="description"
-                  placeholder="max 63 characters"
-                  className={(secretValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                  value={secret}
-                  onChange={e => setSecret(e.target.value)}
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="webhookSecret">Secret</Label>
+              <Input
+                id="webhookSecret"
+                placeholder="max 63 characters"
+                value={secret ?? ""}
+                onChange={e => setSecret(e.target.value)}
+                aria-invalid={!secretValid || undefined}
+                className="h-10"
+              />
+              {!secretValid && <p className="text-xs text-destructive">Not a valid secret, max 63 characters.</p>}
             </div>
-            {
-              showSslVerify ? (
-                <div className="grid grid-cols-12 gap-4 mt-4">
-                  <div className="col-span-2 flex flex-row">
-                    <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                      <div className="flex">
-                        <span className="leading-6 ">SSL Verify</span>
-                        <span>:</span>
-                      </div>
-                    </label>
-                  </div>
-                  <div className="col-span-10 flex flex-row">
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input type="checkbox"
-                        checked={sslVerify}
-                        onChange={() => setSslVerify(!sslVerify)}
-                        className="sr-only peer" />
-                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                    </label>
-                  </div>
-                </div>
-              ) : null
-            }
-            <div className="grid grid-cols-12 gap-4 mt-4">
-              <div className="col-span-2 flex flex-row">
-                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                  <div className="flex">
-                    <span className="leading-6 ">Retry Times</span>
-                    <span>:</span>
-                  </div>
-                </label>
+            {showSslVerify && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="webhookSslVerify">SSL Verify</Label>
+                <Switch id="webhookSslVerify" checked={sslVerify} onCheckedChange={setSslVerify} />
               </div>
-              <div className="col-span-4 flex flex-row">
-                <input
-                  type="text"
-                  name="description"
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="webhookRetryTimes">Retry Times</Label>
+                <Input
+                  id="webhookRetryTimes"
                   placeholder="1 <= times <= 5"
-                  className={(retryTimesValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                   value={retryTimes}
                   onChange={e => setRetryTimes(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                  aria-invalid={!retryTimesValid || undefined}
+                  className="h-10"
                 />
+                {!retryTimesValid && <p className="text-xs text-destructive">Retry times should be between 1 and 5.</p>}
               </div>
-              <div className="col-span-2 flex flex-row">
-                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                  <div className="flex">
-                    <span className="leading-6 ">Retry Duration</span>
-                    <div className="flex flex-row cursor-pointer"
-                      id="gcRepositoryRetentionDaysHelp"
-                      onClick={() => {
-                        let tooltip = new Tooltip(document.getElementById("tooltip-gc-repository-retention-days"),
-                          document.getElementById("gcRepositoryRetentionDaysHelp"), { triggerType: "click" });
-                        tooltip.show();
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 block my-auto ml-0.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                      </svg>
-                    </div>
-                    <span>:</span>
-                  </div>
-                </label>
-              </div>
-              <div className="col-span-4 flex flex-row">
-                <input
-                  type="text"
-                  name="description"
+              <div className="grid gap-2">
+                <Label htmlFor="webhookRetryDuration">Retry Duration</Label>
+                <Input
+                  id="webhookRetryDuration"
                   placeholder="less than 10"
-                  className={(retryDurationValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
                   value={retryDuration}
                   onChange={e => setRetryDuration(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))}
+                  aria-invalid={!retryDurationValid || undefined}
+                  className="h-10"
                 />
+                {!retryDurationValid && <p className="text-xs text-destructive">Retry duration should be between 0 and 10.</p>}
               </div>
             </div>
-            <div className="grid grid-cols-12 gap-4 mt-4">
-              <div className="col-span-2 flex flex-row">
-                <label htmlFor="usernameText" className="block text-sm font-medium leading-6 text-gray-900 my-auto">
-                  <div className="flex">
-                    <span className="leading-6 ">Enable</span>
-                    <span>:</span>
-                  </div>
-                </label>
-              </div>
-              <div className="col-span-10 flex flex-row">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input type="checkbox"
-                    checked={enable}
-                    onChange={() => setEnable(!enable)}
-                    className="sr-only peer" />
-                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
+            <div className="grid gap-2">
+              <Label>Events</Label>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {[
+                  ...(location.pathname.startsWith("/settings")
+                    ? [{ id: "event-namespace", label: "Namespace Event", checked: eventNamespace, setChecked: setEventNamespace }]
+                    : []),
+                  { id: "event-member", label: "Member Event", checked: eventMember, setChecked: setEventMember },
+                  { id: "event-repository", label: "Repository Event", checked: eventRepository, setChecked: setEventRepository },
+                  { id: "event-tag", label: "Tag Event", checked: eventTag, setChecked: setEventTag },
+                  { id: "event-artifact", label: "Artifact Event", checked: eventArtifact, setChecked: setEventArtifact },
+                  { id: "event-daemon-task-gc", label: "GC Event", checked: eventDaemonTaskGc, setChecked: setEventDaemonTaskGc },
+                ].map(({ id, label, checked, setChecked }) => (
+                  <label key={id} htmlFor={id} className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      id={id}
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => setChecked(!checked)}
+                      className="size-4 rounded border-input accent-primary"
+                    />
+                    {label}
+                  </label>
+                ))}
               </div>
             </div>
-            <div className="mt-4 flex flex-row gap-4">
-              {
-                location.pathname.startsWith("/settings") ? (
-                  <div className="flex items-center">
-                    <input id="event-namespace" type="checkbox"
-                      checked={eventNamespace}
-                      onChange={() => setEventNamespace(!eventNamespace)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                    <label htmlFor="event-namespace" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Namespace Event</label>
-                  </div>
-                ) : null
-              }
-              <div className="flex items-center">
-                <input id="event-member"
-                  checked={eventMember}
-                  onChange={() => setEventMember(!eventMember)}
-                  type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                <label htmlFor="event-member" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Member Event</label>
-              </div>
-              <div className="flex items-center">
-                <input id="event-repository" type="checkbox"
-                  checked={eventRepository}
-                  onChange={() => setEventRepository(!eventRepository)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                <label htmlFor="event-repository" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Repository Event</label>
-              </div>
-              <div className="flex items-center">
-                <input id="event-tag" type="checkbox"
-                  checked={eventTag}
-                  onChange={() => setEventTag(!eventTag)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                <label htmlFor="event-tag" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tag Event</label>
-              </div>
-              <div className="flex items-center">
-                <input id="event-artifact" type="checkbox"
-                  checked={eventArtifact}
-                  onChange={() => setEventArtifact(!eventArtifact)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                <label htmlFor="event-artifact" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Artifact Event</label>
-              </div>
-              <div className="flex items-center">
-                <input id="event-daemon-task-gc" type="checkbox"
-                  checked={eventDaemonTaskGc}
-                  onChange={() => setEventDaemonTaskGc(!eventDaemonTaskGc)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                <label htmlFor="event-daemon-task-gc" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Gc Event</label>
-              </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="webhookEnable">Enable</Label>
+              <Switch id="webhookEnable" checked={enable} onCheckedChange={setEnable} />
             </div>
           </div>
           <DialogFooter>
@@ -720,7 +600,7 @@ function TableItem({ localServer, userObj, namespaceObj, webhookObj, setRefresh 
                           checked={sslVerify}
                           onChange={() => setSslVerify(!sslVerify)}
                           className="sr-only peer" />
-                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
                   </div>
@@ -791,7 +671,7 @@ function TableItem({ localServer, userObj, namespaceObj, webhookObj, setRefresh 
                       checked={enable}
                       onChange={() => setEnable(!enable)}
                       className="sr-only peer" />
-                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
               </div>
