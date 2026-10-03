@@ -15,11 +15,12 @@
 package distribution
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
@@ -72,8 +73,8 @@ func RegisterRouterFactory(factory Factory, index int) error {
 		}
 	}
 	routerFactories = append(routerFactories, Item{Key: index, Value: factory})
-	sort.SliceStable(routerFactories, func(i, j int) bool {
-		return routerFactories[i].Key < routerFactories[j].Key
+	slices.SortStableFunc(routerFactories, func(a, b Item) int {
+		return cmp.Compare(a.Key, b.Key)
 	})
 	return nil
 }

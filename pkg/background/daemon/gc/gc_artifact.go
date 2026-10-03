@@ -199,10 +199,8 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 
 func (g *gcArtifact) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcArtifact {
 	payload := api.WebhookPayloadGcArtifact{
-		WebhookPayload: api.WebhookPayload{
-			ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
-			Action:       action,
-		},
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
+		Action:       action,
 		OperateType:  g.runnerObj.OperateType,
 		SuccessCount: g.successCount,
 		FailedCount:  g.failedCount,

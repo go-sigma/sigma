@@ -30,9 +30,9 @@ type toolFunc func(context.Context, mcp.CallToolRequest) (any, error)
 func (s *Server) addTool(mcpServer *mcpsdk.MCPServer, name, description string, write bool, handler toolFunc) {
 	tool := mcp.NewTool(name, mcp.WithDescription(description), mcp.WithSchemaAdditionalProperties(true))
 	tool.Annotations = mcp.ToolAnnotation{
-		ReadOnlyHint:    mcp.ToBoolPtr(!write),
-		DestructiveHint: mcp.ToBoolPtr(write),
-		OpenWorldHint:   mcp.ToBoolPtr(false),
+		ReadOnlyHint:    new(!write),
+		DestructiveHint: new(write),
+		OpenWorldHint:   new(false),
 	}
 	mcpServer.AddTool(tool, s.wrapTool(name, write, handler))
 }

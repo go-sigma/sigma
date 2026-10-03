@@ -72,9 +72,9 @@ func TestAcquireSerializesConcurrentAccess(t *testing.T) {
 		key        = "test-redis-lock-concurrent"
 		concurrent = 10
 	)
-	var active int64
-	var maxActive int64
-	var entered int64
+	var active atomic.Int64
+	var maxActive atomic.Int64
+	var entered atomic.Int64
 	var wg sync.WaitGroup
 	start := make(chan struct{})
 
@@ -84,25 +84,25 @@ func TestAcquireSerializesConcurrentAccess(t *testing.T) {
 			heldLock, err := lockerInst.Acquire(t.Context(), key, 500*time.Millisecond, 5*time.Second)
 			require.NoError(t, err)
 
-			current := atomic.AddInt64(&active, 1)
+			current := active.Add(1)
 			for {
-				observed := atomic.LoadInt64(&maxActive)
-				if current <= observed || atomic.CompareAndSwapInt64(&maxActive, observed, current) {
+				observed := maxActive.Load()
+				if current <= observed || maxActive.CompareAndSwap(observed, current) {
 					break
 				}
 			}
 
 			time.Sleep(20 * time.Millisecond)
-			atomic.AddInt64(&active, -1)
+			active.Add(-1)
 			require.NoError(t, heldLock.Unlock(t.Context()))
-			atomic.AddInt64(&entered, 1)
+			entered.Add(1)
 		})
 	}
 	close(start)
 	wg.Wait()
 
-	require.EqualValues(t, concurrent, entered)
-	require.EqualValues(t, 1, maxActive)
+	require.EqualValues(t, concurrent, entered.Load())
+	require.EqualValues(t, 1, maxActive.Load())
 }
 
 func TestAcquireTimesOutWhenLockIsHeld(t *testing.T) {

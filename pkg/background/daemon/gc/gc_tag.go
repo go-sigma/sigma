@@ -203,10 +203,8 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 
 func (g *gcTag) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcTag {
 	payload := api.WebhookPayloadGcTag{
-		WebhookPayload: api.WebhookPayload{
-			ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
-			Action:       action,
-		},
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+		Action:       action,
 		OperateType:  g.runnerObj.OperateType,
 		SuccessCount: g.successCount,
 		FailedCount:  g.failedCount,

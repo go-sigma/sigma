@@ -37,7 +37,7 @@ func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User
 
 	page := 1
 	for {
-		rs, _, err := client.ListMyRepos(gitea.ListReposOptions{ListOptions: gitea.ListOptions{Page: page, PageSize: perPage}})
+		rs, _, err := client.ListMyRepos(gitea.ListReposOptions{Page: page, PageSize: perPage})
 		if err != nil {
 			slog.Error("list repositories failed", "err", err)
 			return fmt.Errorf("list repositories failed: %v", err)
@@ -53,7 +53,7 @@ func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User
 
 	page = 1
 	for {
-		os, _, err := client.ListMyOrgs(gitea.ListOrgsOptions{ListOptions: gitea.ListOptions{Page: page, PageSize: perPage}})
+		os, _, err := client.ListMyOrgs(gitea.ListOrgsOptions{Page: page, PageSize: perPage})
 		if err != nil {
 			slog.Error("list organizations failed", "err", err)
 			return fmt.Errorf("list organizations failed: %v", err)
@@ -68,7 +68,7 @@ func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User
 	for _, o := range orgs {
 		page = 1
 		for {
-			rs, _, err := client.ListOrgRepos(o.Name, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{Page: page, PageSize: perPage}})
+			rs, _, err := client.ListOrgRepos(o.Name, gitea.ListOrgReposOptions{Page: page, PageSize: perPage})
 			if err != nil {
 				slog.Error("list repositories failed", "err", err)
 				return fmt.Errorf("list repositories failed: %v", err)

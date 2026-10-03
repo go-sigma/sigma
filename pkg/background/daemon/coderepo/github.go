@@ -42,7 +42,7 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 
 	page := 1
 	for {
-		rs, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{ListOptions: github.ListOptions{Page: page, PerPage: perPage}}) // nolint: staticcheck
+		rs, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{Page: page, PerPage: perPage}) // nolint: staticcheck
 		if err != nil {
 			slog.Error("list repositories failed", "err", err)
 			return fmt.Errorf("list repositories failed: %v", err)
@@ -78,7 +78,7 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 		page = 1
 		for {
 			rs, _, err := client.Repositories.ListByOrg(ctx, ptr.To(o.Login),
-				&github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{Page: page, PerPage: perPage}})
+				&github.RepositoryListByOrgOptions{Page: page, PerPage: perPage})
 			if err != nil {
 				slog.Error("list repositories for orgs failed", "err", err)
 				return fmt.Errorf("list repositories for orgs failed: %v", err)
@@ -116,7 +116,7 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 		var branches []*models.CodeRepositoryBranch
 		page = 1
 		for {
-			bs, _, err := client.Repositories.ListBranches(ctx, r.Owner, r.Name, &github.BranchListOptions{ListOptions: github.ListOptions{Page: page, PerPage: perPage}})
+			bs, _, err := client.Repositories.ListBranches(ctx, r.Owner, r.Name, &github.BranchListOptions{Page: page, PerPage: perPage})
 			if err != nil {
 				if strings.Contains(err.Error(), "Repository access blocked") {
 					blockedRepo.Insert(r.RepositoryID)

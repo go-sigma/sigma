@@ -93,13 +93,11 @@ func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error
 		return err
 	}
 	_, err = i.client.CoreV1().Pods(i.config.Daemon.Builder.Kubernetes.Namespace).Create(ctx, &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID),
-			Labels: map[string]string{
-				"oci-image-builder": consts.AppName,
-				"builder-id":        builderConfig.BuilderID,
-				"runner-id":         builderConfig.RunnerID,
-			},
+		Name: runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID),
+		Labels: map[string]string{
+			"oci-image-builder": consts.AppName,
+			"builder-id":        builderConfig.BuilderID,
+			"runner-id":         builderConfig.RunnerID,
 		},
 		Spec: corev1.PodSpec{
 			HostAliases: buildHostAliases(builderConfig.ExtraHosts),

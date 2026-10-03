@@ -234,10 +234,7 @@ func (c *Config) loginRateLimitDelay(ctx context.Context, username string) {
 	if count < int64(cfg.MaxFailures) {
 		return
 	}
-	delay := cfg.Delay
-	if delay > maxLoginRateLimitDelay {
-		delay = maxLoginRateLimitDelay
-	}
+	delay := min(cfg.Delay, maxLoginRateLimitDelay)
 	ratelimit.RecordDelayed()
 	timer := time.NewTimer(delay)
 	defer timer.Stop()

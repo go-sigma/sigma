@@ -179,7 +179,7 @@ func TestArtifactRepository(t *testing.T) {
 
 	limit := 10
 	listed, err := artifactRepository.ListArtifact(ctx, api.ListArtifactRequest{
-		Pagination: api.Pagination{Limit: &limit},
+		Limit:      &limit,
 		Namespace:  fixture.Namespace.Name,
 		Repository: fixture.Repository.Name,
 	})

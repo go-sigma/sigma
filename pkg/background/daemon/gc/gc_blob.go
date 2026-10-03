@@ -182,10 +182,8 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 
 func (g *gcBlob) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcBlob {
 	payload := api.WebhookPayloadGcBlob{
-		WebhookPayload: api.WebhookPayload{
-			ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
-			Action:       action,
-		},
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+		Action:       action,
 		OperateType:  g.runnerObj.OperateType,
 		SuccessCount: g.successCount,
 		FailedCount:  g.failedCount,

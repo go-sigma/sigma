@@ -156,10 +156,8 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 
 func (g *gcRepository) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcRepository {
 	payload := api.WebhookPayloadGcRepository{
-		WebhookPayload: api.WebhookPayload{
-			ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
-			Action:       action,
-		},
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		Action:       action,
 		OperateType:  g.runnerObj.OperateType,
 		SuccessCount: g.successCount,
 		FailedCount:  g.failedCount,

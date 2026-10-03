@@ -50,8 +50,8 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 	page := int64(1)
 	for {
 		rs, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{
-			Owned:       new(true),
-			ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
+			Owned: new(true),
+			Page:  page, PerPage: perPage})
 		if err != nil {
 			slog.Error("list projects from gitlab failed", "err", err)
 			return fmt.Errorf("list projects from gitlab failed: %w", err)
@@ -75,7 +75,7 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 		gs, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{
 			AllAvailable:   new(true),
 			MinAccessLevel: &minAccessLevel,
-			ListOptions:    gitlab.ListOptions{Page: page, PerPage: perPage}})
+			Page:           page, PerPage: perPage})
 		if err != nil {
 			slog.Error("list groups from gitlab failed", "err", err)
 			return fmt.Errorf("list groups from gitlab failed: %w", err)
@@ -93,7 +93,7 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 			minAccessLevel := gitlab.ReporterPermissions
 			rs, _, err := client.Groups.ListGroupProjects(g.ID, &gitlab.ListGroupProjectsOptions{
 				MinAccessLevel: &minAccessLevel,
-				ListOptions:    gitlab.ListOptions{Page: page, PerPage: perPage}})
+				Page:           page, PerPage: perPage})
 			if err != nil {
 				slog.Error("list projects from gitlab failed", "err", err)
 				return fmt.Errorf("list projects from gitlab failed: %w", err)
@@ -129,7 +129,7 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 		var branches []*models.CodeRepositoryBranch
 		page = 1
 		for {
-			bs, _, err := client.Branches.ListBranches(r.RepositoryID, &gitlab.ListBranchesOptions{ListOptions: gitlab.ListOptions{Page: page, PerPage: perPage}})
+			bs, _, err := client.Branches.ListBranches(r.RepositoryID, &gitlab.ListBranchesOptions{Page: page, PerPage: perPage})
 			if err != nil {
 				slog.Error("list branches failed", "err", err, "owner", r.Owner, "repo", r.Name)
 				return fmt.Errorf("list branches for repo(%s/%s) failed: %v", r.Owner, r.Name, err)

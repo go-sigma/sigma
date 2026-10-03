@@ -30,15 +30,11 @@ func TestCreateBuilderValidator(t *testing.T) {
 	dockerfile := base64.StdEncoding.EncodeToString([]byte("FROM scratch"))
 
 	require.NoError(t, createBuilderValidator(api.CreateBuilderRequest{
-		PostOrPutBuilderRequest: api.PostOrPutBuilderRequest{
-			Source:     enums.BuilderSourceDockerfile,
-			Dockerfile: &dockerfile,
-		},
+		Source:     enums.BuilderSourceDockerfile,
+		Dockerfile: &dockerfile,
 	}))
 	require.Error(t, createBuilderValidator(api.CreateBuilderRequest{
-		PostOrPutBuilderRequest: api.PostOrPutBuilderRequest{
-			Source: enums.BuilderSourceDockerfile,
-		},
+		Source: enums.BuilderSourceDockerfile,
 	}))
 	require.Error(t, createBuilderValidator(api.CreateBuilderRequest{}))
 }

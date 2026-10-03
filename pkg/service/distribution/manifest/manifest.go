@@ -924,10 +924,10 @@ func (s *service) GetReferrer(ctx context.Context, repository string, dgst strin
 	}
 
 	result := imgspecv1.Index{
-		MediaType: imgspecv1.MediaTypeImageIndex,
-		Manifests: make([]imgspecv1.Descriptor, 0, len(artifactObjs)),
+		MediaType:     imgspecv1.MediaTypeImageIndex,
+		Manifests:     make([]imgspecv1.Descriptor, 0, len(artifactObjs)),
+		SchemaVersion: 2,
 	}
-	result.SchemaVersion = 2
 	for _, artifactObj := range artifactObjs {
 		raw, readErr := s.readManifest(ctx, artifactObj.Digest)
 		if readErr != nil {

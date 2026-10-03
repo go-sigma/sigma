@@ -17,6 +17,7 @@ package workq
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -118,9 +119,7 @@ func (r *handlerRegistry) Handlers() map[enums.Daemon]Consumer {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	handlers := make(map[enums.Daemon]Consumer, len(r.handlers))
-	for topic, consumer := range r.handlers {
-		handlers[topic] = consumer
-	}
+	maps.Copy(handlers, r.handlers)
 	return handlers
 }
 

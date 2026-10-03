@@ -117,15 +117,13 @@ func NewWithConfig(configuration *config.Configuration, redisClientFactory dalre
 func (s *service) New(id string, expire time.Duration) (string, error) {
 	now := time.Now()
 	claims := JWTClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   id,
-			Issuer:    consts.AppName,
-			ExpiresAt: jwt.NewNumericDate(now.Add(expire)),
-			NotBefore: jwt.NewNumericDate(now),
-			IssuedAt:  jwt.NewNumericDate(now),
-			ID:        uuid.NewV7String(),
-		},
-		UID: id,
+		Subject:   id,
+		Issuer:    consts.AppName,
+		ExpiresAt: jwt.NewNumericDate(now.Add(expire)),
+		NotBefore: jwt.NewNumericDate(now),
+		IssuedAt:  jwt.NewNumericDate(now),
+		ID:        uuid.NewV7String(),
+		UID:       id,
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims).SignedString(s.privateKey)
 	if err != nil {

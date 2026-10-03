@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -80,9 +81,7 @@ type testRunnerRepository struct {
 
 func (r *testRunnerRepository) UpdateRunner(_ context.Context, _, _ string, updates map[string]any) error {
 	clone := make(map[string]any, len(updates))
-	for key, value := range updates {
-		clone[key] = value
-	}
+	maps.Copy(clone, updates)
 	r.updates = append(r.updates, clone)
 	return nil
 }
