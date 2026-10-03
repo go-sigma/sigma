@@ -525,6 +525,7 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
 	golang.org/x/tools/cmd/cover v0.1.0-deprecated // indirect
+	golang.org/x/vuln v1.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.294.0 // indirect
@@ -557,6 +558,7 @@ tool (
 	github.com/google/addlicense
 	github.com/swaggo/swag/cmd/swag
 	go.uber.org/mock/mockgen
+	golang.org/x/vuln/cmd/govulncheck
 )
 
 exclude google.golang.org/grpc/stats/opentelemetry v0.0.0-20240907200651-3ffb98b2c93a

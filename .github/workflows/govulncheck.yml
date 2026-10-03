@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: Govulncheck CI
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        go: ["1.27"]
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup golang
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Cache go modules
+        uses: actions/cache@v6
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ matrix.go }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-${{ matrix.go }}-
+            ${{ runner.os }}-go-mod-
+      - name: Download go modules
+        run: go mod download
+      # govulncheck is pinned as a tool in go.mod (golang.org/x/vuln/cmd/govulncheck).
+      # The project build tags are required so every package compiles on a clean runner.
+      # The report is always written to the job summary. The step is non-blocking
+      # (continue-on-error) so findings are reported without failing the workflow.
+      - name: Run govulncheck
+        continue-on-error: true
+        run: |
+          set +e
+          go tool govulncheck \
+            -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+            ./... > govulncheck.txt 2>&1
+          status=$?
+          set -e
+
+          {
+            echo "## Govulncheck"
+            echo ""
+            if [ "${status}" -eq 0 ]; then
+              echo "No known reachable vulnerabilities found."
+            else
+              echo "govulncheck exited with status ${status}. See the report below."
+            fi
+            echo ""
+            echo '```text'
+            cat govulncheck.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit "${status}"
