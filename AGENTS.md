@@ -82,6 +82,7 @@ make clean
   `pkg/api`, `pkg/dal/models`, `pkg/dal/query`, `pkg/dal/cmd`, `pkg/testkit`,
   `pkg/version`, and various `mocks` subpackages.
 - Some storage tests (`pkg/storage/cos`, `pkg/storage/oss`) are skipped on PRs and require secret env vars (`COS_*`, `OSS_*`).
+- The `pkg/storage/...` test suites are **not** run as automated unit tests because they depend on cloud/object-storage resources. Maintainers run them manually with real credentials. Do not run or modify these test files as part of unrelated changes.
 - Mocks are generated via `go.uber.org/mock` into a `mocks` subpackage as
   `mocks/*_mocks.go` with package name `mocks` (for example
   `pkg/service/token/mocks/token_mocks.go`), and are regenerated with
@@ -289,9 +290,10 @@ Directory rules:
 
 ## CI Workflows (`.github/workflows/`)
 
-- **lint.yml**: Go 1.27 + Bun web build + golangci-lint v2.12.2 + hadolint on `build/Dockerfile`. Triggers on `main`/`dev` PRs.
+- **lint.yml**: Go 1.27 + Bun web build + golangci-lint v2.13.0 + hadolint on `build/Dockerfile`. Triggers on `main`/`dev` PRs.
 - **test.yml**: Go 1.27 + Bun web build; runs application tests on PostgreSQL and database tests on `sqlite3`, `turso`, `postgresql`, and `mysql`. Uses MySQL 8.0, Postgres 15, Redis 7, and rs3 services. Uploads coverage to Coveralls.
-- **e2e.yml**, **image-build.yml**, **gh-pages.yml**, **codeql.yml**: end-to-end, image build, docs deploy, security scan.
+- **govulncheck.yml**: runs the pinned `go tool govulncheck` (with the project build tags) to scan for known reachable vulnerabilities, writing the report to the job summary. Non-blocking (`continue-on-error`): findings are reported but do not fail the workflow. Triggers on `dev` push/PR.
+- **e2e.yml**, **image-build.yml**, **gh-pages.yml**: end-to-end, image build, docs deploy.
 
 ## Important Files
 
