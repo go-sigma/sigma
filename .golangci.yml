@@ -12,6 +12,7 @@ linters:
     - gocritic
     - gosec
     - misspell
+    - modernize
     - prealloc
     - unconvert
     - unparam
