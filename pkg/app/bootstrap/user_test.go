@@ -15,7 +15,6 @@
 package bootstrap
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -81,7 +80,7 @@ func TestInitUser(t *testing.T) {
 				var passwordSvc password.Service
 				require.NoError(t, c.Invoke(func(s password.Service) { passwordSvc = s }))
 
-				ctx := context.Background()
+				ctx := t.Context()
 				count, err := userRepository.Count(ctx)
 				require.NoError(t, err)
 				require.Equal(t, count, int64(3))

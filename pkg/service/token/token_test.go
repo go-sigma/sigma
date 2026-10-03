@@ -15,7 +15,6 @@
 package token
 
 import (
-	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/rsa"
@@ -189,16 +188,16 @@ func TestNew(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, token)
 
-			id, uid, err := tokenSvc.Validate(context.Background(), token)
+			id, uid, err := tokenSvc.Validate(t.Context(), token)
 			assert.NoError(t, err)
 			assert.Equal(t, "100", uid)
 			_, err = uuid.Parse(id)
 			assert.NoError(t, err)
 
-			err = tokenSvc.Revoke(context.Background(), id)
+			err = tokenSvc.Revoke(t.Context(), id)
 			assert.NoError(t, err)
 
-			_, _, err = tokenSvc.Validate(context.Background(), token)
+			_, _, err = tokenSvc.Validate(t.Context(), token)
 			assert.Error(t, err)
 		})
 	}

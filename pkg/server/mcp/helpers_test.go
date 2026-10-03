@@ -15,7 +15,6 @@
 package mcpserver
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -29,7 +28,7 @@ import (
 )
 
 func TestContextValues(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	_, ok := userFromContext(ctx)
 	require.False(t, ok)
 

@@ -64,14 +64,14 @@ func TestShutdown(t *testing.T) {
 			time.Sleep(time.Second)
 			orderArray = append(orderArray, 4)
 		})
-		err := Shutdown(context.Background())
+		err := Shutdown(t.Context())
 		require.NoError(t, err)
 		require.Equal(t, []int{1, 2, 4, 5}, orderArray)
 	})
 
 	t.Run("timeout", func(t *testing.T) {
 		resetForTest()
-		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		ctx, cancel := context.WithTimeout(t.Context(), 500*time.Millisecond)
 		defer cancel()
 
 		var ran atomic.Int32
@@ -107,7 +107,7 @@ func TestShutdown(t *testing.T) {
 			time.Sleep(time.Second)
 			orderArray = append(orderArray, 4)
 		})
-		err := Shutdown(context.Background())
+		err := Shutdown(t.Context())
 		require.NoError(t, err)
 		require.Equal(t, []int{2, 4, 5}, orderArray)
 	})
@@ -118,9 +118,9 @@ func TestShutdown(t *testing.T) {
 		RunAtShutdown("test", 1, func() {
 			count++
 		})
-		err := Shutdown(context.Background())
+		err := Shutdown(t.Context())
 		require.NoError(t, err)
-		err = Shutdown(context.Background())
+		err = Shutdown(t.Context())
 		require.NoError(t, err)
 		require.Equal(t, 1, count)
 	})

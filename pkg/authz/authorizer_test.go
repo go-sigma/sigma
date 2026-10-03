@@ -15,7 +15,6 @@
 package authz
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -218,7 +217,7 @@ func TestAuthorizer(t *testing.T) {
 	nsRepo := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 
 	memberRepo := reponamespacemocks.NewMockNamespaceMemberRepository(ctrl)
-	ctx := context.Background()
+	ctx := t.Context()
 	publicNS := &models.Namespace{ID: "1", Name: "library", Visibility: enums.VisibilityPublic}
 	privateNS := &models.Namespace{ID: "2", Name: "private", Visibility: enums.VisibilityPrivate}
 
@@ -327,7 +326,7 @@ func TestAuthorizerCacheHit(t *testing.T) {
 		RepoNsMember: memberRepo,
 	})
 	require.NoError(t, err)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// First call hits DB.
 	passed, err := a.Authorize(ctx, "100", false, "/v2/library/nginx/manifests/v1", http.MethodGet)

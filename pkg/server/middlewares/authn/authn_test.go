@@ -224,7 +224,7 @@ func TestAuthWithConfig(t *testing.T) {
 				}
 
 				{ // use bearer auth
-					ctx := context.Background()
+					ctx := t.Context()
 					var userRepository repouser.UserRepository
 					require.NoError(t, digCon.Invoke(func(f repouser.UserRepository) { userRepository = f }))
 					userObj := &models.User{ID: uuid.NewV7String(), Username: "new-user", Password: new("test"), Email: new("test@gmail.com")}

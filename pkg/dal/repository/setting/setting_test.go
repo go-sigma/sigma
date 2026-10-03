@@ -15,7 +15,6 @@
 package setting_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,7 +37,7 @@ func TestSettingRepository(t *testing.T) {
 	digCon := testkit.InitRepository(t)
 	require.NotNil(t, digCon)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	settingSvc := reposetting.NewSettingRepository()
 

@@ -16,7 +16,6 @@ package logger
 
 import (
 	"bytes"
-	"context"
 	"log/slog"
 	"testing"
 	"time"
@@ -29,15 +28,15 @@ func TestTraceHandler(t *testing.T) {
 	var buf bytes.Buffer
 	handler := NewTraceHandler(slog.NewJSONHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
-	require.True(t, handler.Enabled(context.Background(), slog.LevelInfo))
+	require.True(t, handler.Enabled(t.Context(), slog.LevelInfo))
 
 	// Without a trace id the record is passed through unchanged.
-	require.NoError(t, handler.Handle(context.Background(), slog.NewRecord(time.Now(), slog.LevelInfo, "no-trace", 0)))
+	require.NoError(t, handler.Handle(t.Context(), slog.NewRecord(time.Now(), slog.LevelInfo, "no-trace", 0)))
 	require.NotContains(t, buf.String(), TraceKey)
 
 	buf.Reset()
 	tp := sdktrace.NewTracerProvider()
-	ctx, span := tp.Tracer("logger-test").Start(context.Background(), "op")
+	ctx, span := tp.Tracer("logger-test").Start(t.Context(), "op")
 	defer span.End()
 	require.NoError(t, handler.Handle(ctx, slog.NewRecord(time.Now(), slog.LevelInfo, "with-trace", 0)))
 	require.Contains(t, buf.String(), TraceKey)

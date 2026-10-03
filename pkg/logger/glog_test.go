@@ -16,7 +16,6 @@ package logger
 
 import (
 	"bytes"
-	"context"
 	"encoding/json/v2"
 	"fmt"
 	"io"
@@ -63,7 +62,7 @@ func Test_Logger_Sqlite(t *testing.T) {
 	lg := slog.New(slog.NewJSONHandler(writer, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	slog.SetDefault(lg)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	now := time.Now()
 
@@ -155,7 +154,7 @@ func TestLogDatabaseTraceDisabled(t *testing.T) {
 	t.Cleanup(func() { slog.SetDefault(previous) })
 	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelInfo})))
 
-	logDatabaseTrace(context.Background(), "sql", "select 1")
+	logDatabaseTrace(t.Context(), "sql", "select 1")
 }
 
 func TestDatabaseTraceCallDebug(t *testing.T) {

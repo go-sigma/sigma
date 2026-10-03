@@ -44,13 +44,13 @@ func recordingContext(t *testing.T) (context.Context, string) {
 	tp := sdktrace.NewTracerProvider()
 	t.Cleanup(func() { _ = tp.Shutdown(context.Background()) })
 
-	ctx, span := tp.Tracer("telemetry-test").Start(context.Background(), "op")
+	ctx, span := tp.Tracer("telemetry-test").Start(t.Context(), "op")
 	t.Cleanup(func() { span.End() })
 	return ctx, span.SpanContext().TraceID().String()
 }
 
 func TestTraceIDFromContext(t *testing.T) {
-	require.Empty(t, TraceIDFromContext(context.Background()))
+	require.Empty(t, TraceIDFromContext(t.Context()))
 
 	ctx, want := recordingContext(t)
 	require.Equal(t, want, TraceIDFromContext(ctx))
@@ -59,7 +59,7 @@ func TestTraceIDFromContext(t *testing.T) {
 func TestCarrierFromContext(t *testing.T) {
 	setPropagator(t)
 
-	require.Nil(t, CarrierFromContext(context.Background()))
+	require.Nil(t, CarrierFromContext(t.Context()))
 
 	ctx, want := recordingContext(t)
 	carrier := CarrierFromContext(ctx)
@@ -80,7 +80,7 @@ func TestCarrierFromContextWithoutPropagator(t *testing.T) {
 func TestContextWithCarrier(t *testing.T) {
 	setPropagator(t)
 
-	base := context.Background()
+	base := t.Context()
 	require.Equal(t, base, ContextWithCarrier(base, nil))
 	require.Equal(t, base, ContextWithCarrier(base, map[string]string{}))
 
@@ -128,14 +128,14 @@ func TestInjectCarrier(t *testing.T) {
 	setPropagator(t)
 
 	// Without an active span, stale propagation headers are dropped.
-	got := InjectCarrier(context.Background(), map[string]string{
+	got := InjectCarrier(t.Context(), map[string]string{
 		"traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
 		"user-agent":  "sigma",
 	})
 	require.Equal(t, map[string]string{"user-agent": "sigma"}, got)
 
 	// Without an active span and a nil carrier, nothing is created.
-	require.Nil(t, InjectCarrier(context.Background(), nil))
+	require.Nil(t, InjectCarrier(t.Context(), nil))
 
 	// With an active span and a nil carrier, a new carrier is created.
 	ctx, want := recordingContext(t)

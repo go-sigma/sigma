@@ -15,7 +15,6 @@
 package workq
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -42,7 +41,7 @@ func TestMarshalPayloadCarriesTraceContext(t *testing.T) {
 	data, err := MarshalPayload(ctx, map[string]string{"hello": "world"})
 	require.NoError(t, err)
 
-	ctx, payload := UnmarshalPayload(context.Background(), data)
+	ctx, payload := UnmarshalPayload(t.Context(), data)
 	require.JSONEq(t, `{"hello":"world"}`, string(payload))
 	require.Equal(t, traceID.String(), sigmatelemetry.TraceIDFromContext(ctx))
 }
