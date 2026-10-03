@@ -65,7 +65,7 @@ func (h *handler) DeleteBlob(c *gin.Context) {
 	authChecked, err := h.Authorizer.Repository(ctx, *user, namespaceObj.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("resource not found", "err", errors.New(utils.UnwrapJoinedErrors(err)))
+			slog.Error("resource not found", "err", err)
 			errcode.NewDSError(c, errcode.GenDSErrCodeResourceNotFound(err))
 			return
 		}

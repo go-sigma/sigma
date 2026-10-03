@@ -82,7 +82,7 @@ func (h *handler) ListTags(c *gin.Context) {
 	authChecked, err := h.Authorizer.Repository(ctx, *user, repositoryObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("resource not found", "err", errors.New(utils.UnwrapJoinedErrors(err)))
+			slog.Error("resource not found", "err", err)
 			errcode.NewDSError(c, errcode.GenDSErrCodeResourceNotFound(err))
 			return
 		}

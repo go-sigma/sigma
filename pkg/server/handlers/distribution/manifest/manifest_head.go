@@ -66,7 +66,7 @@ func (h *handler) HeadManifest(c *gin.Context) {
 	authChecked, err := h.Authorizer.Namespace(ctx, *user, namespaceObj.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("resource not found", "err", errors.New(utils.UnwrapJoinedErrors(err)))
+			slog.Error("resource not found", "err", err)
 			errcode.NewDSError(c, errcode.GenDSErrCodeResourceNotFound(err))
 			return
 		}

@@ -58,11 +58,11 @@ func (h *handler) GetTag(c *gin.Context, req *api.GetTagRequest) {
 	authChecked, err := h.Authorizer.Tag(ctx, *user, req.ID, enums.AuthRead)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("namespace not found", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID)
+			slog.Error("namespace not found", "err", err, "NamespaceID", req.NamespaceID)
 			errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, fmt.Sprintf("Namespace(%s) not found: %v", req.NamespaceID, err))
 			return
 		}
-		slog.Error("namespace find failed", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID)
+		slog.Error("namespace find failed", "err", err, "NamespaceID", req.NamespaceID)
 		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Namespace(%s) find failed: %v", req.NamespaceID, err))
 		return
 	}

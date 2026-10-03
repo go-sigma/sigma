@@ -58,11 +58,11 @@ func (h *handler) CreateRepository(c *gin.Context, req *api.CreateRepositoryRequ
 	authChecked, err := h.Authorizer.Namespace(ctx, *user, req.NamespaceID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("resource not found", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID)
+			slog.Error("resource not found", "err", err, "NamespaceID", req.NamespaceID)
 			errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
 			return
 		}
-		slog.Error("get resource failed", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID)
+		slog.Error("get resource failed", "err", err, "NamespaceID", req.NamespaceID)
 		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
 		return
 	}

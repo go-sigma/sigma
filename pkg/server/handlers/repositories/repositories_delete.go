@@ -56,11 +56,11 @@ func (h *handler) DeleteRepository(c *gin.Context, req *api.DeleteRepositoryRequ
 	authChecked, err := h.Authorizer.Repository(ctx, *user, req.ID, enums.AuthManage)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error("resource not found", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
+			slog.Error("resource not found", "err", err, "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
 			errcode.NewHTTPError(c, errcode.HTTPErrCodeNotFound, utils.UnwrapJoinedErrors(err))
 			return
 		}
-		slog.Error("get resource failed", "err", errors.New(utils.UnwrapJoinedErrors(err)), "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
+		slog.Error("get resource failed", "err", err, "NamespaceID", req.NamespaceID, "RepositoryID", req.ID)
 		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, utils.UnwrapJoinedErrors(err))
 		return
 	}
