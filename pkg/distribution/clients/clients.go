@@ -44,7 +44,7 @@ import (
 // Clients is the interface of clients
 type Clients interface {
 	// AuthToken auth the clients
-	AuthToken() error
+	AuthToken(ctx context.Context) error
 	// DoRequest request the target with auth
 	DoRequest(ctx context.Context, method, path string, headers http.Header, bodyReaders ...io.Reader) (int, http.Header, io.ReadCloser, error)
 	// GetBlob get blob from target
@@ -68,7 +68,7 @@ type clients struct {
 
 // ClientsFactory creates a Clients bound to the upstream registry described by the supplied configuration.
 type ClientsFactory interface {
-	New(config *config.Configuration) (Clients, error)
+	New(ctx context.Context, config *config.Configuration) (Clients, error)
 }
 
 type clientsFactory struct{}
@@ -79,7 +79,7 @@ func NewClientsFactory() ClientsFactory {
 }
 
 // New returns a new Clients
-func (c clientsFactory) New(config *config.Configuration) (Clients, error) {
+func (c clientsFactory) New(ctx context.Context, config *config.Configuration) (Clients, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	if !config.Proxy.TlsVerify {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // nolint: gosec
@@ -103,7 +103,7 @@ func (c clientsFactory) New(config *config.Configuration) (Clients, error) {
 		endpoint: strings.TrimSuffix(config.Proxy.Endpoint, "/"),
 	}
 
-	err := clients.AuthToken()
+	err := clients.AuthToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +112,7 @@ func (c clientsFactory) New(config *config.Configuration) (Clients, error) {
 }
 
 // AuthToken returns the auth token
-func (c *clients) AuthToken() error {
-	ctx := context.Background()
+func (c *clients) AuthToken(ctx context.Context) error {
 	cha, err := c.ping(ctx)
 	if err != nil {
 		return err

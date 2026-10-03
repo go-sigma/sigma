@@ -109,7 +109,7 @@ func (s *service) HeadBlob(ctx context.Context, namespaceID string, digestStr st
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && s.Config.Proxy.Enabled {
 			f := clients.NewClientsFactory()
-			cli, err := f.New(s.Config)
+			cli, err := f.New(ctx, s.Config)
 			if err != nil {
 				slog.Error("new proxy server failed", "err", err, "digest", digestStr)
 				return nil, errcode.DSErrCodeUnknown
@@ -153,7 +153,7 @@ func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr str
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) && s.Config.Proxy.Enabled {
 			f := clients.NewClientsFactory()
-			cli, err := f.New(s.Config)
+			cli, err := f.New(ctx, s.Config)
 			if err != nil {
 				slog.Error("new proxy server failed", "err", err, "digest", digestStr)
 				return nil, nil, "", errcode.DSErrCodeUnknown

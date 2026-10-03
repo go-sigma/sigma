@@ -15,7 +15,6 @@
 package clients
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -49,7 +48,7 @@ func TestGetBlob(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -59,7 +58,7 @@ func TestGetBlob(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	descriptor, reader, err := cli.GetBlob(context.Background(), "library/busybox", dgest)
+	descriptor, reader, err := cli.GetBlob(t.Context(), "library/busybox", dgest)
 	assert.NoError(t, err)
 	bodyBytes, err := io.ReadAll(reader)
 	assert.NoError(t, err)
@@ -89,7 +88,7 @@ func TestGetBlob1(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -99,7 +98,7 @@ func TestGetBlob1(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
+	_, _, err = cli.GetBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }
 
@@ -122,7 +121,7 @@ func TestGetBlob2(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -132,7 +131,7 @@ func TestGetBlob2(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
+	_, _, err = cli.GetBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }
 
@@ -155,7 +154,7 @@ func TestGetBlob3(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -167,7 +166,7 @@ func TestGetBlob3(t *testing.T) {
 
 	s.Close()
 
-	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
+	_, _, err = cli.GetBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }
 
@@ -188,7 +187,7 @@ func TestGetBlob4(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -198,7 +197,7 @@ func TestGetBlob4(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	_, _, err = cli.GetBlob(context.Background(), "library/busybox", dgest)
+	_, _, err = cli.GetBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }
 
@@ -221,7 +220,7 @@ func TestHeadBlob(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -231,7 +230,7 @@ func TestHeadBlob(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	descriptor, err := cli.HeadBlob(context.Background(), "library/busybox", dgest)
+	descriptor, err := cli.HeadBlob(t.Context(), "library/busybox", dgest)
 	assert.NoError(t, err)
 	assert.Equal(t, descriptor.Digest.String(), dgest.String())
 	assert.Equal(t, descriptor.MediaType, "application/vnd.oci.image.layer.v1.tar+gzip")
@@ -257,7 +256,7 @@ func TestHeadBlob2(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -267,7 +266,7 @@ func TestHeadBlob2(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	_, err = cli.HeadBlob(context.Background(), "library/busybox", dgest)
+	_, err = cli.HeadBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }
 
@@ -290,7 +289,7 @@ func TestHeadBlob3(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -302,7 +301,7 @@ func TestHeadBlob3(t *testing.T) {
 
 	s.Close()
 
-	_, err = cli.HeadBlob(context.Background(), "library/busybox", dgest)
+	_, err = cli.HeadBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }
 
@@ -323,7 +322,7 @@ func TestHeadBlob4(t *testing.T) {
 	s := httptest.NewServer(mux)
 
 	f := NewClientsFactory()
-	cli, err := f.New(&config.Configuration{
+	cli, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -333,6 +332,6 @@ func TestHeadBlob4(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	_, err = cli.HeadBlob(context.Background(), "library/busybox", dgest)
+	_, err = cli.HeadBlob(t.Context(), "library/busybox", dgest)
 	assert.Error(t, err)
 }

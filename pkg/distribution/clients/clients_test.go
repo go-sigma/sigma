@@ -15,7 +15,6 @@
 package clients
 
 import (
-	"context"
 	"encoding/json/v2"
 	"fmt"
 	"io"
@@ -52,7 +51,7 @@ func TestBasicAuthToken(t *testing.T) {
 	defer srv.Close()
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -85,7 +84,7 @@ func TestTLSBasicAuthToken(t *testing.T) {
 	defer srv.Close()
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -138,7 +137,7 @@ func TestBearerAuthToken(t *testing.T) {
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -201,7 +200,7 @@ func TestDoRequest(t *testing.T) {
 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	f := NewClientsFactory()
-	clients, err := f.New(&config.Configuration{
+	clients, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -213,7 +212,7 @@ func TestDoRequest(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	statusCode, _, bodyReader, err := clients.DoRequest(context.Background(), http.MethodGet, "/v2/_catalog", nil)
+	statusCode, _, bodyReader, err := clients.DoRequest(t.Context(), http.MethodGet, "/v2/_catalog", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, statusCode)
 	bodyBytes, err := io.ReadAll(bodyReader)
@@ -226,7 +225,7 @@ func TestDoRequestPing1(t *testing.T) {
 	cPassword := "sigma"
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -251,7 +250,7 @@ func TestDoRequestPing2(t *testing.T) {
 	defer s.Close()
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -276,7 +275,7 @@ func TestDoRequestPing3(t *testing.T) {
 	defer s.Close()
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -306,7 +305,7 @@ func TestDoRequestPing4(t *testing.T) {
 	defer s.Close()
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -333,7 +332,7 @@ func TestDoRequestNoUsername(t *testing.T) {
 	defer s.Close()
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},
@@ -370,7 +369,7 @@ func TestDoRequestPingBasicAuth(t *testing.T) {
 	wwwAuthenticate = fmt.Sprintf(`Basic realm="%s",service="%s",scope="%s"`, s.URL+"/token", "registry.docker.io", "repository:library/alpine:pull")
 
 	f := NewClientsFactory()
-	_, err := f.New(&config.Configuration{
+	_, err := f.New(t.Context(), &config.Configuration{
 		Log: config.ConfigurationLog{
 			ProxyLevel: enums.LogLevelDebug,
 		},

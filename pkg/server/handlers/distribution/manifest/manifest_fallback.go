@@ -34,7 +34,7 @@ func (h *handler) fallbackProxy(c *gin.Context) (int, http.Header, []byte, error
 	headers.Add(consts.HeaderAccept, "application/vnd.oci.image.index.v1+json")
 
 	f := clients.NewClientsFactory()
-	cli, err := f.New(h.Config) // TODO: config param
+	cli, err := f.New(c.Request.Context(), h.Config) // TODO: config param
 	if err != nil {
 		return 0, nil, nil, err
 	}

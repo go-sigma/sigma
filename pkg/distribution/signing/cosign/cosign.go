@@ -109,7 +109,7 @@ func (s *client) GetImageRef(ctx context.Context, token, ref string) (string, er
 		domain = fmt.Sprintf("https://%s", domain)
 	}
 	clientsFactory := clients.NewClientsFactory()
-	client, err := clientsFactory.New(&config.Configuration{
+	client, err := clientsFactory.New(ctx, &config.Configuration{
 		Proxy: config.ConfigurationProxy{
 			Endpoint:  domain,
 			TlsVerify: !s.Http,

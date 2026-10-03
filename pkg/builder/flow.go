@@ -165,5 +165,6 @@ func (f *BuildFlow) sign(imageName string) error {
 	if err != nil {
 		return err
 	}
+	// The builder is a one-shot CLI process with no caller context to propagate, so a background context is intentional here.
 	return s.Sign(context.Background(), f.Authorization, f.SigningPrivateKey, imageName)
 }

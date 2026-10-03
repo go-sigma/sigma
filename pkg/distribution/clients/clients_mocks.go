@@ -46,17 +46,17 @@ func (m *MockClients) EXPECT() *MockClientsMockRecorder {
 }
 
 // AuthToken mocks base method.
-func (m *MockClients) AuthToken() error {
+func (m *MockClients) AuthToken(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuthToken")
+	ret := m.ctrl.Call(m, "AuthToken", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AuthToken indicates an expected call of AuthToken.
-func (mr *MockClientsMockRecorder) AuthToken() *gomock.Call {
+func (mr *MockClientsMockRecorder) AuthToken(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthToken", reflect.TypeOf((*MockClients)(nil).AuthToken))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthToken", reflect.TypeOf((*MockClients)(nil).AuthToken), ctx)
 }
 
 // DoRequest mocks base method.
@@ -182,16 +182,16 @@ func (m *MockClientsFactory) EXPECT() *MockClientsFactoryMockRecorder {
 }
 
 // New mocks base method.
-func (m *MockClientsFactory) New(arg0 *config.Configuration) (Clients, error) {
+func (m *MockClientsFactory) New(ctx context.Context, arg1 *config.Configuration) (Clients, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", arg0)
+	ret := m.ctrl.Call(m, "New", ctx, arg1)
 	ret0, _ := ret[0].(Clients)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockClientsFactoryMockRecorder) New(arg0 any) *gomock.Call {
+func (mr *MockClientsFactoryMockRecorder) New(ctx, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockClientsFactory)(nil).New), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockClientsFactory)(nil).New), ctx, arg1)
 }

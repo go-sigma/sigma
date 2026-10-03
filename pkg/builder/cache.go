@@ -48,7 +48,7 @@ var osErrNotExist = os.ErrNotExist
 
 // initCache 下载并解压构建缓存
 func (f *BuildFlow) initCache() error {
-	reader, err := f.api.getCache(context.Background(), f.BuilderID)
+	reader, err := f.api.getCache(context.Background(), f.BuilderID) // one-shot CLI: no caller context to propagate
 	if err != nil && !errors.Is(err, osErrNotExist) {
 		return err
 	}
@@ -130,7 +130,7 @@ func (f *BuildFlow) exportCache() error {
 	if err != nil {
 		return fmt.Errorf("read compressed file failed: %v", err)
 	}
-	err = f.api.createCache(context.Background(), f.BuilderID, path.Join(cache, compressedCache))
+	err = f.api.createCache(context.Background(), f.BuilderID, path.Join(cache, compressedCache)) // one-shot CLI: no caller context to propagate
 	if err != nil {
 		return fmt.Errorf("export cache to server failed: %v", err)
 	}
