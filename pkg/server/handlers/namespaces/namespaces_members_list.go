@@ -33,13 +33,14 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id}/members/ [get]
-//	@Param		limit	query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
-//	@Param		page	query		int64	false	"Page number"	minimum(1)	default(1)
-//	@Param		sort	query		string	false	"Sort field"
-//	@Param		method	query		string	false	"Sort method"	Enums(asc, desc)
-//	@Param		name	query		string	false	"Search namespace namespace with name"
-//	@Success	200		{object}	api.CommonList{items=[]api.NamespaceMemberItem}
-//	@Failure	500		{object}	errcode.ErrCode
+//	@Param		namespace_id	path		string	true	"Namespace ID"
+//	@Param		limit			query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"Page number"	minimum(1)	default(1)
+//	@Param		sort			query		string	false	"Sort field"
+//	@Param		method			query		string	false	"Sort method"	Enums(asc, desc)
+//	@Param		name			query		string	false	"Search namespace member with name"
+//	@Success	200				{object}	api.CommonList{items=[]api.NamespaceMemberItem}
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListNamespaceMembers(c *gin.Context, req *api.ListNamespaceMemberRequest) {
 	ctx := c.Request.Context()
 

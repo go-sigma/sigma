@@ -25,6 +25,21 @@ import (
 )
 
 // PostRunnerRun handles POST .../builders/:builder_id/runners/run; it starts a new builder runner from the request spec and returns the new runner id with 201, or an error code on failure.
+//
+//	@Summary	Run a builder runner
+//	@security	BasicAuth
+//	@Tags		Builder
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/run [post]
+//	@Param		namespace_id	path		string				true	"Namespace ID"
+//	@Param		repository_id	path		string				true	"Repository ID"
+//	@Param		builder_id		path		string				true	"Builder ID"
+//	@Param		message			body		api.PostRunnerRun	true	"Runner object"
+//	@Success	201				{object}	api.RunOrRerunRunnerResponse
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) PostRunnerRun(c *gin.Context, req *api.PostRunnerRun) {
 	ctx := c.Request.Context()
 

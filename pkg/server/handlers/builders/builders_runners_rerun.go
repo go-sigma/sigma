@@ -25,6 +25,21 @@ import (
 )
 
 // GetRunnerRerun handles GET .../builders/:builder_id/runners/:runner_id/rerun; it starts a new run from the original runner's spec and returns the new runner id with 200, or an error code on failure.
+//
+//	@Summary	Rerun a builder runner
+//	@security	BasicAuth
+//	@Tags		Builder
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/{runner_id}/rerun [get]
+//	@Param		namespace_id	path		string	true	"Namespace ID"
+//	@Param		repository_id	path		string	true	"Repository ID"
+//	@Param		builder_id		path		string	true	"Builder ID"
+//	@Param		runner_id		path		string	true	"Runner ID"
+//	@Success	200				{object}	api.RunOrRerunRunnerResponse
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetRunnerRerun(c *gin.Context, req *api.GetRunnerStop) {
 	ctx := c.Request.Context()
 

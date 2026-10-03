@@ -41,13 +41,13 @@ import (
 //	@Tags		Webhook
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks/{webhook_id}/logs [get]
-//	@Param		webhook_id	path		int64	true	"Webhook ID"
+//	@Router		/webhooks/{webhook_id}/logs/ [get]
+//	@Param		webhook_id	path		string	true	"Webhook ID"
 //	@Param		limit		query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
 //	@Param		page		query		int64	false	"page"	minimum(1)	default(1)
 //	@Param		sort		query		string	false	"sort field"
 //	@Param		method		query		string	false	"sort method"	Enums(asc, desc)
-//	@Success	200			{object}	api.CommonList{items=[]api.WebhookItem}
+//	@Success	200			{object}	api.CommonList{items=[]api.WebhookLogItem}
 //	@Failure	500			{object}	errcode.ErrCode
 //	@Failure	401			{object}	errcode.ErrCode
 func (h *handler) ListWebhookLogs(c *gin.Context, req *api.ListWebhookLogRequest) {

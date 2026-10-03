@@ -22,6 +22,20 @@ import (
 )
 
 // DeleteArtifact handles the delete artifact request
+//
+//	@Summary	Delete artifact
+//	@security	BasicAuth
+//	@Tags		Artifact
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/artifacts/{digest} [delete]
+//	@Param		namespace_id	path	string	true	"Namespace ID"
+//	@Param		repository		query	string	true	"Repository name"
+//	@Param		digest			path	string	true	"Artifact digest"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) DeleteArtifact(c *gin.Context, req *api.DeleteArtifactRequest) {
 	ctx := c.Request.Context()
 

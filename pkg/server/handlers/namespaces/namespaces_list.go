@@ -29,7 +29,7 @@ import (
 
 // ListNamespaces handles the list namespace request
 //
-//	@Summary	List namespace
+//	@Summary	List namespaces
 //	@security	BasicAuth
 //	@Tags		Namespace
 //	@Accept		json

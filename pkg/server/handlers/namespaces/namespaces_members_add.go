@@ -37,11 +37,15 @@ import (
 //	@Tags		Namespace
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/members/ [post]
-//	@Param		message	body	api.AddNamespaceMemberRequest	true	"Member object"
+//	@Router		/namespaces/{namespace_id}/members/ [post]
+//	@Param		namespace_id	path	string							true	"Namespace ID"
+//	@Param		message			body	api.AddNamespaceMemberRequest	true	"Member object"
 //	@security	BasicAuth
 //	@Success	201	{object}	api.AddNamespaceMemberResponse
 //	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	409	{object}	errcode.ErrCode
 //	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) AddNamespaceMember(c *gin.Context, req *api.AddNamespaceMemberRequest) {
 	ctx := c.Request.Context()

@@ -28,6 +28,18 @@ import (
 )
 
 // SelfPut handles the self put request
+//
+//	@Summary	Update self user info
+//	@security	BasicAuth
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/self [put]
+//	@Param		message	body	api.PutUserSelfRequest	true	"User object"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) SelfPut(c *gin.Context, req *api.PutUserSelfRequest) {
 	ctx := c.Request.Context()
 

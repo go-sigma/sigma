@@ -36,9 +36,9 @@ import (
 //	@Tags		CodeRepository
 //	@Accept		json
 //	@Produce	json
-//	@Router		/coderepos/{provider}/repos/{id} [get]
+//	@Router		/coderepos/{provider}/repos/{repo_id} [get]
 //	@Param		provider	path		string	true	"Search code repository with provider"
-//	@Param		id			path		string	true	"Code repository id"
+//	@Param		repo_id		path		string	true	"Code repository ID"
 //	@Success	200			{object}	api.CodeRepositoryItem
 //	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) Get(c *gin.Context, req *api.GetCodeRepositoryRequest) {

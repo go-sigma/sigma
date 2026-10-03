@@ -35,12 +35,12 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespace/{namespace_id}/repositories/{repository_id}/builders/{builder_id} [put]
-//	@Param		namespace_id	path	string						true	"Namespace id"
-//	@Param		repository_id	path	string						true	"Repository id"
-//	@Param		builder_id		path	string						true	"Builder id"
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id} [put]
+//	@Param		namespace_id	path	string						true	"Namespace ID"
+//	@Param		repository_id	path	string						true	"Repository ID"
+//	@Param		builder_id		path	string						true	"Builder ID"
 //	@Param		message			body	api.UpdateBuilderRequest	true	"Builder object"
-//	@Success	201
+//	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode
 //	@Failure	404	{object}	errcode.ErrCode
 //	@Failure	500	{object}	errcode.ErrCode

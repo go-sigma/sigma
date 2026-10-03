@@ -39,7 +39,7 @@ type PostUserRequest struct {
 
 // PutUserRequest is the request for updating a user.
 type PutUserRequest struct {
-	UserID string `param:"id" validate:"required" example:"550e8400-e29b-41d4-a716-446655440000" swaggerignore:"true"`
+	UserID string `param:"user_id" validate:"required" example:"550e8400-e29b-41d4-a716-446655440000" swaggerignore:"true"`
 
 	Username       *string           `json:"username,omitempty" validate:"omitempty,is_valid_username,min=2,max=20" example:"sigma"`
 	Password       *string           `json:"password,omitempty" validate:"omitempty,min=5,max=20,is_valid_password" example:"Admin@123"`
@@ -131,7 +131,7 @@ type PutUserSelfResetPasswordRequest struct {
 
 // PostUserResetPasswordPasswordRequest is the request for resetting another user's password.
 type PostUserResetPasswordPasswordRequest struct {
-	ID       string `json:"id" param:"id" validate:"required" example:"550e8400-e29b-41d4-a716-446655440000"`
+	ID       string `json:"id" param:"user_id" validate:"required" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Password string `json:"password" validate:"required,min=5,max=20,is_valid_password" example:"sigma2023X"`
 }
 

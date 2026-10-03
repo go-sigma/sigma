@@ -39,8 +39,8 @@ import (
 //	@Tags		Webhook
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks/{id} [delete]
-//	@Param		id	path	string	true	"Webhook id"
+//	@Router		/webhooks/{webhook_id} [delete]
+//	@Param		webhook_id	path	string	true	"Webhook ID"
 //	@Success	204
 //	@Failure	500	{object}	errcode.ErrCode
 //	@Failure	401	{object}	errcode.ErrCode

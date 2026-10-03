@@ -42,9 +42,9 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/webhooks/{webhook_id}/logs/{webhook_log_id} [get]
-//	@Param		webhook_id		path		int64	true	"Webhook id"
-//	@Param		webhook_log_id	path		int64	true	"Webhook log id"
-//	@Success	200				{object}	api.CommonList{items=[]api.WebhookLogItem}
+//	@Param		webhook_id		path		string	true	"Webhook id"
+//	@Param		webhook_log_id	path		string	true	"Webhook log id"
+//	@Success	200				{object}	api.WebhookLogItem
 //	@Failure	500				{object}	errcode.ErrCode
 //	@Failure	401				{object}	errcode.ErrCode
 func (h *handler) GetWebhookLog(c *gin.Context, req *api.GetWebhookLogRequest) {

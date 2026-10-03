@@ -38,8 +38,10 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id} [delete]
-//	@Param		namespace_id	path	number	true	"Namespace id"
+//	@Param		namespace_id	path	string	true	"Namespace ID"
 //	@Success	204
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
 //	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) DeleteNamespace(c *gin.Context, req *api.DeleteNamespaceRequest) {
 	ctx := c.Request.Context()

@@ -25,6 +25,20 @@ import (
 )
 
 // GetArtifact handles the get artifact request
+//
+//	@Summary	Get artifact
+//	@security	BasicAuth
+//	@Tags		Artifact
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/artifacts/{digest} [get]
+//	@Param		namespace_id	path		string	true	"Namespace ID"
+//	@Param		repository		query		string	true	"Repository name"
+//	@Param		digest			path		string	true	"Artifact digest"
+//	@Success	200				{object}	api.ArtifactItem
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetArtifact(c *gin.Context, req *api.GetArtifactRequest) {
 	ctx := c.Request.Context()
 

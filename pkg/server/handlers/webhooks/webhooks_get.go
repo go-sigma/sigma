@@ -40,11 +40,11 @@ import (
 //	@Tags		Webhook
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhooks/{id} [get]
-//	@Param		id	path		string	true	"Webhook id"
-//	@Success	200	{object}	api.CommonList{items=[]api.WebhookItem}
-//	@Failure	500	{object}	errcode.ErrCode
-//	@Failure	401	{object}	errcode.ErrCode
+//	@Router		/webhooks/{webhook_id} [get]
+//	@Param		webhook_id	path		string	true	"Webhook ID"
+//	@Success	200			{object}	api.WebhookItem
+//	@Failure	500			{object}	errcode.ErrCode
+//	@Failure	401			{object}	errcode.ErrCode
 func (h *handler) GetWebhook(c *gin.Context, req *api.GetWebhookRequest) {
 	ctx := c.Request.Context()
 

@@ -33,7 +33,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id} [get]
-//	@Param		namespace_id	path		number	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace ID"
 //	@Success	200				{object}	api.NamespaceItem
 //	@Failure	404				{object}	errcode.ErrCode
 //	@Failure	500				{object}	errcode.ErrCode

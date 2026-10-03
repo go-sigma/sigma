@@ -25,6 +25,20 @@ import (
 )
 
 // ResetPassword handles the reset request
+//
+//	@Summary	Reset user password
+//	@security	BasicAuth
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/{user_id}/reset-password [put]
+//	@Param		user_id	path	string										true	"User ID"
+//	@Param		message	body	api.PostUserResetPasswordPasswordRequest	true	"Password object"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) ResetPassword(c *gin.Context, req *api.PostUserResetPasswordPasswordRequest) {
 	ctx := c.Request.Context()
 

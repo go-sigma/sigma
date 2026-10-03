@@ -38,6 +38,8 @@ import (
 //	@Param		message	body		api.PostNamespaceRequest	true	"Namespace object"
 //	@Success	201		{object}	api.PostNamespaceResponse
 //	@Failure	400		{object}	errcode.ErrCode
+//	@Failure	401		{object}	errcode.ErrCode
+//	@Failure	409		{object}	errcode.ErrCode
 //	@Failure	500		{object}	errcode.ErrCode
 func (h *handler) PostNamespace(c *gin.Context, req *api.PostNamespaceRequest) {
 	ctx := c.Request.Context()

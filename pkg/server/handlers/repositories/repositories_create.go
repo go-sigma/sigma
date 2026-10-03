@@ -39,7 +39,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id}/repositories/ [post]
-//	@Param		namespace_id	path		number						true	"Namespace id"
+//	@Param		namespace_id	path		string						true	"Namespace id"
 //	@Param		message			body		api.CreateRepositoryRequest	true	"Repository object"
 //	@Success	201				{object}	api.CreateRepositoryResponse
 //	@Failure	400				{object}	errcode.ErrCode

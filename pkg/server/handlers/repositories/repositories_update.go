@@ -38,8 +38,8 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id}/repositories/{repository_id} [put]
-//	@Param		namespace_id	path	number						true	"Namespace id"
-//	@Param		repository_id	path	number						true	"Repository id"
+//	@Param		namespace_id	path	string						true	"Namespace id"
+//	@Param		repository_id	path	string						true	"Repository id"
 //	@Param		message			body	api.UpdateRepositoryRequest	true	"Repository object"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode

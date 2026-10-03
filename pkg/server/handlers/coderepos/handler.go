@@ -60,12 +60,12 @@ func Initialize(e *gin.Engine, h handler) error {
 		codereposGroup := e.Group(consts.APIV1 + "/coderepos")
 		codereposGroup.GET("/providers", server.Wrap(h.Providers))
 		codereposGroup.GET("/:provider", server.WrapRequest(h.List))
-		codereposGroup.GET("/:provider/repos/:id", server.WrapRequest(h.Get))
+		codereposGroup.GET("/:provider/repos/:repo_id", server.WrapRequest(h.Get))
 		codereposGroup.GET("/:provider/user3rdparty", server.WrapRequest(h.User3rdParty))
 		codereposGroup.GET("/:provider/resync", server.WrapRequest(h.Resync))
 		codereposGroup.GET("/:provider/owners", server.WrapRequest(h.ListOwners))
-		codereposGroup.GET("/:provider/repos/:id/branches", server.WrapRequest(h.ListBranches))
-		codereposGroup.GET("/:provider/repos/:id/branches/:name", server.WrapRequest(h.GetBranch))
+		codereposGroup.GET("/:provider/repos/:repo_id/branches", server.WrapRequest(h.ListBranches))
+		codereposGroup.GET("/:provider/repos/:repo_id/branches/:name", server.WrapRequest(h.GetBranch))
 	}
 	return nil
 }

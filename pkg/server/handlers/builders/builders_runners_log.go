@@ -31,6 +31,20 @@ import (
 )
 
 // GetRunnerLog handles GET .../builders/:builder_id/runners/:runner_id/log; it upgrades the request to a websocket and streams the runner's log (gzip-decoding it when stored compressed), looping while the runner is still building and replying 204 once the websocket handler returns.
+//
+//	@Summary	Stream a builder runner log
+//	@security	BasicAuth
+//	@Tags		Builder
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/{runner_id}/log [get]
+//	@Param		namespace_id	path	string	true	"Namespace ID"
+//	@Param		repository_id	path	string	true	"Repository ID"
+//	@Param		builder_id		path	string	true	"Builder ID"
+//	@Param		runner_id		path	string	true	"Runner ID"
+//	@Success	101				"Switching Protocols"
+//	@Success	204
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) GetRunnerLog(c *gin.Context, req *api.GetRunnerLog) {
 	ctx := c.Request.Context()
 

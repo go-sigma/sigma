@@ -36,7 +36,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/ [put]
-//	@Param		namespace_id	path	int64							true	"Namespace id"
+//	@Param		namespace_id	path	string							true	"Namespace id"
 //	@Param		message			body	api.UpdateGcArtifactRuleRequest	true	"Gc artifact rule object"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode
@@ -65,7 +65,7 @@ func (h *handler) UpdateGcArtifactRule(c *gin.Context, req *api.UpdateGcArtifact
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/ [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
 //	@Success	200				{object}	api.GetGcArtifactRuleResponse
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode
@@ -104,7 +104,7 @@ func (h *handler) GetGcArtifactRule(c *gin.Context, req *api.GetGcArtifactRuleRe
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/runners/latest [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
 //	@Success	200				{object}	api.GcArtifactRunnerItem
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode
@@ -155,7 +155,7 @@ func (h *handler) GetGcArtifactLatestRunner(c *gin.Context, req *api.GetGcArtifa
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/runners/ [post]
-//	@Param		namespace_id	path	int64								true	"Namespace id"
+//	@Param		namespace_id	path	string								true	"Namespace id"
 //	@Param		message			body	api.CreateGcArtifactRunnerRequest	true	"Gc artifact runner object"
 //	@Success	201
 //	@Failure	400	{object}	errcode.ErrCode
@@ -184,7 +184,7 @@ func (h *handler) CreateGcArtifactRunner(c *gin.Context, req *api.CreateGcArtifa
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/runners/ [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
 //	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
 //	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
 //	@Param		sort			query		string	false	"sort field"
@@ -237,14 +237,14 @@ func (h *handler) ListGcArtifactRunners(c *gin.Context, req *api.ListGcArtifactR
 
 // GetGcArtifactRunner handles the get gc artifact runner request
 //
-//	@Summary	List gc artifact runners
+//	@Summary	Get gc artifact runner
 //	@security	BasicAuth
 //	@Tags		Daemon
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/runners/{runner_id} [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
-//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		runner_id		path		string	true	"Runner id"
 //	@Success	200				{object}	api.GcArtifactRunnerItem
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode
@@ -295,8 +295,8 @@ func (h *handler) GetGcArtifactRunner(c *gin.Context, req *api.GetGcArtifactRunn
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/ [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
-//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		runner_id		path		string	true	"Runner id"
 //	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
 //	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
 //	@Param		sort			query		string	false	"sort field"
@@ -339,9 +339,9 @@ func (h *handler) ListGcArtifactRecords(c *gin.Context, req *api.ListGcArtifactR
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-artifact/{namespace_id}/runners/{runner_id}/records/{record_id} [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
-//	@Param		runner_id		path		int64	true	"Runner id"
-//	@Param		record_id		path		int64	true	"Record id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		runner_id		path		string	true	"Runner id"
+//	@Param		record_id		path		string	true	"Record id"
 //	@Success	200				{object}	api.GcArtifactRecordItem
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode

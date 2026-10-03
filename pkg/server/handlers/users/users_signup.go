@@ -24,6 +24,17 @@ import (
 )
 
 // Signup handles the user signup
+//
+//	@Summary	Sign up user
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/signup [get]
+//	@Router		/users/create [get]
+//	@Param		message	body		api.PostUserSignupRequest	true	"Signup object"
+//	@Success	200		{object}	api.PostUserLoginResponse
+//	@Failure	400		{object}	errcode.ErrCode
+//	@Failure	500		{object}	errcode.ErrCode
 func (h *handler) Signup(c *gin.Context, req *api.PostUserSignupRequest) {
 	ctx := c.Request.Context()
 

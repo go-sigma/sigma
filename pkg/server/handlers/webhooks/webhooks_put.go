@@ -39,9 +39,9 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/webhook/{id} [put]
-//	@Param		id		path	string					true	"Webhook id"
-//	@Param		message	body	api.PutWebhookRequest	true	"Webhook object"
+//	@Router		/webhooks/{webhook_id} [put]
+//	@Param		webhook_id	path	string					true	"Webhook ID"
+//	@Param		message		body	api.PutWebhookRequest	true	"Webhook object"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode
 //	@Failure	404	{object}	errcode.ErrCode

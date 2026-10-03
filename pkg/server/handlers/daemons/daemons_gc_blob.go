@@ -39,7 +39,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/ [put]
-//	@Param		namespace_id	path	int64						true	"Namespace id"
+//	@Param		namespace_id	path	string						true	"Namespace id"
 //	@Param		message			body	api.UpdateGcBlobRuleRequest	true	"Gc blob rule object"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode
@@ -69,7 +69,7 @@ func (h *handler) UpdateGcBlobRule(c *gin.Context, req *api.UpdateGcBlobRuleRequ
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/ [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
 //	@Success	200				{object}	api.GetGcBlobRuleResponse
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode
@@ -108,7 +108,7 @@ func (h *handler) GetGcBlobRule(c *gin.Context, req *api.GetGcBlobRuleRequest) {
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/runners/latest [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
 //	@Success	200				{object}	api.GcBlobRunnerItem
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode
@@ -159,7 +159,7 @@ func (h *handler) GetGcBlobLatestRunner(c *gin.Context, req *api.GetGcBlobLatest
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/runners/ [post]
-//	@Param		namespace_id	path	int64							true	"Namespace id"
+//	@Param		namespace_id	path	string							true	"Namespace id"
 //	@Param		message			body	api.CreateGcBlobRunnerRequest	true	"Gc blob runner object"
 //	@Success	201
 //	@Failure	400	{object}	errcode.ErrCode
@@ -195,7 +195,7 @@ func (h *handler) CreateGcBlobRunner(c *gin.Context, req *api.CreateGcBlobRunner
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/runners/ [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
 //	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
 //	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
 //	@Param		sort			query		string	false	"sort field"
@@ -248,14 +248,14 @@ func (h *handler) ListGcBlobRunners(c *gin.Context, req *api.ListGcBlobRunnersRe
 
 // GetGcBlobRunner handles the get gc blob runner request
 //
-//	@Summary	List gc blob runners
+//	@Summary	Get gc blob runner
 //	@security	BasicAuth
 //	@Tags		Daemon
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/runners/{runner_id} [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
-//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		runner_id		path		string	true	"Runner id"
 //	@Success	200				{object}	api.GcBlobRunnerItem
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode
@@ -306,8 +306,8 @@ func (h *handler) GetGcBlobRunner(c *gin.Context, req *api.GetGcBlobRunnerReques
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/ [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
-//	@Param		runner_id		path		int64	true	"Runner id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		runner_id		path		string	true	"Runner id"
 //	@Param		limit			query		int64	false	"limit"	minimum(10)	maximum(100)	default(10)
 //	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
 //	@Param		sort			query		string	false	"sort field"
@@ -350,9 +350,9 @@ func (h *handler) ListGcBlobRecords(c *gin.Context, req *api.ListGcBlobRecordsRe
 //	@Accept		json
 //	@Produce	json
 //	@Router		/daemons/gc-blob/{namespace_id}/runners/{runner_id}/records/{record_id} [get]
-//	@Param		namespace_id	path		int64	true	"Namespace id"
-//	@Param		runner_id		path		int64	true	"Runner id"
-//	@Param		record_id		path		int64	true	"Record id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		runner_id		path		string	true	"Runner id"
+//	@Param		record_id		path		string	true	"Record id"
 //	@Success	200				{object}	api.GcBlobRecordItem
 //	@Failure	400				{object}	errcode.ErrCode
 //	@Failure	404				{object}	errcode.ErrCode

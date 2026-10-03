@@ -35,7 +35,7 @@ import (
 //	@Param		provider	path		string	true	"oauth2 provider"
 //	@Param		code		query		string	true	"code"
 //	@Param		endpoint	query		string	false	"endpoint"
-//	@Success	200			{object}	api.Oauth2ClientIDResponse
+//	@Success	200			{object}	api.Oauth2CallbackResponse
 //	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) Callback(c *gin.Context, req *api.Oauth2CallbackRequest) {
 	ctx := c.Request.Context()

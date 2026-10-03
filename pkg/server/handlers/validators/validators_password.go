@@ -34,7 +34,7 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/validators/password [get]
+//	@Router		/validators/password [post]
 //	@Param		message	body	api.ValidatePasswordRequest	true	"Validate password object"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode

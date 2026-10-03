@@ -55,7 +55,7 @@ type ListCodeRepositoryRequest struct {
 // GetCodeRepositoryRequest is the request for getting a source code repository.
 type GetCodeRepositoryRequest struct {
 	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
-	ID       string         `json:"id" param:"id" validate:"required"`
+	ID       string         `json:"id" param:"repo_id" validate:"required"`
 }
 
 // ListCodeRepositoryOwnerRequest is the request for listing source code repository owners.
@@ -66,7 +66,7 @@ type ListCodeRepositoryOwnerRequest struct {
 
 // ListCodeRepositoryBranchesRequest is the request for listing source code repository branches.
 type ListCodeRepositoryBranchesRequest struct {
-	ID string `json:"id" param:"id" validate:"required"`
+	ID string `json:"id" param:"repo_id" validate:"required"`
 }
 
 // CodeRepositoryBranchItem represents a source code repository branch.
@@ -79,7 +79,7 @@ type CodeRepositoryBranchItem struct {
 
 // GetCodeRepositoryBranchRequest is the request for getting a source code repository branch.
 type GetCodeRepositoryBranchRequest struct {
-	ID   string `json:"id" param:"id" validate:"required"`
+	ID   string `json:"id" param:"repo_id" validate:"required"`
 	Name string `json:"name" param:"name" validate:"required"`
 }
 

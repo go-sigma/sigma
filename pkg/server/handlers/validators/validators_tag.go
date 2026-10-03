@@ -36,7 +36,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/validators/tag [get]
-//	@Param		tag	query	string	true	"Reference"
+//	@Param		tag	query	string	true	"Tag"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode
 func (h *handler) GetTag(c *gin.Context, req *api.GetValidatorTagRequest) {

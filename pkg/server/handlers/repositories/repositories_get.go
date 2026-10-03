@@ -41,8 +41,8 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id}/repositories/{repository_id} [get]
-//	@Param		namespace_id	path		number	true	"Namespace id"
-//	@Param		repository_id	path		number	true	"Repository id"
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		repository_id	path		string	true	"Repository id"
 //	@Success	200				{object}	api.RepositoryItem
 //	@Failure	404				{object}	errcode.ErrCode
 //	@Failure	500				{object}	errcode.ErrCode

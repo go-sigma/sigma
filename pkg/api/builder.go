@@ -172,7 +172,7 @@ type ListBuilderRunnersRequest struct {
 type BuilderRunnerItem struct {
 	ID            string            `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	BuilderID     string            `json:"builder_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Log           []byte            `json:"log" example:"log"`
+	Log           []byte            `json:"log" example:"log" swaggertype:"string"`
 	Status        enums.BuildStatus `json:"status" example:"Success"`
 	StatusMessage *string           `json:"status_message" example:""`
 

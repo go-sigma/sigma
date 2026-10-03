@@ -40,9 +40,9 @@ import (
 //	@security	BasicAuth
 //	@Accept		json
 //	@Produce	json
-//	@Router		/namespaces/{namespace_id}/tags/ [get]
-//	@Param		namespace_id	path		number		true	"Namespace id"
-//	@Param		repository_id	path		number		false	"Repository id"
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/tags/ [get]
+//	@Param		namespace_id	path		string		true	"Namespace ID"
+//	@Param		repository_id	path		string		true	"Repository ID"
 //	@Param		limit			query		int64		false	"Limit size"	minimum(10)	maximum(100)	default(10)
 //	@Param		page			query		int64		false	"Page number"	minimum(1)	default(1)
 //	@Param		sort			query		string		false	"Sort field"

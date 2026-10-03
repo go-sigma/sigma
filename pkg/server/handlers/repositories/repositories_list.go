@@ -37,9 +37,9 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id}/repositories/ [get]
-//	@Param		namespace_id	path		number	true	"Namespace id"
-//	@Param		limit			query		number	false	"Limit size"	minimum(10)	maximum(100)	default(10)
-//	@Param		page			query		number	false	"Page number"	minimum(1)	default(1)
+//	@Param		namespace_id	path		string	true	"Namespace id"
+//	@Param		limit			query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"Page number"	minimum(1)	default(1)
 //	@Param		sort			query		string	false	"Sort field"
 //	@Param		method			query		string	false	"Sort method"	Enums(asc, desc)
 //	@Param		name			query		string	false	"Search repository with name"

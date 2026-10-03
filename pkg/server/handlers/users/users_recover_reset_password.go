@@ -25,6 +25,17 @@ import (
 )
 
 // RecoverPasswordReset handles the recover user's password reset
+//
+//	@Summary	Reset recovered password
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/recover-password-reset/{code} [put]
+//	@Param		code	path	string									true	"Recovery code"
+//	@Param		message	body	api.PostUserRecoverResetPasswordRequest	true	"Reset password object"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) RecoverPasswordReset(c *gin.Context, req *api.PostUserRecoverResetPasswordRequest) {
 	ctx := c.Request.Context()
 

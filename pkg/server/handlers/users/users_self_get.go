@@ -29,6 +29,16 @@ import (
 )
 
 // Self handles the self get request
+//
+//	@Summary	Get self user info
+//	@security	BasicAuth
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/self [get]
+//	@Success	200	{object}	api.GetUserSelfResponse
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) SelfGet(c *gin.Context) {
 	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)
 	if !ok {

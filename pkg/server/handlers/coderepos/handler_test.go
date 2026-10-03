@@ -43,7 +43,7 @@ func TestInitialize(t *testing.T) {
 		routes := engine.Routes()
 		require.Len(t, routes, 8)
 		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/providers"))
-		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/:provider/repos/:id/branches/:name"))
+		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/:provider/repos/:repo_id/branches/:name"))
 	}))
 }
 

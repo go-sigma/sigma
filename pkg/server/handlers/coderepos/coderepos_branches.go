@@ -33,9 +33,9 @@ import (
 //	@Tags		CodeRepository
 //	@Accept		json
 //	@Produce	json
-//	@Router		/{provider}/repos/coderepos/{id}/branches [get]
+//	@Router		/coderepos/{provider}/repos/{repo_id}/branches [get]
 //	@Param		provider	path		string	true	"code repository provider"
-//	@Param		id			path		string	true	"Code repository id"
+//	@Param		repo_id		path		string	true	"Code repository ID"
 //	@Success	200			{object}	api.CommonList{items=[]api.CodeRepositoryBranchItem}
 //	@Failure	500			{object}	errcode.ErrCode
 func (h *handler) ListBranches(c *gin.Context, req *api.ListCodeRepositoryBranchesRequest) {

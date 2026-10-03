@@ -30,8 +30,9 @@ import (
 //	@Tags		User
 //	@Accept		json
 //	@Produce	json
-//	@Router		/users/{id} [get]
-//	@Param		id	path	string	true	"User id"
+//	@Router		/users/{user_id} [put]
+//	@Param		user_id	path	string				true	"User ID"
+//	@Param		message	body	api.PutUserRequest	true	"User object"
 //	@Success	204
 //	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) Put(c *gin.Context, req *api.PutUserRequest) {

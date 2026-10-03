@@ -30,6 +30,20 @@ import (
 )
 
 // GetNamespaceTrends handles the namespace trend request.
+//
+//	@Summary	Get namespace activity trends
+//	@security	BasicAuth
+//	@Tags		Analytics
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/activity/trends [get]
+//	@Param		namespace_id	path		string	true	"Namespace ID"
+//	@Param		days			query		int		false	"Number of days to look back"	minimum(1)	maximum(30)	default(30)
+//	@Success	200				{object}	api.ListNamespaceHourlyMetricResponse
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	401				{object}	errcode.ErrCode
+//	@Failure	404				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) GetNamespaceTrends(c *gin.Context) {
 	ctx := c.Request.Context()
 	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)

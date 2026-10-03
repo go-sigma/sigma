@@ -45,7 +45,7 @@ import (
 //	@Param		page			query		int64	false	"page"	minimum(1)	default(1)
 //	@Param		sort			query		string	false	"sort field"
 //	@Param		method			query		string	false	"sort method"	Enums(asc, desc)
-//	@Param		namespace_id	query		int64	false	"filter by namespace id"
+//	@Param		namespace_id	query		string	false	"filter by namespace id"
 //	@Success	200				{object}	api.CommonList{items=[]api.WebhookItem}
 //	@Failure	500				{object}	errcode.ErrCode
 //	@Failure	401				{object}	errcode.ErrCode

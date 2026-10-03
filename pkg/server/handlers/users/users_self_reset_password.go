@@ -28,6 +28,18 @@ import (
 )
 
 // SelfResetPassword handles the self reset request
+//
+//	@Summary	Reset self password
+//	@security	BasicAuth
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/self/reset-password [put]
+//	@Param		message	body	api.PutUserSelfResetPasswordRequest	true	"Password object"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) SelfResetPassword(c *gin.Context, req *api.PutUserSelfResetPasswordRequest) {
 	ctx := c.Request.Context()
 

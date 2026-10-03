@@ -69,7 +69,7 @@ func Initialize(e *gin.Engine, h handler) error {
 	group := e.Group(consts.APIV1 + "/users")
 	group.GET("/", server.WrapRequest(h.List))
 	group.POST("/", server.WrapRequest(h.Post))
-	group.PUT("/:id", server.WrapRequest(h.Put))
+	group.PUT("/:user_id", server.WrapRequest(h.Put))
 	group.POST("/login", server.Wrap(h.Login))
 	group.POST("/logout", server.WrapRequest(h.Logout))
 	group.GET("/signup", server.WrapRequest(h.Signup))
@@ -79,6 +79,6 @@ func Initialize(e *gin.Engine, h handler) error {
 	group.PUT("/self/reset-password", server.WrapRequest(h.SelfResetPassword))
 	group.GET("/recover-password", server.WrapRequest(h.RecoverPassword))
 	group.PUT("/recover-password-reset/:code", server.WrapRequest(h.RecoverPasswordReset))
-	group.PUT("/:id/reset-password", server.WrapRequest(h.ResetPassword))
+	group.PUT("/:user_id/reset-password", server.WrapRequest(h.ResetPassword))
 	return nil
 }

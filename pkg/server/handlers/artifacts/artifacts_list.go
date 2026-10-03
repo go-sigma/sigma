@@ -26,6 +26,20 @@ import (
 )
 
 // ListArtifact handles the list artifact request
+//
+//	@Summary	List artifacts
+//	@security	BasicAuth
+//	@Tags		Artifact
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/artifacts/ [get]
+//	@Param		namespace_id	path		string	true	"Namespace ID"
+//	@Param		repository		query		string	true	"Repository name"
+//	@Param		limit			query		int64	false	"Limit size"	minimum(10)	maximum(100)	default(10)
+//	@Param		page			query		int64	false	"Page number"	minimum(1)	default(1)
+//	@Success	200				{object}	api.CommonList{items=[]api.ArtifactItem}
+//	@Failure	400				{object}	errcode.ErrCode
+//	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListArtifact(c *gin.Context, req *api.ListArtifactRequest) {
 	ctx := c.Request.Context()
 

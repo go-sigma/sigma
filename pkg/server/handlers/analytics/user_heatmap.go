@@ -29,6 +29,19 @@ import (
 )
 
 // GetUserPushHeatmap handles the user push heatmap request.
+//
+//	@Summary	Get user push activity heatmap
+//	@security	BasicAuth
+//	@Tags		Analytics
+//	@Accept		json
+//	@Produce	json
+//	@Router		/users/{user_id}/activity/heatmap [get]
+//	@Param		user_id	path		string	true	"User ID"
+//	@Param		days	query		int		false	"Number of days to look back"	minimum(1)	maximum(400)	default(365)
+//	@Success	200		{object}	api.ListDailyCountResponse
+//	@Failure	400		{object}	errcode.ErrCode
+//	@Failure	401		{object}	errcode.ErrCode
+//	@Failure	500		{object}	errcode.ErrCode
 func (h *handler) GetUserPushHeatmap(c *gin.Context) {
 	ctx := c.Request.Context()
 	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)

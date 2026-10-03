@@ -35,10 +35,13 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/namespaces/{namespace_id}/members/{user_id} [put]
-//	@Param		namespace_id	path	number								true	"Namespace id"
-//	@Param		user_id			path	number								true	"User id"
+//	@Param		namespace_id	path	string								true	"Namespace ID"
+//	@Param		user_id			path	string								true	"User ID"
 //	@Param		message			body	api.UpdateNamespaceMemberRequest	true	"Namespace member object"
 //	@Success	204
+//	@Failure	401	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) UpdateNamespaceMember(c *gin.Context, req *api.UpdateNamespaceMemberRequest) {
 	ctx := c.Request.Context()
 

@@ -33,9 +33,9 @@ import (
 //	@Tags		CodeRepository
 //	@Accept		json
 //	@Produce	json
-//	@Router		/{provider}/repos/coderepos/{id}/branches/{name} [get]
+//	@Router		/coderepos/{provider}/repos/{repo_id}/branches/{name} [get]
 //	@Param		provider	path		string	true	"code repository provider"
-//	@Param		id			path		number	true	"Code repository id"
+//	@Param		repo_id		path		string	true	"Code repository ID"
 //	@Param		name		path		string	true	"Branch name"
 //	@Success	200			{object}	api.CodeRepositoryBranchItem
 //	@Failure	500			{object}	errcode.ErrCode

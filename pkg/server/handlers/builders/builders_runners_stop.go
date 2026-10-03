@@ -25,6 +25,21 @@ import (
 )
 
 // GetRunnerStop handles GET .../builders/:builder_id/runners/:runner_id/stop; it cancels the running runner and returns 204, or an error code describing the failure.
+//
+//	@Summary	Stop a builder runner
+//	@security	BasicAuth
+//	@Tags		Builder
+//	@Accept		json
+//	@Produce	json
+//	@Router		/namespaces/{namespace_id}/repositories/{repository_id}/builders/{builder_id}/runners/{runner_id}/stop [get]
+//	@Param		namespace_id	path	string	true	"Namespace ID"
+//	@Param		repository_id	path	string	true	"Repository ID"
+//	@Param		builder_id		path	string	true	"Builder ID"
+//	@Param		runner_id		path	string	true	"Runner ID"
+//	@Success	204
+//	@Failure	400	{object}	errcode.ErrCode
+//	@Failure	404	{object}	errcode.ErrCode
+//	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) GetRunnerStop(c *gin.Context, req *api.GetRunnerStop) {
 	ctx := c.Request.Context()
 

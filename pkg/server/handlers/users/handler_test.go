@@ -39,7 +39,8 @@ func TestInitialize(t *testing.T) {
 		require.True(t, hasRoute(routes, http.MethodPost, "/api/v1/users/login"))
 		require.True(t, hasRoute(routes, http.MethodPut, "/api/v1/users/self/reset-password"))
 		require.True(t, hasRoute(routes, http.MethodPut, "/api/v1/users/recover-password-reset/:code"))
-		require.True(t, hasRoute(routes, http.MethodPut, "/api/v1/users/:id/reset-password"))
+		require.True(t, hasRoute(routes, http.MethodPut, "/api/v1/users/:user_id"))
+		require.True(t, hasRoute(routes, http.MethodPut, "/api/v1/users/:user_id/reset-password"))
 	}))
 }
 

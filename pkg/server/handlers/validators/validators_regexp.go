@@ -34,7 +34,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/validators/regexp [post]
-//	@Param		message	body	api.ValidateCronRequest	true	"Validate regexp object"
+//	@Param		message	body	api.ValidateRegexpRequest	true	"Validate regexp object"
 //	@Success	204
 //	@Failure	400	{object}	errcode.ErrCode
 func (h *handler) ValidateRegexp(c *gin.Context, req *api.ValidateRegexpRequest) {

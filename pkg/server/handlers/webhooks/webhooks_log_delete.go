@@ -40,8 +40,8 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/webhooks/{webhook_id}/logs/{webhook_log_id} [delete]
-//	@Param		webhook_id		path	int64	true	"Webhook id"
-//	@Param		webhook_log_id	path	int64	true	"Webhook log id"
+//	@Param		webhook_id		path	string	true	"Webhook id"
+//	@Param		webhook_log_id	path	string	true	"Webhook log id"
 //	@Success	204
 //	@Failure	500	{object}	errcode.ErrCode
 //	@Failure	401	{object}	errcode.ErrCode

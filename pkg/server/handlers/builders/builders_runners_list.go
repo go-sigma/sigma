@@ -40,7 +40,7 @@ import (
 //	@Param		namespace_id	path		string	true	"Namespace ID"
 //	@Param		repository_id	path		string	true	"Repository ID"
 //	@Param		builder_id		path		string	true	"Builder ID"
-//	@Success	200				{object}	api.BuilderItem
+//	@Success	200				{object}	api.CommonList{items=[]api.BuilderRunnerItem}
 //	@Failure	404				{object}	errcode.ErrCode
 //	@Failure	500				{object}	errcode.ErrCode
 func (h *handler) ListRunners(c *gin.Context, req *api.ListBuilderRunnersRequest) {

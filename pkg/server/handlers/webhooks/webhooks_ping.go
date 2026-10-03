@@ -40,7 +40,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Router		/webhooks/{webhook_id}/ping [get]
-//	@Param		webhook_id	path	int64	true	"Webhook id"
+//	@Param		webhook_id	path	string	true	"Webhook id"
 //	@Success	204
 //	@Failure	500	{object}	errcode.ErrCode
 //	@Failure	401	{object}	errcode.ErrCode
