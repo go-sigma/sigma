@@ -16,12 +16,16 @@ package users
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/go-sigma/sigma/pkg/api"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // Put handles the put request
@@ -37,6 +41,24 @@ import (
 //	@Failure	500	{object}	errcode.ErrCode
 func (h *handler) Put(c *gin.Context, req *api.PutUserRequest) {
 	ctx := c.Request.Context()
+
+	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)
+	if !ok {
+		slog.Error("get user from context failed")
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
+		return
+	}
+	// A user must not be able to change their own status or role.
+	if user.ID == req.UserID {
+		if req.Status != nil {
+			errcode.NewHTTPError(c, errcode.HTTPErrCodeForbidden, "Cannot update your own status")
+			return
+		}
+		if req.Role != nil {
+			errcode.NewHTTPError(c, errcode.HTTPErrCodeForbidden, "Cannot update your own role")
+			return
+		}
+	}
 
 	err := h.UserSvc.UpdateUser(ctx, req.UserID, *req)
 	if err != nil {

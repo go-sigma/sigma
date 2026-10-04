@@ -193,6 +193,9 @@ func (s *service) UpdateUser(ctx context.Context, userID string, req api.PutUser
 	if req.Status != nil {
 		updates[query.User.Status.ColumnName().String()] = req.Status
 	}
+	if req.Role != nil {
+		updates[query.User.Role.ColumnName().String()] = req.Role
+	}
 	if req.Password != nil {
 		pwdHash, err := s.SvcPassword.Hash(ptr.To(req.Password))
 		if err != nil {
