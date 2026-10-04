@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
+import {
+  EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import axios from "axios";
 import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import { useParams, useSearchParams, useLocation } from "react-router-dom";
+
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import NamespaceTabs from "@/components/NamespaceTabs";
+import Notification from "@/components/Notification";
+import OrderHeader from "@/components/OrderHeader";
+import Pagination from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,13 +44,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useParams, useSearchParams, useLocation } from "react-router-dom";
-import Header from "@/components/Header";
-import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
-import Notification from "@/components/Notification";
-import Pagination from "@/components/Pagination";
-import Settings from "@/Settings";
 import {
   IHTTPError,
   INamespaceItem,
@@ -47,12 +52,8 @@ import {
   IWebhookLogItem,
   IWebhookLogList,
 } from "@/interfaces";
-import OrderHeader from "@/components/OrderHeader";
-import {
-  EllipsisVerticalIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "@/interfaces/enums";
+import Settings from "@/Settings";
 
 export default function ({ localServer }: { localServer: string }) {
   const location = useLocation();

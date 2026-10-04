@@ -14,7 +14,27 @@
  * limitations under the License.
  */
 
+import {
+  EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import axios from "axios";
+import dayjs from "dayjs";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
+import {
+  useParams,
+  useSearchParams,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import NamespaceTabs from "@/components/NamespaceTabs";
+import Notification from "@/components/Notification";
+import OrderHeader from "@/components/OrderHeader";
+import Pagination from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,23 +53,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Fragment, useCallback, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import {
-  useParams,
-  useSearchParams,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import { Tooltip } from "@/utils";
-import dayjs from "dayjs";
-
-import Header from "@/components/Header";
-import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
-import Notification from "@/components/Notification";
-import Pagination from "@/components/Pagination";
-import Settings from "@/Settings";
+import { useTranslation } from "@/i18n/useTranslation";
 import {
   IHTTPError,
   INamespaceItem,
@@ -58,13 +62,9 @@ import {
   IWebhookItem,
   IWebhookList,
 } from "@/interfaces";
-import OrderHeader from "@/components/OrderHeader";
-import {
-  EllipsisVerticalIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
 import { NamespaceRole, UserRole } from "@/interfaces/enums";
-import { useTranslation } from "@/i18n/useTranslation";
+import Settings from "@/Settings";
+import { Tooltip } from "@/utils";
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -529,13 +529,13 @@ export default function ({ localServer }: { localServer: string }) {
                 {[
                   ...(location.pathname.startsWith("/settings")
                     ? [
-                        {
-                          id: "event-namespace",
-                          label: "Namespace Event",
-                          checked: eventNamespace,
-                          setChecked: setEventNamespace,
-                        },
-                      ]
+                      {
+                        id: "event-namespace",
+                        label: "Namespace Event",
+                        checked: eventNamespace,
+                        setChecked: setEventNamespace,
+                      },
+                    ]
                     : []),
                   {
                     id: "event-member",

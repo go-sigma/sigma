@@ -1,7 +1,8 @@
-import { useUiStore, ThemeMode } from "@/stores";
-import { useTranslation } from "@/i18n/useTranslation";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Sun, Moon, Monitor } from "lucide-react";
+
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useTranslation } from "@/i18n/useTranslation";
+import { useUiStore, ThemeMode } from "@/stores";
 
 const themeModes: ThemeMode[] = ["light", "dark", "system"];
 

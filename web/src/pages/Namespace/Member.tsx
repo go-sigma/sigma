@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import Toast from "react-hot-toast";
-import { Fragment, useCallback, useEffect, useState } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { useParams, useSearchParams } from "react-router-dom";
 import {
   ChevronUpDownIcon,
   EllipsisVerticalIcon,
 } from "@heroicons/react/20/solid";
+import axios from "axios";
+import { CornerDownLeft } from "lucide-react";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
+import Toast from "react-hot-toast";
+import { useParams, useSearchParams } from "react-router-dom";
 
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import NamespaceTabs from "@/components/NamespaceTabs";
+import Notification from "@/components/Notification";
+import Pagination from "@/components/Pagination";
+import RelativeTime from "@/components/RelativeTime";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Command,
   CommandEmpty,
@@ -47,6 +52,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -67,14 +74,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CornerDownLeft } from "lucide-react";
-import Header from "@/components/Header";
-import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
-import Notification from "@/components/Notification";
-import Pagination from "@/components/Pagination";
-import RelativeTime from "@/components/RelativeTime";
-import Settings from "@/Settings";
 import {
   IHTTPError,
   INamespaceItem,
@@ -83,6 +82,7 @@ import {
   IUserItem,
   IUserList,
 } from "@/interfaces";
+import Settings from "@/Settings";
 
 const namespaceRoles = [
   { id: 1, name: "NamespaceAdmin" },

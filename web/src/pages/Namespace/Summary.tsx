@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-import "bytemd/dist/index.css";
-
-import "./index.css";
-
-import axios from "axios";
 import gfm from "@bytemd/plugin-gfm";
 import { Editor, Viewer } from "@bytemd/react";
+import axios from "axios";
+import "bytemd/dist/index.css";
+import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 
+import "./index.css";
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
 import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
-import { IHTTPError, INamespaceItem } from "@/interfaces";
 import { Button } from "@/components/ui/button";
+import { IHTTPError, INamespaceItem } from "@/interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();

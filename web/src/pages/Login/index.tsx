@@ -16,18 +16,17 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
 
-import SigmaSvg from "@/components/svg/sigma";
 import Notification from "@/components/Notification";
-import { useTranslation } from "@/i18n/useTranslation";
-import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "@/interfaces";
-
+import SigmaSvg from "@/components/svg/sigma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "@/interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
   const { t } = useTranslation();

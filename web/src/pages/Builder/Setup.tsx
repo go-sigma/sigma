@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-import _ from 'lodash';
-import axios from "axios";
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import axios from "axios";
+import _ from 'lodash';
 import { Fragment, useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import ShikiDockerfileEditor from '@/components/CodeEditor/ShikiDockerfileEditor';
+import Header from '@/components/Header';
+import HeaderMenu from '@/components/Menu';
+import Toast from "@/components/Notification";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -44,14 +48,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import Header from '@/components/Header';
-import HeaderMenu from '@/components/Menu';
-import ShikiDockerfileEditor from '@/components/CodeEditor/ShikiDockerfileEditor';
-import Settings from '@/Settings';
-import Toast from "@/components/Notification";
 import { useTranslation } from "@/i18n/useTranslation";
 import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '@/interfaces';
+import Settings from '@/Settings';
 
 const supportPlatforms = [
   { id: 1, name: 'linux/amd64' },

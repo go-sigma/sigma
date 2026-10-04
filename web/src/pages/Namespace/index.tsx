@@ -15,6 +15,12 @@
  */
 
 import axios from "axios";
+import {
+  CornerDownLeft,
+  EllipsisVertical,
+  SquarePen,
+  Trash2,
+} from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -27,34 +33,6 @@ import Pagination from "@/components/Pagination";
 import Quota from "@/components/Quota";
 import QuotaSimple from "@/components/QuotaSimple";
 import RelativeTime from "@/components/RelativeTime";
-import Settings from "@/Settings";
-import { calcUnit } from "@/utils";
-import { useTranslation } from "@/i18n/useTranslation";
-import {
-  IHTTPError,
-  INamespaceItem,
-  INamespaceList,
-  IOrder,
-  IUserSelf,
-} from "@/interfaces";
-import { NamespaceRole, UserRole } from "@/interfaces/enums";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,12 +43,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -79,13 +75,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n/useTranslation";
 import {
-  CornerDownLeft,
-  EllipsisVertical,
-  SquarePen,
-  Trash2,
-} from "lucide-react";
+  IHTTPError,
+  INamespaceItem,
+  INamespaceList,
+  IOrder,
+  IUserSelf,
+} from "@/interfaces";
+import { NamespaceRole, UserRole } from "@/interfaces/enums";
+import Settings from "@/Settings";
+import { calcUnit } from "@/utils";
 
 export default function Namespace({ localServer }: { localServer: string }) {
   const { t } = useTranslation();

@@ -99,6 +99,28 @@ make clean
 - Do not use suffix-style aliases such as `userrepo`, `namespacesvc`, or
   `auditrepo`.
 
+### Web import order (`web/`)
+
+TypeScript/TSX imports are grouped into two blocks separated by a blank line,
+and each block is sorted alphabetically by module specifier:
+
+1. Third-party (open-source) packages.
+2. This repository's modules, i.e. the `@/` alias and relative paths.
+
+```tsx
+import axios from "axios";
+import dayjs from "dayjs";
+import { Link } from "react-router-dom";
+
+import Header from "@/components/Header";
+import IMenu from "@/components/Menu";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/useTranslation";
+```
+
+- Keep the two blocks separate; do not interleave third-party and local imports.
+- Sort alphabetically within each block.
+
 ### Variable scope and unused parameters
 
 - Do not shadow an outer `err` with `err := ...` in nested blocks, goroutines, or

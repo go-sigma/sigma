@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 
-import { useUiStore } from "@/stores";
-import { MessageKey, MessageParams } from "./types";
 import { messagesByLocale } from "./messages";
+import { MessageKey, MessageParams } from "./types";
+import { useUiStore } from "@/stores";
 
 function interpolate(message: string, params?: MessageParams) {
   if (params === undefined) {

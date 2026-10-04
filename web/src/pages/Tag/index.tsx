@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-import axios from "axios";
-import dayjs from "dayjs";
-import humanFormat from "human-format";
 import {
   EllipsisVerticalIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/20/solid";
+import axios from "axios";
+import dayjs from "dayjs";
+import humanFormat from "human-format";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
+
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
 import Notification from "@/components/Notification";
-import Pagination from "@/components/Pagination";
-import Settings from "@/Settings";
 import Toast from "@/components/Notification";
-import distros, { distroName } from "@/utils/distros";
-import { useTranslation } from "@/i18n/useTranslation";
-
+import Pagination from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,6 +45,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/i18n/useTranslation";
 import {
   IArtifact,
   IEndpoint,
@@ -61,7 +59,9 @@ import {
   IUserSelf,
   IVuln,
 } from "@/interfaces";
+import Settings from "@/Settings";
 import { Tooltip, trimHTTP } from "@/utils";
+import distros, { distroName } from "@/utils/distros";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -445,7 +445,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                           }}
                         >
                           {tag.artifact.config_media_type ===
-                          "application/vnd.cncf.helm.config.v1+json" ? (
+                            "application/vnd.cncf.helm.config.v1+json" ? (
                             <>
                               helm pull {trimHTTP(endpoint)}/{repository}{" "}
                               --version {tag.name}
@@ -573,9 +573,9 @@ function skipManifest(raw: string) {
     if (
       artifactObj["layers"].length === 1 &&
       artifactObj["layers"][0]["mediaType"] ===
-        "application/vnd.in-toto+json" &&
+      "application/vnd.in-toto+json" &&
       artifactObj["layers"][0]["annotations"]["in-toto.io/predicate-type"] !==
-        ""
+      ""
     ) {
       return true;
     }
@@ -595,13 +595,13 @@ function TableItem({
   return (
     <tbody>
       {artifactObj.mediaType === "application/vnd.oci.image.manifest.v1+json" ||
-      artifactObj.mediaType ===
+        artifactObj.mediaType ===
         "application/vnd.docker.distribution.manifest.v2+json" ||
-      artifact.config_media_type ==
+        artifact.config_media_type ==
         "application/vnd.cncf.helm.config.v1+json" ? (
         <DetailItem artifact={artifact} />
       ) : artifactObj.mediaType ===
-          "application/vnd.docker.distribution.manifest.list.v2+json" ||
+        "application/vnd.docker.distribution.manifest.list.v2+json" ||
         artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
         artifacts.map((item: IArtifact) => {
           return (
@@ -663,9 +663,9 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
       </td>
       <td className="text-left text-xs w-45">
         {imageConfigObj.os === undefined ||
-        imageConfigObj.architecture === undefined ||
-        imageConfigObj.os === "" ||
-        imageConfigObj.architecture === "" ? (
+          imageConfigObj.architecture === undefined ||
+          imageConfigObj.os === "" ||
+          imageConfigObj.architecture === "" ? (
           "-"
         ) : (
           <span>

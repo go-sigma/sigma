@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { TooltipProvider } from "@/components/ui/tooltip";
 import useThemeEffect from './useThemeEffect';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const queryClient = new QueryClient({
   defaultOptions: {

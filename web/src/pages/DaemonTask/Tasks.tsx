@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-import Toast from 'react-hot-toast';
-import axios from "axios";
-import dayjs from 'dayjs';
-import parser from 'cron-parser';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import axios from "axios";
+import parser from 'cron-parser';
+import dayjs from 'dayjs';
 import { Play, SquarePen } from 'lucide-react';
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import Toast from 'react-hot-toast';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { Tooltip } from '@/utils';
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
 import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
-import { useTranslation } from "@/i18n/useTranslation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/i18n/useTranslation";
 import {
   IGcArtifactRule,
   IGcArtifactRunnerItem,
@@ -61,6 +60,7 @@ import {
   IGcTagRunnerItem,
   IHTTPError
 } from "@/interfaces";
+import { Tooltip } from '@/utils';
 
 const retentionAmountType = [
   { id: 1, name: 'Day' },

@@ -15,8 +15,8 @@
  */
 
 import humanFormat from "human-format";
-import { Progress } from "@/components/ui/progress";
 
+import { Progress } from "@/components/ui/progress";
 import Settings from "@/Settings";
 
 export default function ({ current, limit }: { current: number, limit: number }) {

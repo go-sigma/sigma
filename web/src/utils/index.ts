@@ -15,6 +15,7 @@
  */
 
 import { z } from "zod";
+
 import { ISizeWithUnit } from "@/interfaces";
 
 /** Remove the http(s) scheme from an endpoint. */

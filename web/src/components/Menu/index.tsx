@@ -14,64 +14,8 @@
  * limitations under the License.
  */
 
-import _ from 'lodash';
 import axios from "axios";
-import { Fragment, type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
-
-import { isEmail, Regex } from "@/utils";
-import Toast from "@/components/Notification";
-import { useTranslation } from "@/i18n/useTranslation";
-import type { MessageKey } from "@/i18n/types";
-import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "@/interfaces";
-import { Locale, ThemeMode, useUiStore } from "@/stores";
-import { setupAutoRefreshToken, teardownAutoRefreshToken } from "@/utils/request";
-
-import { Button } from "@/components/ui/button";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsiblePanel,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import _ from 'lodash';
 import {
   ChevronRight,
   ChevronUp,
@@ -95,6 +39,61 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
+import { Fragment, type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from 'react-router-dom';
+
+import Toast from "@/components/Notification";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import type { MessageKey } from "@/i18n/types";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "@/interfaces";
+import { Locale, ThemeMode, useUiStore } from "@/stores";
+import { isEmail, Regex } from "@/utils";
+import { setupAutoRefreshToken, teardownAutoRefreshToken } from "@/utils/request";
 
 export const AppLayoutMenuContext = createContext(false);
 

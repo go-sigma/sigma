@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
+import { ScaleIcon } from 'lucide-react';
 import { Fragment } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { ScaleIcon } from 'lucide-react';
 
 import Header from "@/components/Header";
 import Menu from "@/components/Menu";
-import { useTranslation } from "@/i18n/useTranslation";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from "@/i18n/useTranslation";
 
 const cards = [
   { name: 'Account balance1', href: '#', icon: ScaleIcon, amount: '$30,659.45' },

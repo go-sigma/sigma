@@ -16,18 +16,16 @@
 
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist/wght-italic.css';
-import './index.css';
-
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import relativeTime from 'dayjs/plugin/relativeTime';
-
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import ReactDOM from 'react-dom/client';
 import { HashRouter as Router } from 'react-router-dom';
 
 import App from './App';
 import AppProviders from './app/providers';
+import './index.css';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

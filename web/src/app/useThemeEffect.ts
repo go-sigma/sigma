@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
-import { useUiStore } from "@/stores";
 import { applyTheme, getSystemPrefersDark, resolveTheme } from "./theme";
+import { useUiStore } from "@/stores";
 
 export default function useThemeEffect() {
   const themeMode = useUiStore((state) => state.themeMode);

@@ -14,35 +14,29 @@
  * limitations under the License.
  */
 
-import { Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { lazy, Suspense, useLayoutEffect, type ComponentProps } from 'react';
-
-import Tag from "./pages/Tag";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Namespaces from "./pages/Namespace";
-import Repositories from "./pages/Repository";
-import LoginCallback from './pages/Login/Callback';
-import NamespaceMember from "./pages/Namespace/Member";
-
-import NamespaceWebhooks from "./pages/Webhook/List";
-import NamespaceWebhookLogs from "./pages/Webhook/Log";
-
-import DaemonTasks from "./pages/DaemonTask/Tasks";
-import DaemonTaskRunners from "./pages/DaemonTask/Runners";
-import DaemonTaskRecords from "./pages/DaemonTask/Records";
-
-import CodeRepositoryHome from './pages/CodeRepository';
-import CodeRepositoryList from './pages/CodeRepository/List';
-
-import BuilderRunnerList from './pages/Builder/RunnerList';
-
-import Setting from './pages/Setting';
-import SettingUsers from './pages/Setting/Users';
+import { Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { apiBaseURL } from './app/config';
-import { setupAxiosInterceptor } from './utils/request'
 import Menu, { AppLayoutMenuContext } from './components/Menu';
+import BuilderRunnerList from './pages/Builder/RunnerList';
+import CodeRepositoryHome from './pages/CodeRepository';
+import CodeRepositoryList from './pages/CodeRepository/List';
+import DaemonTaskRecords from "./pages/DaemonTask/Records";
+import DaemonTaskRunners from "./pages/DaemonTask/Runners";
+import DaemonTasks from "./pages/DaemonTask/Tasks";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import LoginCallback from './pages/Login/Callback';
+import Namespaces from "./pages/Namespace";
+import NamespaceMember from "./pages/Namespace/Member";
+import Repositories from "./pages/Repository";
+import Setting from './pages/Setting';
+import SettingUsers from './pages/Setting/Users';
+import Tag from "./pages/Tag";
+import NamespaceWebhooks from "./pages/Webhook/List";
+import NamespaceWebhookLogs from "./pages/Webhook/Log";
+import { setupAxiosInterceptor } from './utils/request'
 
 const Summary = lazy(() => import('./pages/Repository/Summary'));
 const NamespaceSummary = lazy(() => import('./pages/Namespace/Summary'));

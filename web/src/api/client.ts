@@ -16,9 +16,9 @@
 
 import axios, { AxiosError, AxiosHeaders, AxiosRequestConfig } from 'axios';
 
-import { apiBaseURL } from "@/app/config";
 import { toApiError } from "./errors";
 import { QueryParams } from "./types";
+import { apiBaseURL } from "@/app/config";
 
 let navigateToLogin: (() => void) | undefined;
 

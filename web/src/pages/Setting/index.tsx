@@ -16,10 +16,11 @@
 
 import { Fragment } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+
 import Header from "@/components/Header";
 import Menu from "@/components/Menu";
-import { useTranslation } from "@/i18n/useTranslation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/i18n/useTranslation";
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();

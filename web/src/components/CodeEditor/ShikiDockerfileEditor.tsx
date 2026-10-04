@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { ChangeEvent, KeyboardEvent, UIEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createHighlighterCore, type HighlighterCore } from '@shikijs/core';
 import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript';
 import dockerfile from '@shikijs/langs/dockerfile';
 import githubDark from '@shikijs/themes/github-dark';
+import { ChangeEvent, KeyboardEvent, UIEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function ShikiDockerfileEditor({
   value,

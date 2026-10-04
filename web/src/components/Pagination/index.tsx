@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useTranslation } from "@/i18n/useTranslation";
 import {
   Pagination as ShadPagination,
   PaginationContent,
@@ -22,6 +21,7 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
+import { useTranslation } from "@/i18n/useTranslation";
 
 export default function ({ limit, page, total, setPage }: { limit: number, page: number, total: number, setPage: (page: number) => void }) {
   const { t } = useTranslation();

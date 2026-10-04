@@ -18,14 +18,14 @@ import axios from "axios";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { Tooltip } from '@/utils';
 
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
 import Notification from "@/components/Notification";
 import Pagination from "@/components/Pagination";
-import Settings from "@/Settings";
 import { IGcArtifactRecordList, IHTTPError, IOrder } from "@/interfaces";
+import Settings from "@/Settings";
+import { Tooltip } from '@/utils';
 
 export default function ({ localServer }: { localServer: string }) {
   const location = useLocation();

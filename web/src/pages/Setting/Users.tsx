@@ -15,27 +15,19 @@
  */
 
 import axios from "axios";
+import { Ban, CornerDownLeft, EllipsisVertical, Info, SquarePen } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 import Header from "@/components/Header";
 import Menu from "@/components/Menu";
+import Toast from "@/components/Notification";
 import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
 import QuotaSimple from "@/components/QuotaSimple";
 import RelativeTime from "@/components/RelativeTime";
-import { isEmail, Regex } from "@/utils";
-import Settings from "@/Settings";
-import Toast from "@/components/Notification";
-import { useTranslation } from "@/i18n/useTranslation";
-import { IHTTPError, IOrder, IUserItem, IUserList, IUserSelf } from "@/interfaces";
-
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog as ShadDialog,
   DialogContent,
@@ -44,6 +36,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -51,19 +54,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Ban, CornerDownLeft, EllipsisVertical, Info, SquarePen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "@/i18n/useTranslation";
+import { IHTTPError, IOrder, IUserItem, IUserList, IUserSelf } from "@/interfaces";
+import Settings from "@/Settings";
+import { isEmail, Regex } from "@/utils";
 
 const supportRoles = [
   { id: 1, name: 'Admin' },
