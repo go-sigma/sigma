@@ -28,7 +28,7 @@ import { isEmail, Regex } from "@/utils";
 import Settings from "@/Settings";
 import Toast from "@/components/Notification";
 import { useTranslation } from "@/i18n/useTranslation";
-import { IHTTPError, IOrder, IUserItem, IUserList } from "@/interfaces";
+import { IHTTPError, IOrder, IUserItem, IUserList, IUserSelf } from "@/interfaces";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CornerDownLeft, EllipsisVertical, Info, SquarePen } from "lucide-react";
+import { Ban, CornerDownLeft, EllipsisVertical, Info, SquarePen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -68,11 +68,6 @@ import {
 const supportRoles = [
   { id: 1, name: 'Admin' },
   { id: 2, name: 'User' },
-];
-
-const supportStatus = [
-  { id: 1, name: 'Active' },
-  { id: 2, name: 'Inactive' },
 ];
 
 export default function ({ localServer }: { localServer: string }) {
@@ -126,6 +121,17 @@ export default function ({ localServer }: { localServer: string }) {
       Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
     });
   }, [refresh, localServer, page, searchUsername, sortName, sortOrder]);
+
+  // The signed in user cannot change their own status or role, so the page
+  // needs to know who is currently logged in to disable those controls.
+  const [selfUsername, setSelfUsername] = useState("");
+  useEffect(() => {
+    axios.get(localServer + "/api/v1/users/self").then(response => {
+      if (response?.status === 200) {
+        setSelfUsername((response.data as IUserSelf).username);
+      }
+    }).catch(() => {});
+  }, [localServer]);
 
   const [role, setRole] = useState("User");
 
@@ -181,8 +187,8 @@ export default function ({ localServer }: { localServer: string }) {
                 <TableHeader className="[&_th]:font-normal">
                   <TableRow>
                     <TableHead>Username</TableHead>
-                    <TableHead>Namespace</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Namespace count</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
                     <TableHead className="text-right"><OrderHeader text="Last Login" orderStatus={lastLoginOrder} setOrder={e => { resetOrder(); setLastLoginOrder(e); setSortOrder(e); setSortName("last_login"); setRefresh({}); }} /></TableHead>
                     <TableHead className="text-right"><OrderHeader text="Created at" orderStatus={createdAtOrder} setOrder={e => { resetOrder(); setCreatedAtOrder(e); setSortOrder(e); setSortName("created_at"); setRefresh({}); }} /></TableHead>
                     <TableHead className="text-center">Action</TableHead>
@@ -190,7 +196,7 @@ export default function ({ localServer }: { localServer: string }) {
                 </TableHeader>
                 <TableBody>
                   {userList.items?.map(userObj => (
-                    <TableItemRow key={userObj.id} localServer={localServer} user={userObj} setRefresh={setRefresh} />
+                    <TableItemRow key={userObj.id} localServer={localServer} user={userObj} setRefresh={setRefresh} selfUsername={selfUsername} />
                   ))}
                 </TableBody>
               </Table>
@@ -237,7 +243,7 @@ export default function ({ localServer }: { localServer: string }) {
               <Label>Role</Label>
               <Select value={role} onValueChange={(v) => { if (v) setRole(v); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-0">
                   {supportRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -253,10 +259,10 @@ export default function ({ localServer }: { localServer: string }) {
   );
 }
 
-function TableItemRow({ localServer, user, setRefresh }: { localServer: string, user: IUserItem, setRefresh: (param: any) => void }) {
+function TableItemRow({ localServer, user, setRefresh, selfUsername }: { localServer: string, user: IUserItem, setRefresh: (param: any) => void, selfUsername: string }) {
   const { t } = useTranslation();
-  const [status, setStatus] = useState(user.status === "" ? "Active" : user.status);
-  const [role, setRole] = useState(user.role === "" ? "Normal" : user.role);
+  const isSelf = user.username === selfUsername;
+  const [role, setRole] = useState(user.role === "" ? "User" : user.role);
   const [usernameText, setUsernameText] = useState(user.username);
   const usernameTextValid = usernameText.length === 0 || Regex.Username.test(usernameText);
   const [passwordText, setPasswordText] = useState("");
@@ -276,7 +282,9 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
   const [updateUserModal, setUpdateUserModal] = useState(false);
 
   const updateUser = () => {
-    const data: { [key: string]: any } = { email: emailInput, username: usernameText, status: status, namespace_limit: namespaceCountLimit };
+    const data: { [key: string]: any } = { email: emailInput, username: usernameText, namespace_limit: namespaceCountLimit };
+    // A user is not allowed to update their own role.
+    if (!isSelf) data["role"] = role;
     if (passwordText.length != 0) data["password"] = passwordText;
     axios.put(localServer + `/api/v1/users/${user.id}`, data).then(response => {
       if (response?.status === 204) {
@@ -300,8 +308,8 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
             <span className="text-muted-foreground font-normal ml-4">{user.email}</span>
           </div>
         </TableCell>
-        <TableCell><QuotaSimple current={user.namespace_count} limit={user.namespace_limit} /></TableCell>
-        <TableCell><Badge variant="outline">{user.status}</Badge></TableCell>
+        <TableCell className="text-right"><QuotaSimple current={user.namespace_count} limit={user.namespace_limit} /></TableCell>
+        <TableCell className="text-right"><Badge variant="outline">{user.status}</Badge></TableCell>
         <TableCell className="text-right text-muted-foreground"><RelativeTime time={user.last_login} /></TableCell>
         <TableCell className="text-right text-muted-foreground"><RelativeTime time={user.created_at} /></TableCell>
         <TableCell className="text-center">
@@ -322,6 +330,23 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
               <DropdownMenuItem onClick={() => setUpdateUserModal(true)}>
                 <SquarePen />
                 <span>{t("common.update")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={isSelf}
+                onClick={() => {
+                  axios.put(localServer + `/api/v1/users/${user.id}`, { status: "Deactive" }).then(response => {
+                    if (response?.status === 204) {
+                      Toast({ level: "success", title: "Success", message: "Deactivate user success" });
+                      setRefresh({});
+                    }
+                  }).catch(error => {
+                    const errorcode = error.response?.data as IHTTPError;
+                    Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
+                  });
+                }}
+              >
+                <Ban />
+                <span>Deactive</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -348,25 +373,14 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
               <Label>Namespace count limit</Label>
               <Input type="number" placeholder="0 means no limit" value={namespaceCountLimit} onChange={e => setNamespaceCountLimit(Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value))} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Role</Label>
-                <Select value={role} onValueChange={(v) => { if (v) setRole(v); }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {supportRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label>Status</Label>
-                <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {supportStatus.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid gap-2">
+              <Label>Role</Label>
+              <Select value={role} onValueChange={(v) => { if (v) setRole(v); }} disabled={isSelf}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="min-w-0">
+                  {supportRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
