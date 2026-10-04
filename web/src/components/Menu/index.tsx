@@ -16,12 +16,13 @@
 
 import _ from 'lodash';
 import axios from "axios";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { Fragment, type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
 import { isEmail, Regex } from "@/utils";
 import Toast from "@/components/Notification";
 import { useTranslation } from "@/i18n/useTranslation";
+import type { MessageKey } from "@/i18n/types";
 import { IEndpoint, IHTTPError, INamespaceItem, INamespaceList, ISystemConfig, IUserSelf, IVersion } from "@/interfaces";
 import { Locale, ThemeMode, useUiStore } from "@/stores";
 import { setupAutoRefreshToken, teardownAutoRefreshToken } from "@/utils/request";
@@ -32,13 +33,20 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,10 +73,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
+  ChevronRight,
   ChevronUp,
   List,
   Folder,
-  Tag,
+  House,
   Server,
   Settings,
   Users,
@@ -89,6 +98,9 @@ import {
 
 export const AppLayoutMenuContext = createContext(false);
 
+type MenuSection = "summary" | "repositories" | "members" | "daemon-tasks" | "webhooks";
+type MenuRepositorySection = "summary" | "tags" | "builder";
+
 type MenuProps = {
   localServer: string;
   item: string;
@@ -96,10 +108,49 @@ type MenuProps = {
   namespace_id?: string;
   repository?: string;
   repository_id?: string;
+  section?: MenuSection;
+  repositorySection?: MenuRepositorySection;
+  provider?: string;
   tag?: string;
   selfClick?: boolean;
   persistent?: boolean;
 };
+
+const namespaceSections: { key: MenuSection; path: string; labelKey: MessageKey }[] = [
+  { key: "summary", path: "namespace-summary", labelKey: "common.summary" },
+  { key: "repositories", path: "repositories", labelKey: "common.repositoryList" },
+  { key: "members", path: "members", labelKey: "common.members" },
+  { key: "daemon-tasks", path: "daemon-tasks", labelKey: "common.daemonTask" },
+  { key: "webhooks", path: "webhooks", labelKey: "common.webhook" },
+];
+
+const repositorySections: { key: MenuRepositorySection; path: string; labelKey: MessageKey }[] = [
+  { key: "summary", path: "summary", labelKey: "common.summary" },
+  { key: "tags", path: "tags", labelKey: "common.tagList" },
+  { key: "builder", path: "runners", labelKey: "common.builder" },
+];
+
+function SidebarSubLink({ to, active, children }: { to: string; active?: boolean; children: ReactNode }) {
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton
+        render={
+          <Link
+            to={to}
+            onClick={active
+              ? (event) => {
+                if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) event.preventDefault();
+              }
+              : undefined}
+          />
+        }
+        isActive={active}
+      >
+        {children}
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
+  );
+}
 
 export default function Menu(props: MenuProps) {
   const hasAppLayoutMenu = useContext(AppLayoutMenuContext);
@@ -117,14 +168,16 @@ export default function Menu(props: MenuProps) {
   );
 }
 
-function MenuContent({ localServer, item, namespace, namespace_id, repository, selfClick }: MenuProps) {
+function MenuContent({ localServer, item, namespace, namespace_id, repository, repository_id, section, repositorySection, provider }: MenuProps) {
   const { t } = useTranslation();
   const themeMode = useUiStore((state) => state.themeMode);
   const setThemeMode = useUiStore((state) => state.setThemeMode);
   const locale = useUiStore((state) => state.locale);
   const setLocale = useUiStore((state) => state.setLocale);
-  const [menuActiveOverride, setMenuActive] = useState<string | null>(null);
-  const menuActive = menuActiveOverride ?? (item === "" ? "home" : item);
+  const namespacesActive = item === "namespaces";
+  const settingsGroupActive = item === "settings" || item === "users" || item === "daemon-tasks" || item === "webhooks";
+  const codeRepositoryActive = item === "coderepos";
+  const homeActive = item === "home";
   const navigate = useNavigate();
 
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -229,6 +282,24 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
     }).catch(() => {});
   }, [localServer]);
 
+  // The sidebar namespace list is driven by the hot namespaces endpoint; the
+  // namespace currently in the route is always included (even when it is not
+  // hot) so the active branch is never hidden.
+  const namespaceItems = useMemo(() => {
+    const items = isAnonymous ? [] : hotNamespaceList.map(ns => ({ id: ns.id, name: ns.name }));
+    if (namespace && !items.some(ns => ns.name === namespace)) {
+      items.unshift({ id: Number(namespace_id) || 0, name: namespace });
+    }
+    return items;
+  }, [hotNamespaceList, namespace, namespace_id, isAnonymous]);
+
+  const providerItems = useMemo(() => {
+    const items: { key: string; label: string }[] = [];
+    if (config.oauth2?.github) items.push({ key: "github", label: "GitHub" });
+    if (config.oauth2?.gitlab) items.push({ key: "gitlab", label: "GitLab" });
+    return items;
+  }, [config.oauth2?.github, config.oauth2?.gitlab]);
+
   const [updateProfileModal, setUpdateProfileModal] = useState(false);
   const [updatePasswordModal, setUpdatePasswordModal] = useState(false);
   const [aboutModal, setAboutModal] = useState(false);
@@ -259,100 +330,211 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, s
         <SidebarContent>
           <SidebarGroup>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton render={<Link to="/namespaces" onClick={() => setMenuActive("namespaces")} />} isActive={menuActive === "namespaces"}>
+              {!isAnonymous && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton render={<Link to="/home" />} isActive={homeActive}>
+                    <House />
+                    <span>{t("header.home")}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              <Collapsible
+                open={namespacesActive}
+                render={<SidebarMenuItem />}
+                className="group/collapsible"
+              >
+                <CollapsibleTrigger
+                  nativeButton={false}
+                  render={
+                    <SidebarMenuButton render={<Link to="/namespaces" />} />
+                  }
+                >
                   <List />
                   <span>{t("menu.namespaces")}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                  <ChevronRight className={`ml-auto transition-transform duration-200 ${namespacesActive ? "rotate-90" : ""}`} />
+                </CollapsibleTrigger>
+                <CollapsiblePanel>
+                  <SidebarMenuSub>
+                    <SidebarSubLink to="/namespaces" active={namespacesActive && !namespace}>
+                      <span>{t("menu.allNamespaces")}</span>
+                    </SidebarSubLink>
 
-              {(menuActive === "repositories" || menuActive === "tags" || menuActive === "artifacts") && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton render={<Link to={`/namespaces/${namespace}/repositories?namespace_id=${namespace_id}`} onClick={(e) => { setMenuActive("repositories"); if (item === "repositories" && selfClick !== true) e.preventDefault(); }} />} isActive={menuActive === "repositories"} className="ml-4 w-[calc(100%_-_1rem)]">
-                    <Folder />
-                    <span>{t("common.repositories")}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-
-              {(menuActive === "tags" || menuActive === "artifacts") && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton render={<Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}`} onClick={(e) => { setMenuActive("tags"); if (item === "tags") e.preventDefault(); }} />} isActive={menuActive === "tags"} className="ml-8 w-[calc(100%_-_2rem)]">
-                    <Tag />
-                    <span>{t("common.tags")}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+                    {namespaceItems.map((ns, index) => (
+                      ns.name === namespace ? (
+                        <Collapsible
+                          key={ns.name}
+                          open
+                          render={<SidebarMenuSubItem />}
+                          className="group/collapsible"
+                        >
+                          <CollapsibleTrigger
+                            nativeButton={false}
+                            render={
+                              <SidebarMenuSubButton
+                                render={<Link to={`/namespaces/${ns.name}/repositories${ns.id ? `?namespace_id=${ns.id}` : ""}`} />}
+                              />
+                            }
+                          >
+                            <span className="truncate">{ns.name}</span>
+                            <ChevronRight className="ml-auto transition-transform duration-200 rotate-90" />
+                          </CollapsibleTrigger>
+                          <CollapsiblePanel>
+                            <SidebarMenuSub>
+                              {namespaceSections.map((sectionItem) => (
+                                <Fragment key={sectionItem.key}>
+                                  <SidebarSubLink
+                                    to={`/namespaces/${namespace}/${sectionItem.path}${namespace_id ? `?namespace_id=${namespace_id}` : ""}`}
+                                    active={section === sectionItem.key && !(sectionItem.key === "repositories" && repository)}
+                                  >
+                                    <span>{t(sectionItem.labelKey)}</span>
+                                  </SidebarSubLink>
+                                  {sectionItem.key === "repositories" && repository && (
+                                    <Collapsible
+                                      open
+                                      render={<SidebarMenuSubItem />}
+                                      className="group/collapsible"
+                                    >
+                                      <CollapsibleTrigger
+                                        nativeButton={false}
+                                        render={
+                                          <SidebarMenuSubButton
+                                            render={<Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}&repository_id=${repository_id}&namespace_id=${namespace_id}`} />}
+                                          />
+                                        }
+                                      >
+                                        <Folder />
+                                        <span className="truncate">{repository}</span>
+                                        <ChevronRight className="ml-auto transition-transform duration-200 rotate-90" />
+                                      </CollapsibleTrigger>
+                                      <CollapsiblePanel>
+                                        <SidebarMenuSub>
+                                          {repositorySections
+                                            .filter((repoSection) => repoSection.key !== "builder" || config.daemon?.builder)
+                                            .map((repoSection) => (
+                                              <SidebarSubLink
+                                                key={repoSection.key}
+                                                to={`/namespaces/${namespace}/repository/${repoSection.path}?repository=${repository}&repository_id=${repository_id}&namespace_id=${namespace_id}`}
+                                                active={repositorySection === repoSection.key}
+                                              >
+                                                <span>{t(repoSection.labelKey)}</span>
+                                              </SidebarSubLink>
+                                            ))}
+                                        </SidebarMenuSub>
+                                      </CollapsiblePanel>
+                                    </Collapsible>
+                                  )}
+                                </Fragment>
+                              ))}
+                            </SidebarMenuSub>
+                          </CollapsiblePanel>
+                        </Collapsible>
+                      ) : (
+                        <SidebarSubLink
+                          key={ns.name}
+                          to={`/namespaces/${ns.name}/repositories${ns.id ? `?namespace_id=${ns.id}` : ""}`}
+                        >
+                          <Circle
+                            className={`size-2.5 fill-current ${
+                              index === 0 ? "text-red-500" : index === 1 ? "text-amber-500" : index === 2 ? "text-indigo-500" : "text-sidebar-foreground/40"
+                            }`}
+                          />
+                          <span className="truncate">{ns.name}</span>
+                        </SidebarSubLink>
+                      )
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsiblePanel>
+              </Collapsible>
 
               {!isAnonymous && config.daemon?.builder && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton render={<Link to="/coderepos" onClick={() => setMenuActive("coderepos")} />} isActive={menuActive === "coderepos"}>
-                    <Server />
-                    <span>{t("menu.codeRepository")}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                providerItems.length > 0 ? (
+                  <Collapsible
+                    open={codeRepositoryActive}
+                    render={<SidebarMenuItem />}
+                    className="group/collapsible"
+                  >
+                    <CollapsibleTrigger
+                      nativeButton={false}
+                      render={
+                        <SidebarMenuButton render={<Link to="/coderepos" />} isActive={codeRepositoryActive && !provider} />
+                      }
+                    >
+                      <Server />
+                      <span>{t("menu.codeRepository")}</span>
+                      <ChevronRight className={`ml-auto transition-transform duration-200 ${codeRepositoryActive ? "rotate-90" : ""}`} />
+                    </CollapsibleTrigger>
+                    <CollapsiblePanel>
+                      <SidebarMenuSub>
+                        {providerItems.map((providerItem) => (
+                          <SidebarSubLink
+                            key={providerItem.key}
+                            to={`/coderepos/${providerItem.key}`}
+                            active={provider === providerItem.key}
+                          >
+                            <span>{providerItem.label}</span>
+                          </SidebarSubLink>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsiblePanel>
+                  </Collapsible>
+                ) : (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton render={<Link to="/coderepos" />} isActive={codeRepositoryActive}>
+                      <Server />
+                      <span>{t("menu.codeRepository")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
               )}
 
               {!isAnonymous && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton render={<Link to="/settings/users" onClick={() => setMenuActive("users")} />} isActive={menuActive === "settings" || menuActive === "users" || menuActive === "daemon-tasks" || menuActive === "webhooks"}>
+                <Collapsible
+                  open={settingsGroupActive}
+                  render={<SidebarMenuItem />}
+                  className="group/collapsible"
+                >
+                  <CollapsibleTrigger
+                    nativeButton={false}
+                    render={
+                      <SidebarMenuButton
+                        render={<Link to="/settings/users" />}
+                        isActive={item === "settings"}
+                      />
+                    }
+                  >
                     <Settings />
                     <span>{t("menu.setting")}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-
-              {(menuActive === "settings" || menuActive === "users" || menuActive === "daemon-tasks" || menuActive === "webhooks") && (
-                <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/settings/users" onClick={() => setMenuActive("users")} />} isActive={menuActive === "users"} className="ml-4 w-[calc(100%_-_1rem)]">
-                      <Users />
-                      <span>{t("common.users")}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/settings/daemon-tasks?namespace_id=0" onClick={() => setMenuActive("daemon-tasks")} />} isActive={menuActive === "daemon-tasks"} className="ml-4 w-[calc(100%_-_1rem)]">
-                      <FileText />
-                      <span>{t("menu.daemonTask")}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/settings/webhooks?namespace_id=0" onClick={() => setMenuActive("webhooks")} />} isActive={menuActive === "webhooks"} className="ml-4 w-[calc(100%_-_1rem)]">
-                      <Webhook />
-                      <span>{t("menu.webhook")}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </>
+                    <ChevronRight className={`ml-auto transition-transform duration-200 ${settingsGroupActive ? "rotate-90" : ""}`} />
+                  </CollapsibleTrigger>
+                  <CollapsiblePanel>
+                    <SidebarMenuSub>
+                      <SidebarSubLink to="/settings/users" active={item === "users"}>
+                        <Users />
+                        <span>{t("common.users")}</span>
+                      </SidebarSubLink>
+                      <SidebarSubLink to="/settings/daemon-tasks?namespace_id=0" active={item === "daemon-tasks"}>
+                        <FileText />
+                        <span>{t("menu.daemonTask")}</span>
+                      </SidebarSubLink>
+                      <SidebarSubLink to="/settings/webhooks?namespace_id=0" active={item === "webhooks"}>
+                        <Webhook />
+                        <span>{t("menu.webhook")}</span>
+                      </SidebarSubLink>
+                    </SidebarMenuSub>
+                  </CollapsiblePanel>
+                </Collapsible>
               )}
             </SidebarMenu>
           </SidebarGroup>
 
-          {!isAnonymous && hotNamespaceList.length > 0 && (
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("menu.hotNamespace")}</SidebarGroupLabel>
-              <SidebarMenu>
-                {hotNamespaceList.map((ns: INamespaceItem, index: number) => (
-                  <SidebarMenuItem key={ns.id}>
-                    <SidebarMenuButton render={<Link to={`/namespaces/${ns.name}/repositories?namespace_id=${ns.id}`} onClick={(e) => { if (item === "repositories" && ns.name === namespace) e.preventDefault(); }} />}>
-                      <Circle
-                        className={`size-2.5 fill-current ${
-                          index === 0 ? "text-red-500" : index === 1 ? "text-amber-500" : "text-indigo-500"
-                        }`}
-                      />
-                      <span className="truncate">{ns.name}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
         </SidebarContent>
 
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>
-                <DropdownMenuTrigger render={<SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground" />}>
+                <DropdownMenuTrigger render={<SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground" />}>
                   <Avatar className="size-6">
                     <AvatarFallback className="text-xs">{(username || "sigma").charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>

@@ -82,6 +82,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "preferences.theme.system": "跟随系统",
 
   "menu.apiDocs": "API 文档",
+  "menu.allNamespaces": "全部命名空间",
   "menu.codeRepository": "代码仓库",
   "menu.daemonTask": "守护任务",
   "menu.hotNamespace": "热门命名空间",

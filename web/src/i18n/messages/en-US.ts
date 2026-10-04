@@ -80,6 +80,7 @@ const enUS = {
   "preferences.theme.system": "System",
 
   "menu.apiDocs": "API Docs",
+  "menu.allNamespaces": "All namespaces",
   "menu.codeRepository": "Code Repository",
   "menu.daemonTask": "Daemon Task",
   "menu.hotNamespace": "Hot namespace",

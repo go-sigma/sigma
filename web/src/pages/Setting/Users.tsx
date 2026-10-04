@@ -15,7 +15,6 @@
  */
 
 import axios from "axios";
-import dayjs from "dayjs";
 import { Fragment, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
@@ -24,6 +23,7 @@ import Menu from "@/components/Menu";
 import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
 import QuotaSimple from "@/components/QuotaSimple";
+import RelativeTime from "@/components/RelativeTime";
 import { isEmail, Regex } from "@/utils";
 import Settings from "@/Settings";
 import Toast from "@/components/Notification";
@@ -52,7 +52,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CornerDownLeft, Info } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CornerDownLeft, EllipsisVertical, Info, SquarePen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -172,14 +178,14 @@ export default function ({ localServer }: { localServer: string }) {
           <div className="flex flex-1 overflow-y-auto">
             <div className="w-full">
               <Table>
-                <TableHeader>
+                <TableHeader className="[&_th]:font-normal">
                   <TableRow>
                     <TableHead>Username</TableHead>
                     <TableHead>Namespace</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right"><OrderHeader text="Last Login" orderStatus={lastLoginOrder} setOrder={e => { resetOrder(); setLastLoginOrder(e); setSortOrder(e); setSortName("last_login"); setRefresh({}); }} /></TableHead>
                     <TableHead className="text-right"><OrderHeader text="Created at" orderStatus={createdAtOrder} setOrder={e => { resetOrder(); setCreatedAtOrder(e); setSortOrder(e); setSortName("created_at"); setRefresh({}); }} /></TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -248,6 +254,7 @@ export default function ({ localServer }: { localServer: string }) {
 }
 
 function TableItemRow({ localServer, user, setRefresh }: { localServer: string, user: IUserItem, setRefresh: (param: any) => void }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState(user.status === "" ? "Active" : user.status);
   const [role, setRole] = useState(user.role === "" ? "Normal" : user.role);
   const [usernameText, setUsernameText] = useState(user.username);
@@ -289,16 +296,35 @@ function TableItemRow({ localServer, user, setRefresh }: { localServer: string, 
       <TableRow className="align-middle">
         <TableCell>
           <div className="truncate">
-            <span className="font-medium">{user.username}</span>
+            <span>{user.username}</span>
             <span className="text-muted-foreground font-normal ml-4">{user.email}</span>
           </div>
         </TableCell>
         <TableCell><QuotaSimple current={user.namespace_count} limit={user.namespace_limit} /></TableCell>
         <TableCell><Badge variant="outline">{user.status}</Badge></TableCell>
-        <TableCell className="text-right text-muted-foreground">{dayjs.utc(user.last_login).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
-        <TableCell className="text-right text-muted-foreground">{dayjs.utc(user.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
+        <TableCell className="text-right text-muted-foreground"><RelativeTime time={user.last_login} /></TableCell>
+        <TableCell className="text-right text-muted-foreground"><RelativeTime time={user.created_at} /></TableCell>
         <TableCell className="text-center">
-          <Button variant="ghost" size="sm" onClick={() => setUpdateUserModal(true)}>Update</Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-8 text-muted-foreground data-popup-open:bg-muted"
+                >
+                  <EllipsisVertical />
+                  <span className="sr-only">{t("common.openOptions")}</span>
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuItem onClick={() => setUpdateUserModal(true)}>
+                <SquarePen />
+                <span>{t("common.update")}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TableCell>
       </TableRow>
 

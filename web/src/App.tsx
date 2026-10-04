@@ -60,15 +60,19 @@ function getAppMenuProps(pathname: string, search: string): Omit<AppMenuProps, "
     return { item: "home" };
   }
 
-  if (section === "coderepos" || section === "builders") {
+  if (section === "coderepos") {
+    return { item: "coderepos", provider: namespace };
+  }
+
+  if (section === "builders") {
     return { item: "coderepos" };
   }
 
   if (section === "settings") {
-    if (detail === "webhooks" || namespace === "webhooks") {
+    if (namespace === "webhooks") {
       return { item: "webhooks" };
     }
-    if (detail === "daemon-tasks" || namespace === "daemon-tasks") {
+    if (namespace === "daemon-tasks") {
       return { item: "daemon-tasks" };
     }
     if (namespace === "users") {
@@ -78,24 +82,38 @@ function getAppMenuProps(pathname: string, search: string): Omit<AppMenuProps, "
   }
 
   if (section === "namespaces" && namespace) {
-    if (detail === "repository" && resource === "tags") {
+    const base = {
+      item: "namespaces",
+      namespace,
+      namespace_id: params.get("namespace_id") || "",
+    };
+
+    if (detail === "repository" && resource) {
+      const repositorySection: "summary" | "tags" | "builder" =
+        resource === "tags" ? "tags" : resource === "runners" || resource === "runner-logs" ? "builder" : "summary";
       return {
-        item: "tags",
-        namespace,
-        namespace_id: params.get("namespace_id") || "",
+        ...base,
+        section: "repositories",
         repository: params.get("repository") || "",
         repository_id: params.get("repository_id") || "",
+        repositorySection,
       };
     }
 
-    return {
-      item: "repositories",
-      namespace,
-      namespace_id: params.get("namespace_id") || "",
-      repository: params.get("repository") || "",
-      repository_id: params.get("repository_id") || "",
-      selfClick: detail === "repository" && (resource === "runners" || resource === "runner-logs"),
-    };
+    if (detail === "namespace-summary") {
+      return { ...base, section: "summary" };
+    }
+    if (detail === "members") {
+      return { ...base, section: "members" };
+    }
+    if (detail === "daemon-tasks") {
+      return { ...base, section: "daemon-tasks" };
+    }
+    if (detail === "webhooks") {
+      return { ...base, section: "webhooks" };
+    }
+
+    return { ...base, section: "repositories" };
   }
 
   return { item: "namespaces" };
