@@ -1945,11 +1945,11 @@ definitions:
   enums.UserStatus:
     enum:
     - Active
-    - Inactive
+    - Deactive
     type: string
     x-enum-varnames:
     - UserStatusActive
-    - UserStatusInactive
+    - UserStatusDeactive
   enums.Visibility:
     enum:
     - private

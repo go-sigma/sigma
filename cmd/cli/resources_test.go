@@ -266,7 +266,7 @@ func TestResourceCommands(t *testing.T) {
 		{
 			name:    "user update",
 			command: newUserUpdateCmd,
-			args:    []string{"user-1", "--username", "sigma", "--password", "secret", "--email", "sigma@example.test", "--role", enums.UserRoleAdmin.String(), "--status", enums.UserStatusInactive.String(), "--namespace-limit", "10"},
+			args:    []string{"user-1", "--username", "sigma", "--password", "secret", "--email", "sigma@example.test", "--role", enums.UserRoleAdmin.String(), "--status", enums.UserStatusDeactive.String(), "--namespace-limit", "10"},
 			method:  http.MethodPut,
 			path:    "/api/v1/users/user-1",
 			body: map[string]any{
@@ -274,7 +274,7 @@ func TestResourceCommands(t *testing.T) {
 				"password":        "secret",
 				"email":           "sigma@example.test",
 				"role":            enums.UserRoleAdmin.String(),
-				"status":          enums.UserStatusInactive.String(),
+				"status":          enums.UserStatusDeactive.String(),
 				"namespace_limit": float64(10),
 			},
 			outputMatch: `"status": "updated"`,

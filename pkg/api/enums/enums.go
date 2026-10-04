@@ -265,7 +265,7 @@ type SigningType string
 
 // UserStatus x ENUM(
 // Active,
-// Inactive,
+// Deactive,
 // )
 type UserStatus string
 
