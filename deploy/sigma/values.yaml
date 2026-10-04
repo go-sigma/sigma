@@ -230,6 +230,7 @@ config:
     admin:
       username: sigma
       password: sigma
+      email: sigma@sigma.io
     token:
       realm: ""
       service: ""

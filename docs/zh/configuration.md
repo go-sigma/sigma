@@ -180,6 +180,7 @@ auth:
   admin:
     username: sigma
     password: Admin@123
+    email: sigma@sigma.io
   token:
     realm: ""
     service: ""
