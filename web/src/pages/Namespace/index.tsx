@@ -189,7 +189,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
           setUserObj(response.data as IUserSelf);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [localServer]);
 
   const createNamespace = () => {
@@ -434,7 +434,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-0">
                   <SelectItem value="private">Private</SelectItem>
                   <SelectItem value="public">Public</SelectItem>
                 </SelectContent>
@@ -466,7 +466,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
                   <SelectTrigger className="w-20">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="min-w-0">
                     <SelectItem value="MiB">MiB</SelectItem>
                     <SelectItem value="GiB">GiB</SelectItem>
                     <SelectItem value="TiB">TiB</SelectItem>
@@ -755,7 +755,7 @@ function TableItem({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-0">
                   <SelectItem value="private">Private</SelectItem>
                   <SelectItem value="public">Public</SelectItem>
                 </SelectContent>
@@ -787,7 +787,7 @@ function TableItem({
                   <SelectTrigger className="w-20">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="min-w-0">
                     <SelectItem value="MiB">MiB</SelectItem>
                     <SelectItem value="GiB">GiB</SelectItem>
                     <SelectItem value="TiB">TiB</SelectItem>
