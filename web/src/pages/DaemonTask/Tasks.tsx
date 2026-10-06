@@ -16,7 +16,7 @@
 
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import axios from "axios";
-import parser from 'cron-parser';
+import { CronExpressionParser } from 'cron-parser';
 import dayjs from 'dayjs';
 import { Play, SquarePen } from 'lucide-react';
 import { Fragment, useEffect, useState } from "react";
@@ -308,7 +308,7 @@ export default function ({ localServer }: { localServer: string }) {
       }).then(response => {
         if (response?.status === 204) {
           setGcArtifactRuleCronRuleValid(true);
-          let next = parser.parseExpression(gcArtifactRuleCronRule).next()
+          let next = CronExpressionParser.parse(gcArtifactRuleCronRule).next()
           setGcArtifactRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
           setGcArtifactRuleCronRuleValid(false);
@@ -344,7 +344,7 @@ export default function ({ localServer }: { localServer: string }) {
       }).then(response => {
         if (response?.status === 204) {
           setGcRepositoryRuleCronRuleValid(true);
-          let next = parser.parseExpression(gcRepositoryRuleCronRule).next()
+          let next = CronExpressionParser.parse(gcRepositoryRuleCronRule).next()
           setGcRepositoryRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
           setGcRepositoryRuleCronRuleValid(false);
@@ -363,7 +363,7 @@ export default function ({ localServer }: { localServer: string }) {
       }).then(response => {
         if (response?.status === 204) {
           setGcBlobRuleCronRuleValid(true);
-          let next = parser.parseExpression(gcBlobRuleCronRule).next()
+          let next = CronExpressionParser.parse(gcBlobRuleCronRule).next()
           setGcBlobRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
           setGcBlobRuleCronRuleValid(false);
@@ -382,7 +382,7 @@ export default function ({ localServer }: { localServer: string }) {
       }).then(response => {
         if (response?.status === 204) {
           setGcTagRuleCronRuleValid(true);
-          let next = parser.parseExpression(gcTagRuleCronRule).next()
+          let next = CronExpressionParser.parse(gcTagRuleCronRule).next()
           setGcTagRuleCronRuleNextRunAt(`${dayjs(next.toDate()).format('YYYY-MM-DD HH:mm')}`);
         } else {
           setGcTagRuleCronRuleValid(false);

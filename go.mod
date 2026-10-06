@@ -28,7 +28,7 @@ require (
 	github.com/gin-contrib/cors v1.7.9
 	github.com/gin-contrib/pprof v1.5.6
 	github.com/gin-gonic/gin v1.12.0
-	github.com/go-git/go-git/v6 v6.0.0-alpha.5
+	github.com/go-git/go-git/v6 v6.0.0-beta.1
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/go-redsync/redsync/v4 v4.18.0
 	github.com/go-sql-driver/mysql v1.10.1
@@ -48,8 +48,8 @@ require (
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/pressly/goose/v3 v3.28.0
 	github.com/prometheus/client_golang v1.24.1
-	github.com/redis/go-redis/extra/redisotel/v9 v9.22.0
-	github.com/redis/go-redis/v9 v9.22.0
+	github.com/redis/go-redis/extra/redisotel/v9 v9.23.0
+	github.com/redis/go-redis/v9 v9.23.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sigstore/cosign/v3 v3.1.3
 	github.com/smartystreets/goconvey v1.8.1
@@ -57,7 +57,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.75
-	github.com/tidwall/gjson v1.19.0
+	github.com/tidwall/gjson v1.20.0
 	github.com/wagslane/go-password-validator v0.3.0
 	gitlab.com/gitlab-org/api/client-go v1.46.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.72.0
@@ -87,7 +87,7 @@ require (
 	k8s.io/apimachinery v0.37.1
 	k8s.io/client-go v0.37.1
 	resty.dev/v3 v3.0.0-rc.4
-	turso.tech/database/tursogo v0.8.1
+	turso.tech/database/tursogo v0.8.2
 )
 
 require (
@@ -118,7 +118,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.3-0.20251027160822-ad3df93bed29 // indirect
 	github.com/Microsoft/hcsshim v0.15.0-rc.4 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
-	github.com/ProtonMail/go-crypto v1.4.1 // indirect
+	github.com/ProtonMail/go-crypto v1.5.2 // indirect
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/abice/go-enum v0.9.4 // indirect
@@ -246,7 +246,7 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/gcfg/v2 v2.0.2 // indirect
 	github.com/go-git/go-billy/v5 v5.9.1 // indirect
-	github.com/go-git/go-billy/v6 v6.0.0-alpha.2 // indirect
+	github.com/go-git/go-billy/v6 v6.0.0-beta.1 // indirect
 	github.com/go-git/go-git/v5 v5.19.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.5 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -405,7 +405,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.29 // indirect
 	github.com/piprate/json-gold v0.7.0 // indirect
-	github.com/pjbgf/sha1cd v0.6.0 // indirect
+	github.com/pjbgf/sha1cd v0.7.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/profile v1.7.0 // indirect
@@ -420,7 +420,7 @@ require (
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.63.0 // indirect
-	github.com/redis/go-redis/extra/rediscmd/v9 v9.22.0 // indirect
+	github.com/redis/go-redis/extra/rediscmd/v9 v9.23.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c // indirect
@@ -473,7 +473,7 @@ require (
 	github.com/titanous/rocacheck v0.0.0-20171023193734-afe73141d399 // indirect
 	github.com/transparency-dev/formats v0.1.1 // indirect
 	github.com/transparency-dev/merkle v0.0.2 // indirect
-	github.com/tursodatabase/turso-go-platform-libs v0.8.1 // indirect
+	github.com/tursodatabase/turso-go-platform-libs v0.8.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.2 // indirect
 	github.com/ulikunitz/xz v0.5.17 // indirect
@@ -510,7 +510,7 @@ require (
 	go.podman.io/common v0.69.2 // indirect
 	go.podman.io/image/v5 v5.41.2 // indirect
 	go.podman.io/storage v1.64.1 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
+	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
