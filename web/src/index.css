@@ -19,7 +19,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans: 'Nunito Variable', 'Geist Variable', sans-serif;
   --font-heading: var(--font-sans);
   --color-background: var(--background);
   --color-foreground: var(--foreground);

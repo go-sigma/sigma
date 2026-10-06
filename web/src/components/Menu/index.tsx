@@ -320,7 +320,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, r
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" render={<Link to={isAnonymous ? "/namespaces" : "/home"} />}>
                 <img className="size-8" src="/sigma.svg" alt="sigma" />
-                <span className="font-semibold">sigma</span>
+                <span className="text-lg font-semibold">sigma</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

@@ -16,6 +16,8 @@
 
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist/wght-italic.css';
+import '@fontsource-variable/nunito';
+import '@fontsource-variable/nunito/wght-italic.css';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
