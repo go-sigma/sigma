@@ -16,11 +16,31 @@ package server
 
 import (
 	"encoding/json/v2"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
+
+// RequestHandlerFunc is the handler signature for endpoints with a typed,
+// validated request object.
+type RequestHandlerFunc[T any] func(c *gin.Context, req *T)
+
+// WrapRequest binds and validates a typed request before invoking h.
+func WrapRequest[T any](h RequestHandlerFunc[T]) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		req := new(T)
+		if err := BindRequest(c, req); err != nil {
+			slog.Error("bind and validate request failed", "err", err, "path", c.Request.URL.Path)
+			errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, err.Error())
+			return
+		}
+		h(c, req)
+	}
+}
 
 // BindRequest binds request body, query parameters, and path parameters into
 // dst, then validates the fully populated request once.
@@ -45,29 +65,10 @@ func bindBody(c *gin.Context, dst any) error {
 		return nil
 	}
 
-	switch c.ContentType() {
-	case binding.MIMEJSON:
-		if err := json.UnmarshalRead(c.Request.Body, dst); err != nil {
-			return err
-		}
-	case binding.MIMEPOSTForm:
-		if err := c.Request.ParseForm(); err != nil {
-			return err
-		}
-		if err := binding.MapFormWithTag(dst, c.Request.PostForm, "json"); err != nil {
-			return err
-		}
-	case binding.MIMEMultipartPOSTForm:
-		if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
-			return err
-		}
-		if c.Request.MultipartForm != nil {
-			if err := binding.MapFormWithTag(dst, c.Request.MultipartForm.Value, "json"); err != nil {
-				return err
-			}
-		}
+	if c.ContentType() != binding.MIMEJSON {
+		return nil
 	}
-	return nil
+	return json.UnmarshalRead(c.Request.Body, dst)
 }
 
 func paramsMap(params gin.Params) map[string][]string {

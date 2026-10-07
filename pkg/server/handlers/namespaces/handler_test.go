@@ -69,7 +69,7 @@ func newNamespacesTestRouter(h handler, user *models.User) *gin.Engine {
 	group.POST("/", server.WrapRequest(h.PostNamespace))
 	group.PUT("/:namespace_id", server.WrapRequest(h.PutNamespace))
 	group.DELETE("/:namespace_id", server.WrapRequest(h.DeleteNamespace))
-	group.GET("/hot", server.Wrap(h.HotNamespace))
+	group.GET("/hot", h.HotNamespace)
 	return router
 }
 

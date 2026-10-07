@@ -70,7 +70,7 @@ func Initialize(e *gin.Engine, h handler) error {
 	namespaceGroup.POST("/", server.WrapRequest(h.PostNamespace))
 	namespaceGroup.PUT("/:namespace_id", server.WrapRequest(h.PutNamespace))
 	namespaceGroup.DELETE("/:namespace_id", server.WrapRequest(h.DeleteNamespace))
-	namespaceGroup.GET("/hot", server.Wrap(h.HotNamespace))
+	namespaceGroup.GET("/hot", h.HotNamespace)
 
 	namespaceGroup.GET("/:namespace_id/members/", server.WrapRequest(h.ListNamespaceMembers))
 	namespaceGroup.GET("/:namespace_id/members/self", server.WrapRequest(h.GetNamespaceMemberSelf))

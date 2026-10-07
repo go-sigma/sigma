@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/server"
@@ -39,6 +40,18 @@ type sourceRequest struct {
 }
 
 type emptyRequest struct{}
+
+type badQueryRequest struct {
+	Bad func() `query:"bad"`
+}
+
+type badParamRequest struct {
+	Bad func() `param:"bad"`
+}
+
+type textRequest struct {
+	Body string `json:"body"`
+}
 
 func TestBindRequestBindsBodyQueryAndPathBeforeValidation(t *testing.T) {
 	setupValidator(t)
@@ -111,6 +124,80 @@ func TestWrapRequestKeepsHandlerOwnedErrorResponse(t *testing.T) {
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusNotFound, rec.Code)
 	require.Contains(t, rec.Body.String(), errcode.HTTPErrCodeNotFound.Code)
+}
+
+func TestBindRequestReturnsQueryMappingError(t *testing.T) {
+	setupValidator(t)
+
+	router := gin.New()
+	router.GET("/items", func(c *gin.Context) {
+		var req badQueryRequest
+		require.Error(t, server.BindRequest(c, &req))
+		c.Status(http.StatusBadRequest)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/items?bad=value", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestBindRequestReturnsParamMappingError(t *testing.T) {
+	setupValidator(t)
+
+	router := gin.New()
+	router.GET("/items/:bad", func(c *gin.Context) {
+		var req badParamRequest
+		require.Error(t, server.BindRequest(c, &req))
+		c.Status(http.StatusBadRequest)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/items/value", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestBindRequestSkipsValidationWhenValidatorNil(t *testing.T) {
+	setupValidator(t)
+
+	original := binding.Validator
+	binding.Validator = nil
+	defer func() { binding.Validator = original }()
+
+	router := gin.New()
+	router.GET("/items", func(c *gin.Context) {
+		var req sourceRequest
+		require.NoError(t, server.BindRequest(c, &req))
+		c.Status(http.StatusNoContent)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/items", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusNoContent, rec.Code)
+}
+
+func TestBindRequestIgnoresNonJSONBody(t *testing.T) {
+	setupValidator(t)
+
+	router := gin.New()
+	router.POST("/items", func(c *gin.Context) {
+		var req textRequest
+		require.NoError(t, server.BindRequest(c, &req))
+		require.Empty(t, req.Body)
+		c.Status(http.StatusNoContent)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/items", bytes.NewBufferString("plain text"))
+	req.Header.Set("Content-Type", "text/plain")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusNoContent, rec.Code)
 }
 
 func setupValidator(t *testing.T) {

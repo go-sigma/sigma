@@ -20,7 +20,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/server"
 	svcanalytics "github.com/go-sigma/sigma/pkg/service/analytics"
 )
 
@@ -42,7 +41,7 @@ type handler struct {
 // Initialize registers the handler routes.
 func Initialize(e *gin.Engine, h handler) error {
 	group := e.Group(consts.APIV1)
-	group.GET("/users/:user_id/activity/heatmap", server.Wrap(h.GetUserPushHeatmap))
-	group.GET("/namespaces/:namespace_id/activity/trends", server.Wrap(h.GetNamespaceTrends))
+	group.GET("/users/:user_id/activity/heatmap", h.GetUserPushHeatmap)
+	group.GET("/namespaces/:namespace_id/activity/trends", h.GetNamespaceTrends)
 	return nil
 }

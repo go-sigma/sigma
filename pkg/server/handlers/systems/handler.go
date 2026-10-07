@@ -19,7 +19,6 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/server"
 	"github.com/go-sigma/sigma/pkg/service/systems"
 )
 
@@ -44,8 +43,8 @@ type handler struct {
 // Initialize registers the handler routes.
 func Initialize(e *gin.Engine, h handler) error {
 	group := e.Group(consts.APIV1 + "/systems")
-	group.GET("/endpoint", server.Wrap(h.GetEndpoint))
-	group.GET("/version", server.Wrap(h.GetVersion))
-	group.GET("/config", server.Wrap(h.GetConfig))
+	group.GET("/endpoint", h.GetEndpoint)
+	group.GET("/version", h.GetVersion)
+	group.GET("/config", h.GetConfig)
 	return nil
 }

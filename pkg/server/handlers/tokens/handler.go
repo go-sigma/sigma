@@ -20,7 +20,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
-	"github.com/go-sigma/sigma/pkg/server"
 	"github.com/go-sigma/sigma/pkg/service/token"
 )
 
@@ -42,6 +41,6 @@ var _ Handler = &handler{}
 // Initialize registers the handler routes.
 func Initialize(e *gin.Engine, h handler) error {
 	group := e.Group(consts.APIV1)
-	group.GET("/tokens", server.Wrap(h.Token))
+	group.GET("/tokens", h.Token)
 	return nil
 }

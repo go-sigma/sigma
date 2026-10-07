@@ -58,7 +58,7 @@ func Initialize(e *gin.Engine, h handler) error {
 	config := config.GetConfig()
 	if config.Daemon.Builder.Enabled { // TODO: use dig
 		codereposGroup := e.Group(consts.APIV1 + "/coderepos")
-		codereposGroup.GET("/providers", server.Wrap(h.Providers))
+		codereposGroup.GET("/providers", h.Providers)
 		codereposGroup.GET("/:provider", server.WrapRequest(h.List))
 		codereposGroup.GET("/:provider/repos/:repo_id", server.WrapRequest(h.Get))
 		codereposGroup.GET("/:provider/user3rdparty", server.WrapRequest(h.User3rdParty))

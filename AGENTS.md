@@ -136,7 +136,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 ### Error handling
 
 - Use `errcode.AsType[T](err)` (in `pkg/server/errcode/astype.go`) instead of `errors.As(err, &e)` for typed error assertions. The canonical usage: `errcode.AsType[errcode.ErrCode](err)`.
-- Handlers return `error` (echo-style) and are wrapped via `server.Wrap(h)` or `server.WrapHandle(r, method, path, h)`. See `pkg/server/adapter.go`.
+- Handlers have the gin signature `func(c *gin.Context)` and are registered directly on the route group. Endpoints with a typed, validated request object are wrapped via `server.WrapRequest(h)`. See `pkg/server/request.go`.
 - Return `errcode.NewHTTPError(c, ...)` from handlers for structured HTTP errors.
 
 ### Dependency Injection
@@ -266,7 +266,7 @@ pkg/
     migrations/          SQL migrations per DB (mysql/postgresql/sqlite3)
     redis/               Redis client
   server/
-    adapter.go           Handler wrap/error dispatch
+    request.go           Handler wrap + request binding/validation
     errcode/             Error types, AsType generic, HTTP error mapping
     handlers/            HTTP handlers grouped by domain
       <domain>/
@@ -319,7 +319,7 @@ Directory rules:
 
 ## Important Files
 
-- `pkg/server/adapter.go` - `HandlerFunc` + `Wrap`/`WrapHandle` + centralized error dispatch.
+- `pkg/server/request.go` - `RequestHandlerFunc`/`WrapRequest` + `BindRequest` request binding/validation.
 - `pkg/server/errcode/astype.go` - `AsType[T error]` generic helper.
 - `pkg/server/errcode/xerrors.go` - `NewHTTPError`, `ErrCode`, `HTTPErrCodeInternalError`.
 - `pkg/dal/dig.go` - DI registration for all repositories + authorizer.
