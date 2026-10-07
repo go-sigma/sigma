@@ -3031,8 +3031,8 @@ func (x UserRole) Value() (driver.Value, error) {
 const (
 	// UserStatusActive is a UserStatus of type Active.
 	UserStatusActive UserStatus = "Active"
-	// UserStatusDeactive is a UserStatus of type Deactive.
-	UserStatusDeactive UserStatus = "Deactive"
+	// UserStatusInactive is a UserStatus of type Inactive.
+	UserStatusInactive UserStatus = "Inactive"
 )
 
 var ErrInvalidUserStatus = errors.New("not a valid UserStatus")
@@ -3051,7 +3051,7 @@ func (x UserStatus) IsValid() bool {
 
 var _UserStatusValue = map[string]UserStatus{
 	"Active":   UserStatusActive,
-	"Deactive": UserStatusDeactive,
+	"Inactive": UserStatusInactive,
 }
 
 // ParseUserStatus attempts to convert a string to a UserStatus.

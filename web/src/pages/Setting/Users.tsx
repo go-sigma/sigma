@@ -333,7 +333,7 @@ function TableItemRow({ localServer, user, setRefresh, selfUsername }: { localSe
               <DropdownMenuItem
                 disabled={isSelf}
                 onClick={() => {
-                  axios.put(localServer + `/api/v1/users/${user.id}`, { status: "Deactive" }).then(response => {
+                  axios.put(localServer + `/api/v1/users/${user.id}`, { status: "Inactive" }).then(response => {
                     if (response?.status === 204) {
                       Toast({ level: "success", title: "Success", message: "Deactivate user success" });
                       setRefresh({});
@@ -345,7 +345,7 @@ function TableItemRow({ localServer, user, setRefresh, selfUsername }: { localSe
                 }}
               >
                 <Ban />
-                <span>Deactive</span>
+                <span>Inactive</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
