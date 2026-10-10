@@ -45,7 +45,36 @@ export default defineConfig({
   description: 'A lightweight OCI artifact storage and distribution system',
   cleanUrls: true,
   head: [
-    ['link', { rel: 'icon', href: '/img/favicon.svg' }]
+    ['link', { rel: 'preconnect', href: 'https://cdn.jsdelivr.net', crossorigin: '' }],
+    [
+      'link',
+      { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/latin-400.css' }
+    ],
+    [
+      'link',
+      { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/latin-500.css' }
+    ],
+    [
+      'link',
+      { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/latin-600.css' }
+    ],
+    [
+      'link',
+      { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@fontsource/nunito@5/latin-700.css' }
+    ],
+    ['link', { rel: 'icon', href: '/img/favicon.svg' }],
+    ['meta', { name: 'theme-color', content: '#fbfaf9', media: '(prefers-color-scheme: light)' }],
+    ['meta', { name: 'theme-color', content: '#1b1a18', media: '(prefers-color-scheme: dark)' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:title', content: 'sigma' }],
+    [
+      'meta',
+      {
+        property: 'og:description',
+        content: 'A lightweight, self-hosted OCI artifact storage and distribution system.'
+      }
+    ],
+    ['meta', { property: 'og:image', content: '/img/logo.svg' }]
   ],
   themeConfig: {
     logo: '/img/logo.svg',

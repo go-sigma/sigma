@@ -1,317 +1,269 @@
+/* ============================================================
+   sigma docs theme
+   Brand: warm orange family taken from the sigma mark
+   #f99d1c amber, #cd4b27 terracotta, #5c2e0e ember
+   ============================================================ */
+
+/* ---------- Brand + layout tokens ---------- */
+
 :root {
-  --vp-c-brand-1: #dc382c;
-  --vp-c-brand-2: #f0574d;
-  --vp-c-brand-3: #b82e25;
-  --vp-home-hero-name-color: #161f31;
+  /* Text/link roles use a deeper burnt orange for AA contrast on white. */
+  --vp-c-brand-1: #c2410c;
+  --vp-c-brand-2: #b45309;
+  --vp-c-brand-3: #9a3412;
+  --vp-c-brand-soft: rgba(194, 65, 12, 0.14);
+
+  --vp-home-hero-name-color: #1b1b1d;
   --vp-home-hero-image-background-image:
-    radial-gradient(circle at 35% 35%, rgba(220, 56, 44, 0.24), transparent 42%),
-    radial-gradient(circle at 70% 60%, rgba(5, 101, 255, 0.18), transparent 45%);
-  --vp-home-hero-image-filter: blur(28px);
-  --sigma-home-bg: #f8faff;
-  --sigma-home-title: #161f31;
-  --sigma-home-muted: rgba(22, 31, 49, 0.68);
-  --sigma-home-panel: rgba(255, 255, 255, 0.82);
-  --sigma-home-panel-hover: rgba(255, 255, 255, 0.96);
-  --sigma-home-grid:
-    linear-gradient(rgba(22, 31, 49, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(22, 31, 49, 0.035) 1px, transparent 1px);
-  --sigma-home-alt-button: #161f31;
-  --sigma-home-alt-border: rgba(22, 31, 49, 0.28);
-  --sigma-home-feature-border: rgba(22, 31, 49, 0.12);
-  --sigma-home-feature-overlay:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.36));
-  --sigma-home-feature-title: #161f31;
-  --sigma-home-feature-details: rgba(22, 31, 49, 0.68);
-  --sigma-home-feature-icon-text: #ffffff;
+    radial-gradient(circle at 50% 45%, rgba(249, 157, 28, 0.36), transparent 62%);
+  --vp-home-hero-image-filter: blur(30px);
+
+  --sh-accent: #c2410c;
+  --sh-accent-strong: #9a3412;
+  --sh-accent-soft: rgba(194, 65, 12, 0.1);
+  --sh-home-bg: #fbfaf9;
+  --sh-card: #ffffff;
+  --sh-card-line: rgba(27, 27, 29, 0.1);
+  --sh-term-bg: #1c1b1a;
+  --sh-term-fg: #f2efe9;
+  --sh-term-line: rgba(255, 255, 255, 0.12);
+  --sh-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sh-display:
+    "Nunito", "Avenir Next", "Segoe UI Variable Display", "Helvetica Neue", "PingFang SC",
+    "Hiragino Sans GB", sans-serif;
+}
+
+:root {
+  /* Nunito from Fontsource (jsDelivr) for all Latin text; CJK falls back to system fonts. */
+  --vp-font-family-base:
+    "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
 }
 
 .dark {
-  --vp-c-bg: #1b1b1d;
-  --vp-c-bg-alt: #16171a;
-  --vp-c-bg-soft: #202126;
-  --vp-c-border: rgba(255, 255, 255, 0.12);
+  /* Amber reads well on dark; CTAs flip to dark text on the amber fill. */
+  --vp-c-brand-1: #f99d1c;
+  --vp-c-brand-2: #fbbf24;
+  --vp-c-brand-3: #f99d1c;
+  --vp-c-brand-soft: rgba(249, 157, 28, 0.16);
+
+  --vp-button-brand-text: #1c1204;
+  --vp-button-brand-hover-text: #1c1204;
+  --vp-button-brand-active-text: #1c1204;
+  --vp-button-brand-bg: #f99d1c;
+  --vp-button-brand-hover-bg: #fbbf24;
+  --vp-button-brand-active-bg: #eab308;
+
+  --vp-c-bg: #1b1a18;
+  --vp-c-bg-alt: #171614;
+  --vp-c-bg-soft: #232220;
   --vp-c-divider: rgba(255, 255, 255, 0.1);
-  --vp-home-hero-name-color: #ffffff;
+  --vp-c-border: rgba(255, 255, 255, 0.12);
+
+  --vp-home-hero-name-color: #fbf7ef;
   --vp-home-hero-image-background-image:
-    radial-gradient(circle at 35% 35%, rgba(220, 56, 44, 0.42), transparent 42%),
-    radial-gradient(circle at 70% 60%, rgba(5, 101, 255, 0.34), transparent 45%);
-  --sigma-home-bg: #1b1b1d;
-  --sigma-home-title: #ffffff;
-  --sigma-home-muted: rgba(255, 255, 255, 0.74);
-  --sigma-home-panel: rgba(12, 14, 16, 0.82);
-  --sigma-home-panel-hover: rgba(18, 19, 22, 0.94);
-  --sigma-home-grid:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
-  --sigma-home-alt-button: #ffffff;
-  --sigma-home-alt-border: rgba(255, 255, 255, 0.42);
-  --sigma-home-feature-border: rgba(255, 255, 255, 0.14);
-  --sigma-home-feature-overlay:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
-  --sigma-home-feature-title: #ffffff;
-  --sigma-home-feature-details: rgba(255, 255, 255, 0.72);
-  --sigma-home-feature-icon-text: #ffffff;
+    radial-gradient(circle at 50% 45%, rgba(249, 157, 28, 0.44), transparent 62%);
+
+  --sh-accent: #f99d1c;
+  --sh-accent-strong: #fbbf24;
+  --sh-accent-soft: rgba(249, 157, 28, 0.14);
+  --sh-home-bg: #1b1a18;
+  --sh-card: #232220;
+  --sh-card-line: rgba(255, 255, 255, 0.12);
+  --sh-term-bg: #141312;
+  --sh-term-fg: #f2efe9;
+  --sh-term-line: rgba(255, 255, 255, 0.1);
 }
+
+::selection {
+  background: var(--sh-accent-soft);
+}
+
+/* ---------- Home shell ---------- */
 
 .VPContent:has(.VPHome),
 .VPHome {
-  margin-bottom: 0 !important;
-  min-height: calc(100vh - var(--vp-nav-height));
-  background:
-    linear-gradient(135deg, rgba(220, 56, 44, 0.12), transparent 26%),
-    radial-gradient(circle at top right, rgba(5, 101, 255, 0.18), transparent 30%),
-    var(--sigma-home-bg);
+  background: var(--sh-home-bg);
 }
 
 .VPHome {
-  min-height: calc(100vh - var(--vp-nav-height));
+  background-image: radial-gradient(
+    1100px 540px at 10% -10%,
+    var(--sh-accent-soft),
+    transparent 70%
+  );
+  background-repeat: no-repeat;
+  overflow-x: clip;
 }
 
+/* ---------- Hero ---------- */
+
 .VPHome .VPHero {
-  padding-top: 96px;
-  padding-bottom: 72px;
+  padding-top: calc(var(--vp-nav-height) + 72px);
+  padding-bottom: 60px;
+}
+
+@media (max-width: 640px) {
+  .VPHome .VPHero {
+    padding-top: calc(var(--vp-nav-height) + 40px);
+    padding-bottom: 44px;
+  }
 }
 
 .VPHome .VPHero.has-image .container {
   align-items: center;
 }
 
-.VPHome .VPHero.has-image .main {
-  align-self: center;
+.VPHome .VPHero .heading {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.28em;
 }
 
-.VPHome .VPHero.has-image .image {
-  display: flex;
-  align-self: stretch;
-  align-items: center;
+.VPHome .VPHero .name,
+.VPHome .VPHero .text {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  white-space: nowrap;
+  font-family: var(--sh-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
 }
 
-.VPHome .VPHero .image-container {
-  height: 320px;
-  transform: none;
+@media (min-width: 640px) {
+  .VPHome .VPHero .name,
+  .VPHome .VPHero .text {
+    font-size: 34px;
+  }
 }
 
 @media (min-width: 960px) {
-  .VPHome .VPHero .image-container {
-    height: 320px;
-    transform: translateX(-32px);
+  .VPHome .VPHero .heading {
+    justify-content: flex-start;
   }
-}
 
-.VPHome .VPHero .name,
-.VPHome .VPHero .text {
-  font-family:
-    "Avenir Next",
-    "Segoe UI Variable Display",
-    "Helvetica Neue",
-    "PingFang SC",
-    "Hiragino Sans GB",
-    sans-serif;
-}
-
-.VPHome .VPHero .name,
-.VPHome .VPHero .text {
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+  .VPHome .VPHero .name,
+  .VPHome .VPHero .text {
+    font-size: 42px;
+  }
 }
 
 .VPHome .VPHero .name {
-  color: var(--sigma-home-title);
-  font-weight: 680;
+  color: var(--vp-home-hero-name-color);
 }
 
 .VPHome .VPHero .text {
-  color: var(--sigma-home-title);
-  font-weight: 680;
+  color: var(--sh-accent-strong);
 }
 
+/* Terminal-style rotating tagline */
 .VPHome .VPHero .tagline {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  color: var(--sigma-home-muted);
-  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  gap: 0.5ch;
+  color: var(--vp-c-text-2);
+  font-family: var(--sh-mono);
   font-size: 18px;
-}
-
-.VPHome .VPHero .tagline .sigma-prompt {
-  flex: none;
-  color: #dc382c;
-}
-
-.VPHome .VPHero .tagline .sigma-type {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  width: 0;
-  margin-left: 0.75ch;
-  max-width: max-content;
-  white-space: nowrap;
-  animation: sigma-typewriter-loop 5.6s steps(15, end) 0.35s infinite;
-}
-
-.VPHome .VPHero .tagline .sigma-type::after {
-  display: inline-block;
-  width: 2px;
-  height: 0.78em;
-  margin-left: 4px;
-  content: "";
-  background: #dc382c;
-  animation: sigma-caret 0.72s step-end infinite;
-}
-
-.VPHome .VPHero .image-src {
-  width: min(280px, 58vw);
-  filter: drop-shadow(0 28px 80px rgba(220, 56, 44, 0.26));
-  transform: translate(-50%, -50%);
-}
-
-.VPHome .VPButton.brand {
-  border-color: #dc382c;
-  background: #dc382c;
-}
-
-.VPHome .VPButton.brand:hover {
-  border-color: #f0574d;
-  background: #f0574d;
-}
-
-.VPHome .VPButton.alt {
-  border-color: var(--sigma-home-alt-border);
-  color: var(--sigma-home-alt-button);
-  background: transparent;
-}
-
-.VPHome .VPButton.alt:hover {
-  border-color: #dc382c;
-  color: var(--sigma-home-alt-button);
-  background: rgba(220, 56, 44, 0.12);
-}
-
-.VPHome .VPFeatures {
-  padding-bottom: 96px;
-}
-
-.VPHome .VPFeature {
-  --sigma-feature-accent: #dc382c;
-  --sigma-feature-accent-soft: rgba(220, 56, 44, 0.12);
-
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px solid var(--sigma-home-feature-border);
-  border-radius: 18px;
-  background:
-    var(--sigma-home-feature-overlay),
-    var(--sigma-home-panel);
-  box-shadow: none;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.VPHome .VPFeature::before {
-  position: absolute;
-  top: 18px;
-  bottom: 18px;
-  left: 0;
-  width: 3px;
-  content: "";
-  background: var(--sigma-feature-accent);
-  opacity: 0.95;
-}
-
-.VPHome .VPFeature::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  pointer-events: none;
-  background:
-    linear-gradient(135deg, var(--sigma-feature-accent-soft), transparent 42%),
-    var(--sigma-home-grid);
-  background-size: auto, 22px 22px;
-  opacity: 0.32;
-}
-
-.VPHome .VPFeature:hover {
-  border-color: var(--sigma-feature-accent);
-  background:
-    var(--sigma-home-feature-overlay),
-    var(--sigma-home-panel-hover);
-  box-shadow: none;
-  transform: translateY(-2px);
-}
-
-.VPHome .VPFeature:hover::after {
-  background: var(--sigma-home-grid);
-  background-size: 22px 22px;
-  opacity: 0.24;
-}
-
-.VPHome .VPFeature .box {
-  position: relative;
-  z-index: 1;
-  box-shadow: none;
-}
-
-.VPHome .VPFeature .icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 52px;
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  color: var(--sigma-home-feature-icon-text);
-  background: var(--sigma-feature-accent);
-  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 11px;
-  font-weight: 760;
-  letter-spacing: 0.06em;
-  box-shadow: none;
-  transition:
-    filter 0.18s ease,
-    transform 0.18s ease;
-}
-
-.VPHome .VPFeature:hover .icon {
-  box-shadow: none;
-  filter: saturate(1.12) brightness(1.04);
-  transform: translateX(2px);
-}
-
-.VPHome .VPFeature .title {
-  color: var(--sigma-home-feature-title);
   font-weight: 500;
 }
 
-.VPHome .VPFeature .details {
-  color: var(--sigma-home-feature-details);
+.VPHome .VPHero .tagline .hero-prompt {
+  flex: none;
+  color: var(--sh-accent);
 }
 
-.VPHome .VPFeature:hover .details {
-  color: var(--sigma-home-feature-details);
+.VPHome .VPHero .tagline .hero-rotator {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  height: 1.6em;
+  padding-right: 8px;
+  line-height: 1.6;
+  vertical-align: bottom;
 }
 
-@keyframes sigma-typewriter-loop {
-  0%,
-  10% {
-    width: 0;
+.VPHome .VPHero .tagline .hero-rotator__sizer {
+  visibility: hidden;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.VPHome .VPHero .tagline .hero-rotator__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  line-height: 1.6;
+  opacity: 0;
+  animation: hs-rotate 12s infinite;
+}
+
+.VPHome .VPHero .tagline .hero-rotator__item::after {
+  display: inline-block;
+  width: 2px;
+  height: 0.82em;
+  margin-left: 4px;
+  content: "";
+  background: var(--sh-accent);
+  vertical-align: -0.08em;
+  animation: hs-caret 0.9s step-end infinite;
+}
+
+.VPHome .VPHero .tagline .hero-rotator__item:nth-child(2) {
+  animation-delay: 0s;
+}
+.VPHome .VPHero .tagline .hero-rotator__item:nth-child(3) {
+  animation-delay: 3s;
+}
+.VPHome .VPHero .tagline .hero-rotator__item:nth-child(4) {
+  animation-delay: 6s;
+}
+.VPHome .VPHero .tagline .hero-rotator__item:nth-child(5) {
+  animation-delay: 9s;
+}
+
+.hero-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes hs-rotate {
+  0% {
+    opacity: 0;
+    transform: translateY(0.6em);
   }
-  34%,
-  68% {
-    width: 15ch;
+  1.5% {
+    opacity: 1;
+    transform: translateY(0);
   }
-  90%,
+  25% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  26.5% {
+    opacity: 0;
+    transform: translateY(-0.6em);
+  }
   100% {
-    width: 0;
+    opacity: 0;
+    transform: translateY(0.6em);
   }
 }
 
-@keyframes sigma-caret {
+@keyframes hs-caret {
   0%,
   100% {
     opacity: 0;
@@ -321,28 +273,506 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .VPHome .VPHero .tagline {
-    animation: none;
+@keyframes hs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
   }
-
-  .VPHome .VPHero .tagline .sigma-type {
-    width: auto;
-    animation: none;
-  }
-
-  .VPHome .VPHero .tagline .sigma-type::after {
-    display: none;
-  }
-
-  .VPHome .VPFeature {
-    transition: none;
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-@media (max-width: 768px) {
-  .VPHome .VPHero {
-    padding-top: 72px;
-    padding-bottom: 40px;
+/* Hero logo */
+.VPHome .VPHero .image-container {
+  height: 300px;
+  transform: none;
+}
+
+@media (min-width: 960px) {
+  .VPHome .VPHero .image-container {
+    transform: translateX(-24px);
+  }
+}
+
+.VPHome .VPHero .image-src {
+  width: min(260px, 56vw);
+  filter: drop-shadow(0 24px 70px rgba(205, 75, 39, 0.28));
+}
+
+/* Hero install chip (injected via the home-hero-actions-after slot) */
+.hero-install {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 620px;
+  margin-top: 20px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--sh-card-line);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.VPHome .VPHero.has-image .hero-install {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 960px) {
+  .VPHome .VPHero.has-image .hero-install {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.hero-install__label {
+  flex: none;
+  color: var(--vp-c-text-2);
+  font-family: var(--sh-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero-install__code {
+  flex: 1 1 260px;
+  min-width: 0;
+  color: var(--vp-c-text-1);
+  font-family: var(--sh-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.hero-install__prompt {
+  margin-right: 8px;
+  color: var(--sh-accent);
+  font-weight: 600;
+}
+
+.hero-install__copy {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--sh-card-line);
+  border-radius: 10px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg);
+  font-family: var(--sh-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.hero-install__copy:hover {
+  border-color: var(--sh-accent);
+  color: var(--sh-accent);
+}
+
+.hero-install__copy:active {
+  transform: translateY(1px);
+}
+
+/* Hero actions */
+.VPHome .VPButton {
+  border-radius: 11px;
+  font-weight: 600;
+}
+
+/* ---------- Feature grid ---------- */
+
+.VPHome .VPFeatures {
+  padding-top: 12px;
+  padding-bottom: 28px;
+}
+
+.VPHome .VPFeature {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--sh-card-line);
+  border-radius: 16px;
+  background: var(--sh-card);
+  box-shadow: none;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.VPHome .VPFeature::before {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 0;
+  width: 3px;
+  content: "";
+  background: var(--sh-accent);
+}
+
+.VPHome .VPFeature:hover {
+  border-color: var(--sh-accent);
+  transform: translateY(-2px);
+}
+
+.VPHome .VPFeature .box {
+  position: relative;
+  z-index: 1;
+}
+
+.VPHome .VPFeature .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 9px;
+  color: #ffffff;
+  background: var(--sh-accent-strong);
+  font-family: var(--sh-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.dark .VPHome .VPFeature .icon {
+  color: #1c1204;
+  background: var(--sh-accent);
+}
+
+.VPHome .VPFeature .title {
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+}
+
+.VPHome .VPFeature .details {
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
+}
+
+/* ---------- Shared section primitives ---------- */
+
+.hs {
+  padding: 56px 24px;
+  scroll-margin-top: calc(var(--vp-nav-height) + 16px);
+}
+
+@media (min-width: 640px) {
+  .hs {
+    padding: 56px 48px;
+  }
+}
+
+@media (min-width: 960px) {
+  .hs {
+    padding: 56px 64px;
+  }
+}
+
+.hs__inner {
+  margin: 0 auto;
+  max-width: 1152px;
+}
+
+.hs__head {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+
+.hs__title {
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+@media (min-width: 768px) {
+  .hs__title {
+    font-size: 32px;
+  }
+}
+
+.hs__lead {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  color: var(--vp-c-text-2);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.hs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.hs-btn:active {
+  transform: translateY(1px);
+}
+
+.hs-btn--brand {
+  color: #ffffff;
+  background: var(--sh-accent-strong);
+}
+
+.hs-btn--brand:hover {
+  color: #ffffff;
+  background: var(--sh-accent);
+}
+
+.dark .hs-btn--brand {
+  color: #1c1204;
+  background: var(--sh-accent);
+}
+
+.dark .hs-btn--brand:hover {
+  color: #1c1204;
+  background: var(--sh-accent-strong);
+}
+
+.hs-btn--ghost {
+  border-color: var(--sh-card-line);
+  color: var(--vp-c-text-1);
+  background: transparent;
+}
+
+.hs-btn--ghost:hover {
+  border-color: var(--sh-accent);
+  color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+}
+
+/* ---------- Quick start ---------- */
+
+.hs-quick__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .hs-quick__grid {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 48px;
+  }
+}
+
+.hs-quick__intro {
+  align-self: center;
+  max-width: 480px;
+}
+
+.hs-quick__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--sh-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hs-quick__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hs-quick__terminal {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--sh-term-line);
+  border-radius: 16px;
+  background: var(--sh-term-bg);
+  box-shadow: 0 20px 50px rgba(20, 18, 16, 0.16);
+}
+
+.hs-quick__term-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--sh-term-line);
+}
+
+.hs-quick__term-name {
+  color: var(--sh-term-fg);
+  font-family: var(--sh-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.hs-quick__copy {
+  padding: 5px 11px;
+  border: 1px solid var(--sh-term-line);
+  border-radius: 10px;
+  color: var(--sh-term-fg);
+  background: transparent;
+  font-family: var(--sh-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.hs-quick__copy:hover {
+  border-color: var(--sh-accent);
+  color: var(--sh-accent);
+}
+
+.hs-quick__term-body {
+  margin: 0;
+  padding: 18px;
+  overflow-x: auto;
+  color: var(--sh-term-fg);
+  font-family: var(--sh-mono);
+  font-size: 12.5px;
+  line-height: 1.85;
+}
+
+.hs-quick__term-body .c-prompt {
+  color: var(--sh-accent);
+  font-weight: 600;
+}
+
+/* ---------- Architecture ---------- */
+
+.hs-arch .hs__head {
+  max-width: none;
+}
+
+.hs-arch .hs__lead {
+  max-width: none;
+}
+
+.hs-arch__frame {
+  margin: 0;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--sh-card-line);
+  border-radius: 16px;
+  /* The diagram is drawn on white, so keep a light plate in both themes. */
+  background: #ffffff;
+}
+
+.hs-arch__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hs-arch__caption {
+  margin-top: 14px;
+  color: #5b5b5f;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ---------- Closing CTA ---------- */
+
+.hs-cta {
+  padding-bottom: 24px;
+}
+
+.hs-cta__panel {
+  padding: 48px 32px;
+  border: 1px solid var(--sh-card-line);
+  border-radius: 16px;
+  background:
+    radial-gradient(600px 240px at 50% 0%, var(--sh-accent-soft), transparent 70%),
+    var(--sh-card);
+  text-align: center;
+}
+
+.hs-cta__title {
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .hs-cta__title {
+    font-size: 30px;
+  }
+}
+
+.hs-cta__lead {
+  margin: 12px auto 0;
+  max-width: 720px;
+  color: var(--vp-c-text-2);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.hs-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+/* ---------- Typeface rollout ----------
+   Every Latin string uses Nunito. Only real code and commands keep the
+   monospace stack so terminal output stays legible. */
+.VPHome .VPHero .tagline,
+.hero-install__label,
+.hero-install__copy,
+.VPHome .VPFeature .icon,
+.hs-quick__copy {
+  font-family: inherit;
+}
+
+/* ---------- Motion preferences ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .VPHome .VPHero .main {
+    animation: hs-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .VPHome .VPHero .image {
+    animation: hs-rise 0.9s 0.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .VPHome .VPHero .tagline .hero-rotator__sizer {
+    visibility: visible;
+  }
+
+  .VPHome .VPHero .tagline .hero-rotator__item {
+    display: none;
+    animation: none;
+  }
+
+  .VPHome .VPFeature,
+  .hs-btn {
+    transition: none;
   }
 }
