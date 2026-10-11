@@ -127,7 +127,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>sigma - {location.pathname.startsWith("/settings") ? "Daemon Task Runner" : "Namespace Daemon Task"}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "daemon-tasks" : "repositories"} namespace={namespace} />
         <div className="flex flex-col w-0 flex-1 overflow-visible">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>

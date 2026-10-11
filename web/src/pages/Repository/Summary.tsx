@@ -109,7 +109,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>sigma - Repository Summary</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen max-h-screen flex overflow-hidden bg-white">
+      <div className="min-h-screen max-h-screen flex overflow-hidden bg-background">
         <Menu localServer={localServer} item="repositories" namespace={namespace} namespace_id={namespaceId.toString()} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">

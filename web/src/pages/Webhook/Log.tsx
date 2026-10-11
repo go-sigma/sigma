@@ -246,7 +246,7 @@ export default function ({ localServer }: { localServer: string }) {
       >
         Less than 10, unit is second.
       </div>
-      <div className="min-h-screen flex overflow-hidden bg-white">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <IMenu
           localServer={localServer}
           item={

@@ -128,7 +128,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>sigma - Namespace Summary</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen max-h-screen flex overflow-hidden bg-white">
+      <div className="min-h-screen max-h-screen flex overflow-hidden bg-background">
         <IMenu
           localServer={localServer}
           item="repositories"

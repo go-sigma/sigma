@@ -261,7 +261,7 @@ export default function Member({ localServer }: { localServer: string }) {
           <title>sigma - Namespace Member</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <IMenu localServer={localServer} item="Repository" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
