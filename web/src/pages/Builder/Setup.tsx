@@ -1001,7 +1001,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type="text"
                               name="customRepositoryCloneUrl"
                               id="customRepositoryCloneUrl"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={customRepositoryCloneUrl}
                               onChange={e => {
                                 setSearchParams({
@@ -1026,7 +1026,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type="text"
                               name="customRepositoryBranch"
                               id="customRepositoryBranch"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={customRepositoryBranch}
                               onChange={e => {
                                 setSearchParams({
@@ -1090,7 +1090,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type='text'
                               name='customRepositoryUsername'
                               id='customRepositoryUsername'
-                              className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                              className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6'
                               value={customRepositoryUsername}
                               onChange={e => {
                                 setSearchParams({
@@ -1116,7 +1116,7 @@ export default function ({ localServer }: { localServer: string }) {
                               autoComplete='new-password'
                               name='customRepositoryPassword'
                               id='customRepositoryPassword'
-                              className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                              className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6'
                               value={customRepositoryPassword}
                               onChange={e => setCustomRepositoryPassword(e.target.value)}
                             />
@@ -1136,7 +1136,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type="text"
                               name="customRepositoryToken"
                               id="customRepositoryToken"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={customRepositoryToken}
                               onChange={e => setCustomRepositoryToken(e.target.value)}
                             />
@@ -1156,7 +1156,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type="text"
                               name="customRepositorySshKey"
                               id="customRepositorySshKey"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={customRepositorySshKey}
                               onChange={e => setCustomRepositorySshKey(e.target.value)}
                             />
@@ -1183,7 +1183,7 @@ export default function ({ localServer }: { localServer: string }) {
                             });
                             setSubmodule(e.target.checked);
                           }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ring rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-checked:after:bg-primary-foreground"></div>
                         </label>
                       </div>
                     </div>
@@ -1196,7 +1196,7 @@ export default function ({ localServer }: { localServer: string }) {
                           type="number"
                           name="depth"
                           id="depth"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={depth}
                           onChange={e => {
                             let depthValue = Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value);
@@ -1246,7 +1246,7 @@ export default function ({ localServer }: { localServer: string }) {
                           type="text"
                           name="dockerfileContext"
                           id="dockerfileContext"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={dockerfileContext}
                           onChange={e => {
                             setSearchParams({
@@ -1271,7 +1271,7 @@ export default function ({ localServer }: { localServer: string }) {
                           type="text"
                           name="dockerfilePath"
                           id="dockerfilePath"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={dockerfilePath}
                           onChange={e => {
                             setSearchParams({
@@ -1349,7 +1349,7 @@ export default function ({ localServer }: { localServer: string }) {
                         });
                         setCronBuild(e.target.checked);
                       }} />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ring rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-checked:after:bg-primary-foreground"></div>
                     </label>
                   </div>
                 </div>
@@ -1364,7 +1364,7 @@ export default function ({ localServer }: { localServer: string }) {
                           type="text"
                           name="mergeEventBranch"
                           id="mergeEventBranch"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={cronExpr}
                           onChange={e => {
                             setSearchParams({
@@ -1442,7 +1442,7 @@ export default function ({ localServer }: { localServer: string }) {
                             type="text"
                             name="mergeEventTagTemplate"
                             id="mergeEventTagTemplate"
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                             value={cronBranch}
                             onChange={e => setCronBranch(e.target.value)}
                           />
@@ -1462,7 +1462,7 @@ export default function ({ localServer }: { localServer: string }) {
                           type="text"
                           name="mergeEventTagTemplate"
                           id="mergeEventTagTemplate"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={cronTagTemplate}
                           onChange={e => setCronTagTemplate(e.target.value)}
                         />
@@ -1485,7 +1485,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="mt-2 flex flex-row items-center h-9">
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={mergeEvent} className="sr-only peer" onChange={e => { setMergeEvent(e.target.checked); }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ring rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-checked:after:bg-primary-foreground"></div>
                         </label>
                       </div>
                     </div>
@@ -1553,7 +1553,7 @@ export default function ({ localServer }: { localServer: string }) {
                                 type="text"
                                 name="mergeEventBranch"
                                 id="mergeEventBranch"
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                                 value={mergeEventBranch}
                                 onChange={e => setMergeEventBranch(e.target.value)}
                               />
@@ -1573,7 +1573,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type="text"
                               name="mergeEventTagTemplate"
                               id="mergeEventTagTemplate"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={mergeEventTagTemplate}
                               onChange={e => setMergeEventTagTemplate(e.target.value)}
                             />
@@ -1590,7 +1590,7 @@ export default function ({ localServer }: { localServer: string }) {
                       <div className="mt-2 flex flex-row items-center h-9">
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={tagEvent} className="sr-only peer" onChange={e => { SetTagEvent(e.target.checked); }} />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ring rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-checked:after:bg-primary-foreground"></div>
                         </label>
                       </div>
                     </div>
@@ -1605,7 +1605,7 @@ export default function ({ localServer }: { localServer: string }) {
                               type="text"
                               name="tagEventTagTemplate"
                               id="tagEventTagTemplate"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={tagEventTagTemplate}
                               onChange={e => setTagEventTagTemplate(e.target.value)}
                             />
@@ -1639,7 +1639,7 @@ export default function ({ localServer }: { localServer: string }) {
                   Cancel
                 </button>
                 <button
-                  className="relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
                   onClick={setupBuilder}
                 >
                   Setup

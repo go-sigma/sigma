@@ -110,7 +110,7 @@ export default function ShikiDockerfileEditor({
         onScroll={handleScroll}
         wrap="off"
         spellCheck={false}
-        className="absolute inset-0 h-full w-full resize-none overflow-auto whitespace-pre border-0 bg-transparent p-3 font-mono text-sm leading-6 text-transparent caret-white outline-none selection:bg-indigo-500/40 focus:ring-0"
+        className="absolute inset-0 h-full w-full resize-none overflow-auto whitespace-pre border-0 bg-transparent p-3 font-mono text-sm leading-6 text-transparent caret-white outline-none selection:bg-foreground/25 focus:ring-0"
       />
     </div>
   );

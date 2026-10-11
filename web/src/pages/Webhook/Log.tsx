@@ -277,7 +277,7 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
               <div className="px-4 flex flex-col">
                 <button
-                  className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+                  className="my-auto block px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring sm:order-1 sm:ml-3"
                   onClick={() => {
                     setWebhookPingModal(true);
                   }}

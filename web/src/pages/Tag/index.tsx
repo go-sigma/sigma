@@ -312,7 +312,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                         {t("common.builder")}
                       </Link>
                     )}
-                    <span className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer">
+                    <span className="z-10 inline-flex items-center border-b border-primary px-1 pt-1 text-sm font-medium text-foreground capitalize cursor-pointer">
                       {t("common.tagList")}
                     </span>
                   </div>
@@ -342,7 +342,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                           fetchTags();
                         }
                       }}
-                      className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-950 dark:text-gray-100 dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
+                      className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring dark:bg-gray-950 dark:text-gray-100 dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
                     />
                     <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
                       <kbd className="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">
@@ -638,7 +638,7 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
   return (
     <tr className="hover:bg-gray-50 cursor-pointer">
       <td className="text-left w-45">
-        <code className="text-xs underline underline-offset-1 text-blue-600 hover:text-blue-500">
+        <code className="text-xs underline underline-offset-1 text-primary hover:text-primary/80">
           {cutDigest(artifact.digest)}
         </code>
       </td>

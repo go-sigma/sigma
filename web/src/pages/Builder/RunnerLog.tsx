@@ -223,7 +223,7 @@ export default function ({ localServer }: { localServer: string }) {
                     </Link>
                     <Link
                       to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj?.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
-                      className="z-10 inline-flex items-center border-b border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900 capitalize cursor-pointer"
+                      className="z-10 inline-flex items-center border-b border-primary px-1 pt-1 text-sm font-medium text-foreground capitalize cursor-pointer"
                     >
                       Builder
                     </Link>
@@ -241,11 +241,11 @@ export default function ({ localServer }: { localServer: string }) {
               <div className="px-4">
                 {
                   runnerObj?.status === "Success" || runnerObj?.status === "Failed" || runnerObj?.status === "Stopped" ? (
-                    <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+                    <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring sm:order-1 sm:ml-3"
                       onClick={() => { rerunAction() }}
                     >Rerun</button>
                   ) : (
-                    <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+                    <button className="my-auto px-4 py-2 h-10 border border-transparent shadow-sm text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring sm:order-1 sm:ml-3"
                       onClick={() => { stopAction() }}
                     >Stop</button>
                   )
