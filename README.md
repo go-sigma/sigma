@@ -49,12 +49,13 @@ The diagram below maps Sigma's main runtime layers, from client entry points to 
 
 Sigma provides two integration paths for AI clients and external automation:
 
-- Embedded MCP server: Sigma can expose registry management tools through the
-  existing server process. It is disabled by default and can be enabled through
-  the `mcp` configuration section. See [MCP Server](docs/mcp.md).
+- `sigma-cli`: a single binary that operates a remote Sigma server over the REST
+  API. It covers namespaces, repositories, tags, artifacts, members, and users.
+  See [CLI & AI Agents](docs/cli.md).
 - External REST API skill: `tools/skill/sigma-api-operator` packages a reusable
   skill and `swagger.yaml` so CLI agents such as Claude Code or Copilot CLI can
-  discover Sigma APIs and operate resources through HTTP requests.
+  discover Sigma APIs and operate resources through HTTP requests, including the
+  areas the CLI does not wrap yet.
 
 ## Alternatives
 

@@ -32,11 +32,6 @@ const (
 	defaultHTTPTimeoutWrite      = time.Hour
 	defaultHTTPTimeoutIdle       = 2 * time.Minute
 
-	defaultMCPPath           = "/api/v1/mcp"
-	defaultMCPTransport      = "streamable_http"
-	defaultMCPToolTimeout    = 30 * time.Second
-	defaultMCPMaxRequestBody = int64(1 << 20) // 1Mi
-
 	defaultAuthLoginRateLimitMaxFailures = 5
 	defaultAuthLoginRateLimitWindow      = 5 * time.Minute
 	defaultAuthLoginRateLimitDelay       = time.Second
@@ -70,7 +65,6 @@ type Configuration struct {
 	Daemon    ConfigurationDaemon    `yaml:"daemon"`
 	Auth      ConfigurationAuth      `yaml:"auth"`
 	Audit     ConfigurationAudit     `yaml:"audit"`
-	MCP       ConfigurationMCP       `yaml:"mcp"`
 	Trace     ConfigurationTrace     `yaml:"trace"`
 	Analytics ConfigurationAnalytics `yaml:"analytics"`
 }
@@ -83,46 +77,10 @@ func (c *Configuration) WithDefaults() {
 	c.Namespace.WithDefaults()
 	c.Daemon.WithDefaults()
 	c.Audit.Cleanup.WithDefaults()
-	c.MCP.WithDefaults()
 	c.WorkQueue.Inmemory.WithDefaults()
 	c.Cache.WithDefaults()
 	c.Locker.WithDefaults()
 	c.Database.WithDefaults()
-}
-
-// ConfigurationMCP configures the embedded MCP server.
-type ConfigurationMCP struct {
-	Enabled        bool          `yaml:"enabled"`
-	Path           string        `yaml:"path"`
-	Transport      string        `yaml:"transport"`
-	AuditWrites    *bool         `yaml:"auditWrites"`
-	ToolTimeout    time.Duration `yaml:"toolTimeout"`
-	MaxRequestBody int64         `yaml:"maxRequestBody"`
-}
-
-// WithDefaults applies default values for MCP.
-func (c *ConfigurationMCP) WithDefaults() {
-	if c.Path == "" {
-		c.Path = defaultMCPPath
-	}
-	if c.Transport == "" {
-		c.Transport = defaultMCPTransport
-	}
-	if c.AuditWrites == nil {
-		enabled := true
-		c.AuditWrites = &enabled
-	}
-	if c.ToolTimeout == 0 {
-		c.ToolTimeout = defaultMCPToolTimeout
-	}
-	if c.MaxRequestBody == 0 {
-		c.MaxRequestBody = defaultMCPMaxRequestBody
-	}
-}
-
-// AuditWritesEnabled reports whether write MCP tool calls should be audited.
-func (c ConfigurationMCP) AuditWritesEnabled() bool {
-	return c.AuditWrites == nil || *c.AuditWrites
 }
 
 // ConfigurationAudit configures HTTP audit recording.

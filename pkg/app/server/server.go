@@ -37,7 +37,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/server/handlers"
-	mcpserver "github.com/go-sigma/sigma/pkg/server/mcp"
 )
 
 // ServerConfig selects which optional subsystems Serve initializes; each
@@ -108,10 +107,6 @@ func Serve(digCon *dig.Container) error {
 	err = handlers.Initialize(digCon)
 	if err != nil {
 		return err
-	}
-	err = mcpserver.Register(digCon)
-	if err != nil {
-		return fmt.Errorf("failed to initialize mcp server: %v", err)
 	}
 
 	httpServer := &http.Server{

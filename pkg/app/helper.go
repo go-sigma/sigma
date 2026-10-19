@@ -219,9 +219,6 @@ func genAuthzSkipper() authz.Skipper {
 		if !(strings.HasPrefix(requestUri, "/v2/") || strings.HasPrefix(requestUri, consts.APIV1)) { // nolint: staticcheck
 			return true
 		}
-		if config.GetConfig().MCP.Enabled && requestUri == config.GetConfig().MCP.Path {
-			return true
-		}
 		return slices.Contains(skipAuthzs, strings.ToLower(fmt.Sprintf("%s:%s", requestMethod, requestUri)))
 	}
 }
@@ -229,9 +226,6 @@ func genAuthzSkipper() authz.Skipper {
 func genAuditSkipper() audit.Skipper {
 	return func(c *gin.Context) bool {
 		requestPath := c.Request.URL.Path
-		if config.GetConfig().MCP.Enabled && requestPath == config.GetConfig().MCP.Path {
-			return true
-		}
 		return !strings.HasPrefix(requestPath, "/v2/") && requestPath != "/v2" && !strings.HasPrefix(requestPath, consts.APIV1)
 	}
 }

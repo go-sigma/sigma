@@ -130,34 +130,6 @@ http:
 	require.Equal(t, 30*time.Second, cfg.HTTP.Timeout.IdleTimeout())
 }
 
-func TestConfigurationMCPWithDefaults(t *testing.T) {
-	var mcp ConfigurationMCP
-	mcp.WithDefaults()
-	require.False(t, mcp.Enabled)
-	require.Equal(t, "/api/v1/mcp", mcp.Path)
-	require.Equal(t, "streamable_http", mcp.Transport)
-	require.True(t, mcp.AuditWritesEnabled())
-	require.Equal(t, 30*time.Second, mcp.ToolTimeout)
-	require.Equal(t, int64(1<<20), mcp.MaxRequestBody)
-
-	disabled := false
-	mcp = ConfigurationMCP{
-		Enabled:        true,
-		Path:           "/custom/mcp",
-		Transport:      "sse",
-		AuditWrites:    &disabled,
-		ToolTimeout:    time.Minute,
-		MaxRequestBody: 2 << 20,
-	}
-	mcp.WithDefaults()
-	require.True(t, mcp.Enabled)
-	require.Equal(t, "/custom/mcp", mcp.Path)
-	require.Equal(t, "sse", mcp.Transport)
-	require.False(t, mcp.AuditWritesEnabled())
-	require.Equal(t, time.Minute, mcp.ToolTimeout)
-	require.Equal(t, int64(2<<20), mcp.MaxRequestBody)
-}
-
 func TestConfigurationApplyEnvOverrides(t *testing.T) {
 	t.Setenv("SIGMA_DATABASE_MYSQL_PASSWORD", "mysql-env")
 	t.Setenv("SIGMA_DATABASE_POSTGRESQL_PASSWORD", "postgresql-env")

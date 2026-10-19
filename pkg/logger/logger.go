@@ -66,15 +66,15 @@ func replaceLogAttr(_ []string, attr slog.Attr) slog.Attr {
 }
 
 func trimSourceFile(file string) string {
-	lastSlash := strings.LastIndex(file, "/")
-	if lastSlash < 0 {
+	dir, base, ok := strings.CutLast(file, "/")
+	if !ok {
 		return file
 	}
-	prevSlash := strings.LastIndex(file[:lastSlash], "/")
-	if prevSlash < 0 {
+	_, parent, ok := strings.CutLast(dir, "/")
+	if !ok {
 		return file
 	}
-	return file[prevSlash+1:]
+	return parent + "/" + base
 }
 
 type logWriter struct {

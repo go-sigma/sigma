@@ -6,7 +6,7 @@ const guideSidebar = [
     items: [
       { text: 'Quick Start', link: '/quickstart' },
       { text: 'Configuration', link: '/configuration' },
-      { text: 'MCP Server', link: '/mcp' },
+      { text: 'CLI & AI Agents', link: '/cli' },
       { text: 'Cosign', link: '/cosign' }
     ]
   },
@@ -26,7 +26,7 @@ const zhGuideSidebar = [
     items: [
       { text: '快速开始', link: '/zh/quickstart' },
       { text: '配置', link: '/zh/configuration' },
-      { text: 'MCP Server', link: '/zh/mcp' },
+      { text: 'CLI 与 AI Agent', link: '/zh/cli' },
       { text: 'Cosign', link: '/zh/cosign' }
     ]
   },
@@ -81,7 +81,7 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Docs', link: '/quickstart' },
-      { text: 'MCP', link: '/mcp' }
+      { text: 'CLI', link: '/cli' }
     ],
     sidebar: guideSidebar,
     socialLinks: [
@@ -105,7 +105,7 @@ export default defineConfig({
         nav: [
           { text: '首页', link: '/zh/' },
           { text: '文档', link: '/zh/quickstart' },
-          { text: 'MCP', link: '/zh/mcp' }
+          { text: 'CLI', link: '/zh/cli' }
         ],
         sidebar: zhGuideSidebar,
         outline: {

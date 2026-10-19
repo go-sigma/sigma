@@ -49,8 +49,8 @@ docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 
 Sigma 为 AI 客户端和外部自动化工具提供了两种集成方式：
 
-- 内置 MCP server：Sigma 可以通过现有的 server 进程暴露镜像仓库管理工具。该能力默认关闭，可以通过 `mcp` 配置项启用。详细说明见 [MCP Server](docs/mcp.md)。
-- 外部 REST API skill：`tools/skill/sigma-api-operator` 打包了可复用的 skill 和 `swagger.yaml`，方便 Claude Code、Copilot CLI 等 CLI agent 发现 Sigma API，并通过 HTTP 请求操作资源。
+- `sigma-cli`：单个二进制，通过 REST API 操作远程 Sigma 服务端，覆盖命名空间、仓库、Tag、制品、成员和用户。详细说明见 [CLI 与 AI Agent](docs/cli.md)。
+- 外部 REST API skill：`tools/skill/sigma-api-operator` 打包了可复用的 skill 和 `swagger.yaml`，方便 Claude Code、Copilot CLI 等 CLI agent 发现 Sigma API，并通过 HTTP 请求操作资源，包括 CLI 尚未封装的接口。
 
 ## Alternatives
 

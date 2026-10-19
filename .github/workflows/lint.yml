@@ -53,7 +53,10 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13.0
+          # Pin a release whose vendored golang.org/x/tools can decode the
+          # toolchain's export data. Older releases fail typecheck with
+          # "export data version N is greater than maximum supported version M".
+          version: v2.15.0
           args: --timeout=30m --verbose --build-tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp"
           skip-cache: false
       - name: Lint Dockerfile

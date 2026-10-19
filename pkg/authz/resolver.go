@@ -88,13 +88,12 @@ func resolveV2(path string) (ResourceDescriptor, error) {
 		return ResourceDescriptor{NamespaceName: firstSegment(repo), Resource: ResBlobUploads}, nil
 	}
 
-	// Split into [repo...suffix, lastSegment] using the last "/".
-	idx := strings.LastIndex(rest, "/")
-	if idx < 0 {
+	// Split into [repo...suffix, lastSegment] using the last "/", where prefix
+	// keeps the repo plus the suffix marker.
+	prefix, ref, ok := strings.CutLast(rest, "/")
+	if !ok {
 		return ResourceDescriptor{}, fmt.Errorf("unrecognized /v2 path: %s", path)
 	}
-	ref := rest[idx+1:]
-	prefix := rest[:idx] // repo + suffix marker
 
 	switch {
 	case strings.HasSuffix(prefix, "/manifests"):

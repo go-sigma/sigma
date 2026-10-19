@@ -221,15 +221,6 @@ auth:
     # inmemory | redis
     backend: inmemory
 
-mcp:
-  # expose MCP management tools on the existing server port
-  enabled: false
-  path: /api/v1/mcp
-  transport: streamable_http
-  auditWrites: true
-  toolTimeout: 30s
-  maxRequestBody: 1048576
-
 audit:
   # record completed authenticated business HTTP requests
   enabled: true

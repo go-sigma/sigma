@@ -214,13 +214,6 @@ config:
       hardDeleteAfterMonths: 6
       interval: 168h
       batchSize: 1000
-  mcp:
-    enabled: false
-    path: /api/v1/mcp
-    transport: streamable_http
-    auditWrites: true
-    toolTimeout: 30s
-    maxRequestBody: 1048576
   auth:
     user:
       password: ""

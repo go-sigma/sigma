@@ -210,14 +210,6 @@ auth:
     # fixed delay applied to every authentication attempt after maxFailures
     delay: 1s
 
-mcp:
-  enabled: false
-  path: /api/v1/mcp
-  transport: streamable_http
-  auditWrites: true
-  toolTimeout: 30s
-  maxRequestBody: 1048576
-
 audit:
   # record completed authenticated business HTTP requests
   enabled: true

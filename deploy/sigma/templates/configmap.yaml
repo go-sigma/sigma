@@ -127,13 +127,6 @@ data:
         hardDeleteAfterMonths: {{ .Values.config.audit.cleanup.hardDeleteAfterMonths }}
         interval: {{ .Values.config.audit.cleanup.interval }}
         batchSize: {{ .Values.config.audit.cleanup.batchSize }}
-    mcp:
-      enabled: {{ .Values.config.mcp.enabled }}
-      path: {{ .Values.config.mcp.path | quote }}
-      transport: {{ .Values.config.mcp.transport | quote }}
-      auditWrites: {{ .Values.config.mcp.auditWrites }}
-      toolTimeout: {{ .Values.config.mcp.toolTimeout }}
-      maxRequestBody: {{ .Values.config.mcp.maxRequestBody | int64 }}
     auth:
       anonymous:
         enabled: true
