@@ -15,7 +15,6 @@
 package crypt
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -23,20 +22,23 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"strings"
 )
 
-// MustEncrypt encrypts plaintext with key and panics if encryption fails.
-func MustEncrypt(key, plaintext string) string {
-	result, err := Encrypt(key, plaintext)
+// MustSeal encrypts plaintext with key using AES-256-GCM and panics if encryption fails.
+func MustSeal(key, plaintext string) string {
+	result, err := Seal(key, plaintext)
 	if err != nil {
-		panic(fmt.Sprintf("encrypt string failed: %v", err))
+		panic(fmt.Sprintf("seal string failed: %v", err))
 	}
 	return result
 }
 
-// Encrypt encrypts plaintext with an AES-CTR key derived from key.
-func Encrypt(key, plaintext string) (string, error) {
+// Seal encrypts plaintext with AES-256-GCM and returns base64(nonce|ciphertext|tag).
+//
+// The result is authenticated: Open fails when the ciphertext is tampered with or
+// the key differs. Use Seal for every value that leaves the process boundary, such
+// as secrets stored at rest or passed to build runners via environment variables.
+func Seal(key, plaintext string) (string, error) {
 	keyBytes := sha256.Sum256([]byte(key))
 
 	block, err := aes.NewCipher(keyBytes[:])
@@ -44,33 +46,27 @@ func Encrypt(key, plaintext string) (string, error) {
 		return "", err
 	}
 
-	iv := make([]byte, aes.BlockSize)
-	_, err = io.ReadFull(rand.Reader, iv)
+	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return "", err
 	}
 
-	reader := &cipher.StreamReader{S: cipher.NewCTR(block, iv), R: strings.NewReader(plaintext)}
-	ciphertext, err := io.ReadAll(reader)
-	if err != nil {
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		return "", err
 	}
-	encrypted := make([]byte, 0, aes.BlockSize+len(ciphertext))
-	encrypted = append(encrypted, iv...)
-	encrypted = append(encrypted, ciphertext...)
-	return base64.StdEncoding.WithPadding(base64.StdPadding).EncodeToString(encrypted), nil
+
+	sealed := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+	return base64.StdEncoding.EncodeToString(sealed), nil
 }
 
-// Decrypt decrypts a base64-encoded AES-CTR ciphertext produced by Encrypt.
-func Decrypt(key, ciphertext string) (string, error) {
+// Open decrypts a base64(nonce|ciphertext|tag) value produced by Seal.
+func Open(key, ciphertext string) (string, error) {
 	keyBytes := sha256.Sum256([]byte(key))
 
-	srcBytes, err := base64.StdEncoding.WithPadding(base64.StdPadding).DecodeString(ciphertext)
+	srcBytes, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
 		return "", err
-	}
-	if len(srcBytes) < aes.BlockSize {
-		return "", fmt.Errorf("ciphertext should be have iv and length bigger than %d bytes", aes.BlockSize)
 	}
 
 	block, err := aes.NewCipher(keyBytes[:])
@@ -78,11 +74,17 @@ func Decrypt(key, ciphertext string) (string, error) {
 		return "", err
 	}
 
-	iv := srcBytes[:aes.BlockSize]
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
 
-	reader := &cipher.StreamReader{S: cipher.NewCTR(block, iv), R: bytes.NewReader(srcBytes[aes.BlockSize:])}
+	if len(srcBytes) < gcm.NonceSize() {
+		return "", fmt.Errorf("ciphertext should be have nonce of %d bytes", gcm.NonceSize())
+	}
 
-	plaintext, err := io.ReadAll(reader)
+	nonce, data := srcBytes[:gcm.NonceSize()], srcBytes[gcm.NonceSize():]
+	plaintext, err := gcm.Open(nil, nonce, data, nil)
 	if err != nil {
 		return "", err
 	}
