@@ -15,32 +15,28 @@
  */
 
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { Info } from 'lucide-react';
 import axios from "axios";
 import _ from 'lodash';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import ShikiDockerfileEditor from '@/components/CodeEditor/ShikiDockerfileEditor';
+import CredentialDialog from '@/components/CredentialDialog';
+import { useNamespaceId } from '@/hooks/useNamespaceId';
 import Header from '@/components/Header';
 import HeaderMenu from '@/components/Menu';
 import Toast from "@/components/Notification";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -49,8 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "@/i18n/useTranslation";
-import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '@/interfaces';
-import Settings from '@/Settings';
+import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IEndpoint, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '@/interfaces';
 
 const supportPlatforms = [
   { id: 1, name: 'linux/amd64' },
@@ -72,6 +67,10 @@ const supportCredential = [
   { id: 4, name: 'ssh' },
 ];
 
+// pickerLimit is the page size of every picker on this page. The API caps a page at 100
+// entries and the pickers have no search box, so ask for as much as it allows.
+const pickerLimit = 100;
+
 const supportBuilderSource = [
   { id: 1, name: 'CodeRepository' },
   { id: 2, name: 'SelfCodeRepository' },
@@ -91,12 +90,26 @@ export default function ({ localServer }: { localServer: string }) {
     navigate(`?${searchParams.toString()}`);
   }, [searchParams, navigate]);
 
-  const [namespaceSearch, setNamespaceSearch] = useState('');
+  // openPicker is the branch picker that is currently open; the branch pickers refresh their
+  // list when they open, and select controls close themselves after a value is picked.
+  const [openPicker, setOpenPicker] = useState<string | null>(null);
+
+  // The namespace may arrive as a name only (menu link without an id); resolve it so the
+  // repository picker below has something to query.
+  const resolvedNamespaceId = useNamespaceId(localServer, searchParams.get('namespace') || '');
+
   const [namespaceList, setNamespaceList] = useState<INamespaceItem[]>();
   const [namespaceSelected, setNamespaceSelected] = useState<INamespaceItem>({
     name: searchParams.get('namespace') || "",
-    id: parseInt(searchParams.get('namespace_id') || "") || 0,
+    id: searchParams.get('namespace_id') || "",
   } as INamespaceItem);
+
+  useEffect(() => {
+    if (namespaceSelected.id || !resolvedNamespaceId) {
+      return;
+    }
+    setNamespaceSelected(previous => ({ ...previous, id: resolvedNamespaceId }));
+  }, [namespaceSelected.id, resolvedNamespaceId]);
 
   let backTo = searchParams.get('back_to') || "";
 
@@ -111,64 +124,11 @@ export default function ({ localServer }: { localServer: string }) {
   }, [backTo, navigate]);
 
   useEffect(() => {
-    let url = `${localServer}/api/v1/namespaces/?limit=${Settings.AutoCompleteSize}`;
-    if (namespaceSearch != null && namespaceSearch !== "") {
-      url += `&name=${namespaceSearch}`;
-    }
+    const url = `${localServer}/api/v1/namespaces/?limit=${pickerLimit}`;
     axios.get(url).then(response => {
       if (response?.status === 200) {
         const namespaceListData = response.data as INamespaceList;
-        setNamespaceList(namespaceListData.items);
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }, [namespaceSearch, localServer]);
-
-  const [repositorySearch, setRepositorySearch] = useState('');
-  const [repositoryList, setRepositoryList] = useState<IRepositoryItem[]>();
-  const [repositorySelected, setRepositorySelected] = useState<IRepositoryItem>({
-    name: searchParams.get('repository') || "",
-    id: parseInt(searchParams.get('repository_id') || "") || 0,
-  } as IRepositoryItem);
-
-  useEffect(() => {
-    if (namespaceSelected.name == undefined || namespaceSelected.name.length == 0) {
-      return;
-    }
-    let url = localServer + `/api/v1/namespaces/${namespaceSelected.id}/repositories/?limit=${Settings.AutoCompleteSize}`;
-    if (repositorySearch != null && repositorySearch !== "") {
-      url += `&name=${repositorySearch}`;
-    }
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        const repositoryListData = response.data as IRepositoryList;
-        setRepositoryList(repositoryListData.items);
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }, [namespaceSelected, repositorySearch, localServer]);
-
-  const [codeRepositoryProviderList, setCodeRepositoryProviderList] = useState<ICodeRepositoryProviderItem[]>();
-  const [codeRepositoryProviderSelected, setCodeRepositoryProviderSelected] = useState<ICodeRepositoryProviderItem>({
-    provider: searchParams.get('provider') || "",
-  } as ICodeRepositoryProviderItem);
-
-  useEffect(() => {
-    let url = localServer + `/api/v1/coderepos/providers`;
-    axios.get(url).then(response => {
-      if (response?.status === 200) {
-        const providerList = response.data as ICodeRepositoryProviderList;
-        setCodeRepositoryProviderList(providerList.items);
+        setNamespaceList(_.orderBy(namespaceListData.items, ['name']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -179,23 +139,28 @@ export default function ({ localServer }: { localServer: string }) {
     });
   }, [localServer]);
 
-  const [codeRepositoryOwnerSearch, setCodeRepositoryOwnerSearch] = useState('');
-  const [codeRepositoryOwnerList, setCodeRepositoryOwnerList] = useState<ICodeRepositoryOwnerItem[]>();
-  const [codeRepositoryOwnerFilteredList, setCodeRepositoryOwnerFilteredList] = useState<ICodeRepositoryOwnerItem[]>();
-  const [codeRepositoryOwnerSelected, setCodeRepositoryOwnerSelected] = useState<ICodeRepositoryOwnerItem>({
-    owner: searchParams.get('code_repository_owner') || '',
-    id: parseInt(searchParams.get('code_repository_owner_id') || "") || 0,
-  } as ICodeRepositoryOwnerItem);
+  // The repository picker only lists repositories of the selected namespace, so its prefix is
+  // redundant: show "test" instead of "library/test".
+  const shortRepositoryName = (name: string) => {
+    const prefix = `${namespaceSelected.name}/`;
+    return name.startsWith(prefix) ? name.slice(prefix.length) : name;
+  };
+
+  const [repositoryList, setRepositoryList] = useState<IRepositoryItem[]>();
+  const [repositorySelected, setRepositorySelected] = useState<IRepositoryItem>({
+    name: searchParams.get('repository') || "",
+    id: searchParams.get('repository_id') || "",
+  } as IRepositoryItem);
 
   useEffect(() => {
-    if (codeRepositoryProviderSelected.provider == undefined || codeRepositoryProviderSelected.provider == "") {
+    if (!namespaceSelected.id) {
       return;
     }
-    axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/owners`).then(response => {
-      if (response.status == 200) {
-        const data = response.data as ICodeRepositoryOwnerList;
-        setCodeRepositoryOwnerList(_.orderBy(data.items, ['is_org']));
-        setCodeRepositoryOwnerFilteredList(_.orderBy(data.items, ['is_org']));
+    const url = localServer + `/api/v1/namespaces/${namespaceSelected.id}/repositories/?limit=${pickerLimit}`;
+    axios.get(url).then(response => {
+      if (response?.status === 200) {
+        const repositoryListData = response.data as IRepositoryList;
+        setRepositoryList(_.orderBy(repositoryListData.items, ['name']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -204,30 +169,80 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositoryProviderSelected, localServer]);
+  }, [namespaceSelected, localServer]);
+
+  const [codeRepositoryProviderList, setCodeRepositoryProviderList] = useState<ICodeRepositoryProviderItem[]>();
+  const [codeRepositoryProviderSelected, setCodeRepositoryProviderSelected] = useState<ICodeRepositoryProviderItem>({
+    provider: searchParams.get('provider') || "",
+  } as ICodeRepositoryProviderItem);
+
+  // Opened from the "add access token" hint next to the provider picker.
+  const [credentialDialogOpen, setCredentialDialogOpen] = useState(false);
+  const [endpoint, setEndpoint] = useState("");
+
+  const loadCodeRepositoryProviders = useCallback(() => {
+    axios.get(`${localServer}/api/v1/coderepos/providers`).then(response => {
+      if (response?.status === 200) {
+        setCodeRepositoryProviderList((response.data as ICodeRepositoryProviderList).items);
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [localServer]);
 
   useEffect(() => {
-    if (codeRepositoryOwnerList?.length == undefined || codeRepositoryOwnerList?.length == 0) {
-      return;
-    }
-    if (codeRepositoryOwnerSearch == '') {
-      setCodeRepositoryOwnerFilteredList(codeRepositoryOwnerList);
-      return;
-    }
-    let result = [];
-    for (let i = 0; i < (codeRepositoryOwnerList?.length || 0); i++) {
-      if (codeRepositoryOwnerList[i].owner.toLowerCase().includes(codeRepositoryOwnerSearch.toLocaleLowerCase())) {
-        result.push(codeRepositoryOwnerList[i])
-      }
-    }
-    setCodeRepositoryOwnerFilteredList(result);
-  }, [codeRepositoryOwnerSearch, codeRepositoryOwnerList]);
+    loadCodeRepositoryProviders();
+  }, [loadCodeRepositoryProviders]);
 
-  const [codeRepositorySearch, setCodeRepositorySearch] = useState('');
+  useEffect(() => {
+    axios.get(`${localServer}/api/v1/systems/endpoint`).then(response => {
+      if (response.status === 200) setEndpoint((response.data as IEndpoint).endpoint);
+    }).catch(() => {});
+  }, [localServer]);
+
+  // A provider without a stored credential cannot list organizations or repositories, so the
+  // dependent pickers stay disabled until it is configured in settings.
+  const providerCredentialMissing =
+    codeRepositoryProviderSelected.provider !== "" &&
+    codeRepositoryProviderList !== undefined &&
+    !(codeRepositoryProviderList.find(item => item.provider === codeRepositoryProviderSelected.provider)?.has_credential ?? false);
+
+  const [codeRepositoryOwnerList, setCodeRepositoryOwnerList] = useState<ICodeRepositoryOwnerItem[]>();
+  const [codeRepositoryOwnerSelected, setCodeRepositoryOwnerSelected] = useState<ICodeRepositoryOwnerItem>({
+    owner: searchParams.get('code_repository_owner') || '',
+    id: searchParams.get('code_repository_owner_id') || "",
+  } as ICodeRepositoryOwnerItem);
+
+  useEffect(() => {
+    if (codeRepositoryProviderSelected.provider == undefined || codeRepositoryProviderSelected.provider == "") {
+      return;
+    }
+    if (providerCredentialMissing) {
+      setCodeRepositoryOwnerList(undefined);
+      return;
+    }
+    axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/owners`).then(response => {
+      if (response.status == 200) {
+        const data = response.data as ICodeRepositoryOwnerList;
+        setCodeRepositoryOwnerList(_.orderBy(data.items, ['is_org']));
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }, [codeRepositoryProviderSelected, providerCredentialMissing, localServer]);
+
   const [codeRepositoryList, setCodeRepositoryList] = useState<ICodeRepositoryItem[]>();
   const [codeRepositorySelected, setCodeRepositorySelected] = useState<ICodeRepositoryItem>({
     name: searchParams.get('code_repository_name') || '',
-    id: parseInt(searchParams.get('code_repository_id') || "") || 0,
+    id: searchParams.get('code_repository_id') || "",
   } as ICodeRepositoryItem);
 
   useEffect(() => {
@@ -237,14 +252,16 @@ export default function ({ localServer }: { localServer: string }) {
     if (codeRepositoryOwnerSelected.owner == undefined || codeRepositoryOwnerSelected.owner == "") {
       return;
     }
-    let url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}?owner=${codeRepositoryOwnerSelected.owner}&limit=5`;
-    if (codeRepositorySearch != null && codeRepositorySearch !== "") {
-      url += `&name=${codeRepositorySearch}`;
+    if (providerCredentialMissing) {
+      setCodeRepositoryList(undefined);
+      return;
     }
+    // The picker has no search box, so request a full page instead of the five autocomplete entries.
+    let url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}?owner=${codeRepositoryOwnerSelected.owner}&limit=${pickerLimit}`;
     axios.get(url).then(response => {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryList;
-        setCodeRepositoryList(data.items);
+        setCodeRepositoryList(_.orderBy(data.items, ['name']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -253,18 +270,15 @@ export default function ({ localServer }: { localServer: string }) {
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositoryOwnerSelected, codeRepositoryProviderSelected, codeRepositorySearch, localServer]);
+  }, [codeRepositoryOwnerSelected, codeRepositoryProviderSelected, providerCredentialMissing, localServer]);
 
-  const [codeRepositoryBranchSearch, setCodeRepositoryBranchSearch] = useState('');
   const [codeRepositoryBranchList, setCodeRepositoryBranchList] = useState<ICodeRepositoryBranchItem[]>();
-  const [codeRepositoryBranchFilteredList, setCodeRepositoryBranchFilteredList] = useState<ICodeRepositoryBranchItem[]>();
   const [codeRepositoryBranchSelected, setCodeRepositoryBranchSelected] = useState<ICodeRepositoryBranchItem>({
     name: searchParams.get('code_repository_branch_name') || '',
-    id: parseInt(searchParams.get('code_repository_branch_id') || "") || 0,
   } as ICodeRepositoryBranchItem);
 
   useEffect(() => {
-    if (codeRepositorySelected.id == undefined || codeRepositorySelected.id == 0) {
+    if (!codeRepositorySelected.id) {
       return;
     }
     let url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositorySelected.id}/branches`;
@@ -272,7 +286,6 @@ export default function ({ localServer }: { localServer: string }) {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryBranchList;
         setCodeRepositoryBranchList(data.items);
-        setCodeRepositoryBranchFilteredList(data.items);
         if (searchParams.get('code_repository_branch_name') !== null) {
           for (let i = 0; i < data.total; i++) {
             if (data.items[i].name === searchParams.get('code_repository_branch_name')) {
@@ -280,7 +293,6 @@ export default function ({ localServer }: { localServer: string }) {
               setSearchParams({
                 ...Object.fromEntries(searchParams.entries()),
                 code_repository_branch_name: data.items[i].name,
-                code_repository_branch_id: data.items[i].id.toString(),
               });
               break;
             }
@@ -293,7 +305,6 @@ export default function ({ localServer }: { localServer: string }) {
               setSearchParams({
                 ...Object.fromEntries(searchParams.entries()),
                 cron_branch_name: data.items[i].name,
-                cron_branch_id: data.items[i].id.toString(),
               });
               break;
             }
@@ -309,24 +320,34 @@ export default function ({ localServer }: { localServer: string }) {
     });
   }, [codeRepositorySelected, codeRepositoryProviderSelected.provider, localServer, searchParams, setSearchParams]);
 
-  useEffect(() => {
-    if (codeRepositoryBranchList?.length == undefined || codeRepositoryBranchList?.length == 0) {
+  // Branches change far more often than repositories, so refresh them when a branch picker
+  // is opened instead of only using the snapshot taken when the repository was chosen.
+  const refreshCodeRepositoryBranches = () => {
+    const provider = codeRepositoryProviderSelected.provider;
+    const repositoryID = codeRepositorySelected.id;
+    if (!provider || !repositoryID) {
       return;
     }
-    if (codeRepositoryBranchSearch == '') {
-      setCodeRepositoryBranchFilteredList(codeRepositoryBranchList);
-    }
-    let result = [];
-    for (let i = 0; i < (codeRepositoryBranchList?.length || 0); i++) {
-      if (codeRepositoryBranchList[i].name.toLowerCase().includes(codeRepositoryBranchSearch.toLocaleLowerCase())) {
-        result.push(codeRepositoryBranchList[i])
-      }
-    }
-    setCodeRepositoryBranchFilteredList(result);
-  }, [codeRepositoryBranchSearch, codeRepositoryBranchList]);
+    axios
+      .get(`${localServer}/api/v1/coderepos/${provider}/repos/${repositoryID}/branches`)
+      .then(response => {
+        if (response.status == 200) {
+          const data = response.data as ICodeRepositoryBranchList;
+          setCodeRepositoryBranchList(data.items);
+        }
+      })
+      .catch(error => {
+        const errorcode = error.response?.data as IHTTPError;
+        Toast({ level: "warning", title: errorcode?.title, message: errorcode?.description });
+      });
+  };
 
   const [submodule, setSubmodule] = useState(false);
-  const [depth, setDepth] = useState<string | number>(0);
+  const [depth, setDepth] = useState<number>(() => {
+    const depthParam = searchParams.get('code_repository_clone_depth');
+    const parsed = depthParam === null ? NaN : parseInt(depthParam, 10);
+    return Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  });
 
   const [dockerfileContext, setDockerfileContext] = useState('.');
   const [dockerfilePath, setDockerfilePath] = useState('Dockerfile');
@@ -337,54 +358,16 @@ export default function ({ localServer }: { localServer: string }) {
   const [mergeEvent, setMergeEvent] = useState(false);
   const [mergeEventBranch, setMergeEventBranch] = useState('');
   const [mergeEventTagTemplate, setMergeEventTagTemplate] = useState('');
-  const [mergeEventBranchSearch, setMergeEventBranchSearch] = useState('');
-  const [mergeEventBranchFilteredList, setMergeEventBranchFilteredList] = useState<ICodeRepositoryBranchItem[]>();
   const [mergeEventBranchSelected, setMergeEventBranchSelected] = useState<ICodeRepositoryBranchItem>({
     name: searchParams.get('merge_event_branch_name') || '',
-    id: parseInt(searchParams.get('merge_event_branch_id') || "") || 0,
   } as ICodeRepositoryBranchItem);
-  useEffect(() => {
-    if (codeRepositoryBranchList?.length == undefined || codeRepositoryBranchList?.length == 0) {
-      return;
-    }
-    if (mergeEventBranchSearch == '') {
-      setMergeEventBranchFilteredList(codeRepositoryBranchList);
-    }
-    let result = [];
-    for (let i = 0; i < (codeRepositoryBranchList?.length || 0); i++) {
-      if (codeRepositoryBranchList[i].name.toLowerCase().includes(codeRepositoryBranchSearch.toLocaleLowerCase())) {
-        result.push(codeRepositoryBranchList[i])
-      }
-    }
-    setMergeEventBranchFilteredList(result);
-  }, [mergeEventBranchSearch, codeRepositoryBranchList, codeRepositoryBranchSearch]);
-
   const [cronBuild, setCronBuild] = useState(false);
   const [cronExpr, setCronExpr] = useState('');
   const [cronBranch, setCronBranch] = useState('');
   const [cronTagTemplate, setCronTagTemplate] = useState('');
-  const [cronBranchSearch, setCronBranchSearch] = useState('');
-  const [cronBranchFilteredList, setCronBranchFilteredList] = useState<ICodeRepositoryBranchItem[]>();
   const [cronBranchSelected, setCronBranchSelected] = useState<ICodeRepositoryBranchItem>({
     name: searchParams.get('cron_branch_name') || '',
-    id: parseInt(searchParams.get('cron_branch_id') || "") || 0,
   } as ICodeRepositoryBranchItem);
-  useEffect(() => {
-    if (codeRepositoryBranchList?.length == undefined || codeRepositoryBranchList?.length == 0) {
-      return;
-    }
-    if (mergeEventBranchSearch == '') {
-      setCronBranchFilteredList(codeRepositoryBranchList);
-    }
-    let result = [];
-    for (let i = 0; i < (codeRepositoryBranchList?.length || 0); i++) {
-      if (codeRepositoryBranchList[i].name.toLowerCase().includes(codeRepositoryBranchSearch.toLocaleLowerCase())) {
-        result.push(codeRepositoryBranchList[i])
-      }
-    }
-    setCronBranchFilteredList(result);
-  }, [cronBranchSearch, codeRepositoryBranchList, codeRepositoryBranchSearch, mergeEventBranchSearch]);
-
   const [builderSource, setBuilderSource] = useState(searchParams.get('builder_source') || 'CodeRepository');
   const [dockerfile, setDockerfile] = useState('FROM alpine:latest');
   const [customRepositoryCloneUrl, setCustomRepositoryCloneUrl] = useState('');
@@ -485,9 +468,9 @@ export default function ({ localServer }: { localServer: string }) {
     }
   }
 
-  const [codeRepositoryInit, setCodeRepositoryInit] = useState(0);
+  const [codeRepositoryInit, setCodeRepositoryInit] = useState("");
   useEffect(() => {
-    if (codeRepositoryInit != 0) {
+    if (codeRepositoryInit) {
       axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositoryInit}`).then(response => {
         let codeRepositoryItem = response.data as ICodeRepositoryItem;
         setCodeRepositoryOwnerSelected({
@@ -507,13 +490,10 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [codeRepositoryBranchInit, setCodeRepositoryBranchInit] = useState("");
   useEffect(() => {
-    if (codeRepositoryInit != 0 && codeRepositoryBranchInit !== "") {
+    if (codeRepositoryInit && codeRepositoryBranchInit !== "") {
       axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositoryInit}/branches/${codeRepositoryBranchInit}`).then(response => {
         let codeRepositoryBranch = response.data as ICodeRepositoryBranchItem;
-        setCodeRepositoryBranchSelected({
-          name: codeRepositoryBranch.name,
-          id: codeRepositoryBranch.id,
-        } as ICodeRepositoryBranchItem);
+        setCodeRepositoryBranchSelected({ name: codeRepositoryBranch.name } as ICodeRepositoryBranchItem);
       }).catch(error => {
         const errorcode = error.response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -542,7 +522,7 @@ export default function ({ localServer }: { localServer: string }) {
           });
         }
         if (builderItem.code_repository_id !== undefined) {
-          setCodeRepositoryInit(builderItem.code_repository_id || 0);
+          setCodeRepositoryInit(builderItem.code_repository_id || "");
           setCodeRepositoryBranchInit(builderItem.scm_branch || "");
           setCodeRepositoryProviderSelected({
             provider: builderItem.scm_provider || "",
@@ -603,7 +583,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>{t("header.setupBuilder")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950 min-w-400">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <HeaderMenu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           {/* part 1 begin */}
@@ -614,61 +594,55 @@ export default function ({ localServer }: { localServer: string }) {
           {/* part 2 begin */}
           <div className="flex-1 flex flex-col overflow-y-auto w-full">
             <div className="py-6 px-8 border-gray-200 border-b w-full">
-              <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.ociRepository")}</h2>
-              <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{t("builder.ociRepositoryDescription")}</p>
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.ociRepository")}</h2>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>{t("builder.ociRepositoryDescription")}</TooltipContent>
+                </Tooltip>
+              </div>
               <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div className="sm:col-span-1">
                   <label htmlFor="namespace" className="block text-sm font-medium leading-6 text-gray-900">
                     Namespace
                   </label>
                   <div className="mt-2">
-                    <Popover>
-                      <PopoverTrigger
-                        render={
-                          <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('namespace_stick') || '') === 'true'}>
-                            {namespaceSelected?.name || "Select"}
-                            <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                          </Button>
+                    <Select
+                      value={namespaceSelected?.name || ""}
+                      onValueChange={(value) => {
+                        if (!value) {
+                          return;
                         }
-                      />
-                      <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                        <Command shouldFilter={false}>
-                          <CommandInput
-                            placeholder="Search"
-                            value={namespaceSearch}
-                            onValueChange={setNamespaceSearch}
-                          />
-                          <CommandList>
-                            <CommandEmpty>Nothing found.</CommandEmpty>
-                            <CommandGroup>
-                              {namespaceList?.map(item => (
-                                <CommandItem
-                                  key={item.id}
-                                  value={item.name}
-                                  onSelect={() => {
-                                    const namespace = item;
-                                    if (!namespace) {
-                                    return;
-                                    }
-                                    setSearchParams({
-                                    ...Object.fromEntries(searchParams.entries()),
-                                    namespace: namespace.name,
-                                    namespace_id: namespace.id.toString(),
-                                    repository: '',
-                                    repository_id: '',
-                                    });
-                                    setRepositorySelected({} as IRepositoryItem); // clear the repo selected
-                                    setNamespaceSelected(namespace);
-                                  }}
-                                >
-                                  {item.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                        const namespace = namespaceList?.find(item => item.name === value);
+                        if (!namespace) {
+                          return;
+                        }
+                        setSearchParams({
+                          ...Object.fromEntries(searchParams.entries()),
+                          namespace: namespace.name,
+                          namespace_id: namespace.id.toString(),
+                          repository: '',
+                          repository_id: '',
+                        });
+                        setRepositorySelected({} as IRepositoryItem); // clear the repo selected
+                        setNamespaceSelected(namespace);
+                      }}
+                    >
+                      <SelectTrigger className="w-full" disabled={(searchParams.get('namespace_stick') || '') === 'true'}>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      {namespaceList?.length ? (
+                        <SelectContent align="start">
+                          {namespaceList.map(item => (
+                            <SelectItem key={item.id} value={item.name}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      ) : null}
+                    </Select>
                   </div>
                 </div>
                 <div className="sm:col-span-1">
@@ -676,57 +650,53 @@ export default function ({ localServer }: { localServer: string }) {
                     Repository
                   </label>
                   <div className="mt-2">
-                    <Popover>
-                      <PopoverTrigger
-                        render={
-                          <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('repository_stick') || '') === 'true'}>
-                            {repositorySelected?.name || "Select"}
-                            <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                          </Button>
+                    <Select
+                      value={repositorySelected?.name || ""}
+                      onValueChange={(value) => {
+                        if (!value) {
+                          return;
                         }
-                      />
-                      <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                        <Command shouldFilter={false}>
-                          <CommandInput
-                            placeholder="Search"
-                            value={repositorySearch}
-                            onValueChange={setRepositorySearch}
-                          />
-                          <CommandList>
-                            <CommandEmpty>Nothing found.</CommandEmpty>
-                            <CommandGroup>
-                              {repositoryList?.map(item => (
-                                <CommandItem
-                                  key={item.id}
-                                  value={item.name}
-                                  onSelect={() => {
-                                    const repo = item;
-                                    if (!repo) {
-                                    return;
-                                    }
-                                    setSearchParams({
-                                    ...Object.fromEntries(searchParams.entries()),
-                                    repository: repo.name,
-                                    repository_id: repo.id.toString(),
-                                    });
-                                    setRepositorySelected(repo);
-                                  }}
-                                >
-                                  {item.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                        const repo = repositoryList?.find(item => item.name === value);
+                        if (!repo) {
+                          return;
+                        }
+                        setSearchParams({
+                          ...Object.fromEntries(searchParams.entries()),
+                          repository: repo.name,
+                          repository_id: repo.id.toString(),
+                        });
+                        setRepositorySelected(repo);
+                      }}
+                    >
+                      <SelectTrigger className="w-full" disabled={(searchParams.get('repository_stick') || '') === 'true'}>
+                        <SelectValue placeholder="Select">
+                          {(value: string | null) => (value ? shortRepositoryName(value) : "Select")}
+                        </SelectValue>
+                      </SelectTrigger>
+                      {repositoryList?.length ? (
+                        <SelectContent align="start">
+                          {repositoryList.map(item => (
+                            <SelectItem key={item.id} value={item.name}>
+                              {shortRepositoryName(item.name)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      ) : null}
+                    </Select>
                   </div>
                 </div>
               </div>
             </div>
             <div className="py-6 px-8 border-gray-200 border-b w-full">
-              <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.codeRepository")}</h2>
-              <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{t("builder.codeRepositoryDescription")}</p>
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.codeRepository")}</h2>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>{t("builder.codeRepositoryDescription")}</TooltipContent>
+                </Tooltip>
+              </div>
               <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div className="sm:col-span-1">
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
@@ -766,118 +736,117 @@ export default function ({ localServer }: { localServer: string }) {
                   <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-1">
+                        <div className="sm:col-span-2">
                           <label htmlFor="codeProviders" className="block text-sm font-medium leading-6 text-gray-900">
                             Provider
                           </label>
                           <div className="mt-2">
-                            <Popover>
-                              <PopoverTrigger
-                                render={
-                                  <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
-                                    {codeRepositoryProviderSelected?.provider || "Select"}
-                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                                  </Button>
+                            <Select
+                              value={codeRepositoryProviderSelected?.provider || ""}
+                              onValueChange={(value) => {
+                                if (!value) {
+                                  return;
                                 }
-                              />
-                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                                <Command shouldFilter={false}>
-                                  <CommandList>
-                                    <CommandEmpty>
-                                      {t("codeRepository.emptyProviders")}{" "}
-                                      <a href="/coderepos" className="underline">
-                                        {t("codeRepository.addCredential")}
-                                      </a>
-                                    </CommandEmpty>
-                                    <CommandGroup>
-                                      {codeRepositoryProviderList?.map(item => (
-                                        <CommandItem
-                                          key={item.provider}
-                                          value={item.provider}
-                                          onSelect={() => {
-                                            const provider = item;
-                                            if (!provider) {
-                                            return;
-                                            }
-                                            setSearchParams({
-                                            ...Object.fromEntries(searchParams.entries()),
-                                            provider: provider.provider,
-                                            });
-                                            setCodeRepositoryOwnerSelected({} as ICodeRepositoryOwnerItem); // clear the selected
-                                            setCodeRepositorySelected({} as ICodeRepositoryItem);
-                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setCodeRepositoryProviderSelected(provider);
-                                          }}
-                                        >
-                                          {item.provider}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                                const provider = codeRepositoryProviderList?.find(item => item.provider === value);
+                                if (!provider) {
+                                  return;
+                                }
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  provider: provider.provider,
+                                });
+                                setCodeRepositoryOwnerSelected({} as ICodeRepositoryOwnerItem); // clear the selected
+                                setCodeRepositorySelected({} as ICodeRepositoryItem);
+                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositoryProviderSelected(provider);
+                              }}
+                            >
+                              <SelectTrigger id="codeProviders" className="w-full" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
+                                <SelectValue placeholder="Select">
+                                  {(value: string | null) => codeRepositoryProviderList?.find(item => item.provider === value)?.display_name || value || "Select"}
+                                </SelectValue>
+                              </SelectTrigger>
+                              {codeRepositoryProviderList?.length ? (
+                                <SelectContent align="start">
+                                  {codeRepositoryProviderList.map(item => (
+                                    <SelectItem key={item.provider} value={item.provider}>
+                                      {item.display_name || item.provider}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              ) : null}
+                            </Select>
+                            {codeRepositoryProviderList?.length === 0 && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {t("codeRepository.emptyProviders")}{" "}
+                                <a href="/coderepos" className="underline">
+                                  {t("codeRepository.addCredential")}
+                                </a>
+                              </p>
+                            )}
+                            {providerCredentialMissing && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {t("codeRepository.credentialMissing")}
+                                {": "}
+                                {codeRepositoryProviderSelected.display_name || codeRepositoryProviderSelected.provider}
+                                {" · "}
+                                <button
+                                  type="button"
+                                  className="cursor-pointer underline"
+                                  onClick={() => setCredentialDialogOpen(true)}
+                                >
+                                  {t("codeRepository.addCredential")}
+                                </button>
+                              </p>
+                            )}
                           </div>
                         </div>
                       ) : null
                     }
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-1">
+                        <div className="sm:col-span-2">
                           <label htmlFor="codeOwners" className="block text-sm font-medium leading-6 text-gray-900">
                             Organization
                           </label>
                           <div className="mt-2">
-                            <Popover>
-                              <PopoverTrigger
-                                render={
-                                  <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
-                                    {codeRepositoryOwnerSelected?.owner || "Select"}
-                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                                  </Button>
+                            <Select
+                              value={codeRepositoryOwnerSelected?.owner || ""}
+                              onValueChange={(value) => {
+                                if (!value) {
+                                  return;
                                 }
-                              />
-                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                                <Command shouldFilter={false}>
-                                  <CommandInput
-                                    placeholder="Search"
-                                    value={codeRepositoryOwnerSearch}
-                                    onValueChange={setCodeRepositoryOwnerSearch}
-                                  />
-                                  <CommandList>
-                                    <CommandEmpty>Nothing found.</CommandEmpty>
-                                    <CommandGroup>
-                                      {codeRepositoryOwnerFilteredList?.map(item => (
-                                        <CommandItem
-                                          key={item.id}
-                                          value={item.owner}
-                                          onSelect={() => {
-                                            const owner = item;
-                                            if (!owner) {
-                                            return;
-                                            }
-                                            setSearchParams({
-                                            ...Object.fromEntries(searchParams.entries()),
-                                            code_repository_owner: owner.owner,
-                                            code_repository_owner_id: owner.id.toString(),
-                                            });
-                                            setCodeRepositorySelected({} as ICodeRepositoryItem);
-                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setCodeRepositoryOwnerSelected(owner);
-                                          }}
-                                        >
-                                          {item.owner}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                                const owner = codeRepositoryOwnerList?.find(item => item.owner === value);
+                                if (!owner) {
+                                  return;
+                                }
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  code_repository_owner: owner.owner,
+                                  code_repository_owner_id: owner.id.toString(),
+                                });
+                                setCodeRepositorySelected({} as ICodeRepositoryItem);
+                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositoryOwnerSelected(owner);
+                              }}
+                            >
+                              <SelectTrigger className="w-full" disabled={providerCredentialMissing || (searchParams.get('code_repository_stick') || '') === 'true'}>
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              {codeRepositoryOwnerList?.length ? (
+                                <SelectContent align="start">
+                                  {codeRepositoryOwnerList.map(item => (
+                                    <SelectItem key={item.id} value={item.owner}>
+                                      {item.owner}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              ) : null}
+                            </Select>
                           </div>
                         </div>
                       ) : null
@@ -889,124 +858,99 @@ export default function ({ localServer }: { localServer: string }) {
                             Repository
                           </label>
                           <div className="mt-2">
-                            <Popover>
-                              <PopoverTrigger
-                                render={
-                                  <Button variant="outline" className="w-full justify-between font-normal" disabled={(searchParams.get('code_repository_stick') || '') === 'true'}>
-                                    {codeRepositorySelected?.name || "Select"}
-                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                                  </Button>
+                            <Select
+                              value={codeRepositorySelected?.name || ""}
+                              onValueChange={(value) => {
+                                if (!value) {
+                                  return;
                                 }
-                              />
-                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                                <Command shouldFilter={false}>
-                                  <CommandInput
-                                    placeholder="Search"
-                                    value={codeRepositorySearch}
-                                    onValueChange={setCodeRepositorySearch}
-                                  />
-                                  <CommandList>
-                                    <CommandEmpty>Nothing found.</CommandEmpty>
-                                    <CommandGroup>
-                                      {codeRepositoryList?.map(item => (
-                                        <CommandItem
-                                          key={item.id}
-                                          value={item.name}
-                                          onSelect={() => {
-                                            const cr = item;
-                                            if (!cr) {
-                                            return;
-                                            }
-                                            setSearchParams({
-                                            ...Object.fromEntries(searchParams.entries()),
-                                            code_repository_name: cr.name,
-                                            code_repository_id: cr.id.toString(),
-                                            });
-                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                            setCodeRepositorySelected(cr);
-                                          }}
-                                        >
-                                          {item.name}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                                const cr = codeRepositoryList?.find(item => item.name === value);
+                                if (!cr) {
+                                  return;
+                                }
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  code_repository_name: cr.name,
+                                  code_repository_id: cr.id.toString(),
+                                });
+                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositorySelected(cr);
+                              }}
+                            >
+                              <SelectTrigger className="w-full" disabled={providerCredentialMissing || (searchParams.get('code_repository_stick') || '') === 'true'}>
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              {codeRepositoryList?.length ? (
+                                <SelectContent align="start">
+                                  {codeRepositoryList.map(item => (
+                                    <SelectItem key={item.id} value={item.name}>
+                                      {item.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              ) : null}
+                            </Select>
                           </div>
                         </div>
                       ) : null
                     }
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-1">
+                        <div className="sm:col-span-2">
                           <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                             Branch
                           </label>
                           <div className="mt-2">
-                            <Popover>
-                              <PopoverTrigger
-                                render={
-                                  <Button variant="outline" className="w-full justify-between font-normal">
-                                    {codeRepositoryBranchSelected?.name || "Select"}
-                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                                  </Button>
+                            <Select
+                              value={codeRepositoryBranchSelected?.name || ""}
+                              onValueChange={(value) => {
+                                if (!value) {
+                                  return;
                                 }
-                              />
-                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                                <Command shouldFilter={false}>
-                                  <CommandInput
-                                    placeholder="Search"
-                                    value={codeRepositoryBranchSearch}
-                                    onValueChange={setCodeRepositoryBranchSearch}
-                                  />
-                                  <CommandList>
-                                    <CommandEmpty>Nothing found.</CommandEmpty>
-                                    <CommandGroup>
-                                      {codeRepositoryBranchFilteredList?.map(item => (
-                                        <CommandItem
-                                          key={item.id}
-                                          value={item.name}
-                                          onSelect={() => {
-                                            const branch = item;
-                                            if (!branch) {
-                                            return;
-                                            }
-                                            setSearchParams({
-                                            ...Object.fromEntries(searchParams.entries()),
-                                            code_repository_branch_name: branch.name,
-                                            code_repository_branch_id: branch.id.toString(),
-                                            });
-                                            setCodeRepositoryBranchSelected(branch);
-                                          }}
-                                        >
-                                          {item.name}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  code_repository_branch_name: value,
+                                });
+                                setCodeRepositoryBranchSelected({ name: value } as ICodeRepositoryBranchItem);
+                              }}
+                              open={openPicker === "branch"}
+                              onOpenChange={(open) => {
+                                setOpenPicker(open ? "branch" : null);
+                                // Branches change far more often than repositories, so refresh them on open.
+                                if (open) refreshCodeRepositoryBranches();
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              {codeRepositoryBranchList?.length ? (
+                                <SelectContent align="start">
+                                  {codeRepositoryBranchList.map(item => (
+                                    <SelectItem key={item.name} value={item.name}>
+                                      {item.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              ) : null}
+                            </Select>
                           </div>
                         </div>
                       ) : null
                     }
                     {
                       builderSource === 'SelfCodeRepository' ? (
-                        <div className="sm:col-span-2">
+                        <div className="sm:col-span-4">
                           <label htmlFor="customRepositoryCloneUrl" className="block text-sm font-medium leading-6 text-gray-900">
                             Repository
                           </label>
-                          <div className="mt-2 flex flex-row items-center h-9">
-                            <input
+                          <div className="mt-2">
+                            <Input
                               type="text"
                               name="customRepositoryCloneUrl"
                               id="customRepositoryCloneUrl"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                              placeholder="https://github.com/go-sigma/sigma.git"
                               value={customRepositoryCloneUrl}
                               onChange={e => {
                                 setSearchParams({
@@ -1022,16 +966,16 @@ export default function ({ localServer }: { localServer: string }) {
                     }
                     {
                       builderSource === 'SelfCodeRepository' ? (
-                        <div className="sm:col-span-1">
+                        <div className="sm:col-span-2">
                           <label htmlFor="customRepositoryBranch" className="block text-sm font-medium leading-6 text-gray-900">
                             Branch
                           </label>
-                          <div className="mt-2 flex flex-row items-center h-9">
-                            <input
+                          <div className="mt-2">
+                            <Input
                               type="text"
                               name="customRepositoryBranch"
                               id="customRepositoryBranch"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                              placeholder="main"
                               value={customRepositoryBranch}
                               onChange={e => {
                                 setSearchParams({
@@ -1051,11 +995,11 @@ export default function ({ localServer }: { localServer: string }) {
               {
                 builderSource === 'SelfCodeRepository' ? (
                   <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-2">
                       <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                         Credential
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-9">
+                      <div className="mt-2">
                         <Select
                           value={customRepositoryCredential}
                           onValueChange={(value) => {
@@ -1086,16 +1030,15 @@ export default function ({ localServer }: { localServer: string }) {
 
                     {
                       customRepositoryCredential == 'username' ? (
-                        <div className='sm:col-span-1'>
+                        <div className='sm:col-span-2'>
                           <label htmlFor='customRepositoryUsername' className='block text-sm font-medium leading-6 text-gray-900'>
                             Username
                           </label>
-                          <div className='mt-2 h-9'>
-                            <input
+                          <div className='mt-2'>
+                            <Input
                               type='text'
                               name='customRepositoryUsername'
                               id='customRepositoryUsername'
-                              className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6'
                               value={customRepositoryUsername}
                               onChange={e => {
                                 setSearchParams({
@@ -1111,17 +1054,16 @@ export default function ({ localServer }: { localServer: string }) {
                     }
                     {
                       customRepositoryCredential == 'username' ? (
-                        <div className='sm:col-span-1'>
+                        <div className='sm:col-span-2'>
                           <label htmlFor="customRepositoryPassword" className="block text-sm font-medium leading-6 text-gray-900">
                             Password
                           </label>
-                          <div className='mt-2 h-9'>
-                            <input
+                          <div className='mt-2'>
+                            <Input
                               type='password'
                               autoComplete='new-password'
                               name='customRepositoryPassword'
                               id='customRepositoryPassword'
-                              className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6'
                               value={customRepositoryPassword}
                               onChange={e => setCustomRepositoryPassword(e.target.value)}
                             />
@@ -1132,16 +1074,16 @@ export default function ({ localServer }: { localServer: string }) {
 
                     {
                       customRepositoryCredential == 'token' ? (
-                        <div className='sm:col-span-1'>
+                        <div className='sm:col-span-2'>
                           <label htmlFor='customRepositoryToken' className="block text-sm font-medium leading-6 text-gray-900">
                             Token
                           </label>
-                          <div className='mt-2 h-9'>
-                            <input
-                              type="text"
+                          <div className='mt-2'>
+                            <Input
+                              type="password"
+                              autoComplete="new-password"
                               name="customRepositoryToken"
                               id="customRepositoryToken"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={customRepositoryToken}
                               onChange={e => setCustomRepositoryToken(e.target.value)}
                             />
@@ -1156,12 +1098,11 @@ export default function ({ localServer }: { localServer: string }) {
                           <label htmlFor="customRepositorySshKey" className="block text-sm font-medium leading-6 text-gray-900">
                             SSH Key
                           </label>
-                          <div className='mt-2 h-9'>
-                            <input
+                          <div className='mt-2'>
+                            <Input
                               type="text"
                               name="customRepositorySshKey"
                               id="customRepositorySshKey"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                               value={customRepositorySshKey}
                               onChange={e => setCustomRepositorySshKey(e.target.value)}
                             />
@@ -1196,22 +1137,28 @@ export default function ({ localServer }: { localServer: string }) {
                       <label htmlFor="depth" className="block text-sm font-medium leading-6 text-gray-900">
                         Clone Depth
                       </label>
-                      <div className="mt-2 h-9">
-                        <input
+                      <div className="mt-2">
+                        <Input
                           type="number"
                           name="depth"
                           id="depth"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                          min={0}
+                          step={1}
+                          placeholder="0"
                           value={depth}
                           onChange={e => {
-                            let depthValue = Number.isNaN(parseInt(e.target.value)) ? "" : parseInt(e.target.value);
+                            const parsed = parseInt(e.target.value, 10);
+                            const depthValue = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
                             setSearchParams({
                               ...Object.fromEntries(searchParams.entries()),
-                              depthValue: depthValue.toString(),
+                              code_repository_clone_depth: depthValue.toString(),
                             });
                             setDepth(depthValue);
                           }}
                         />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t("builder.cloneDepthHint")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1237,21 +1184,28 @@ export default function ({ localServer }: { localServer: string }) {
               }
             </div>
             <div className="py-6 px-8 border-gray-200 border-b w-full">
-              <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.buildOptions")}</h2>
-              <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{t("builder.buildOptionsDescription")}</p>
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.buildOptions")}</h2>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>{t("builder.buildOptionsDescription")}</TooltipContent>
+                </Tooltip>
+              </div>
               <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 {
                   builderSource !== 'Dockerfile' ? (
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-2">
                       <label htmlFor="dockerfileContext" className="block text-sm font-medium leading-6 text-gray-900">
                         Context
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-9">
-                        <input
+                      <div className="mt-2">
+                        <Input
                           type="text"
                           name="dockerfileContext"
                           id="dockerfileContext"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                          placeholder="."
                           value={dockerfileContext}
                           onChange={e => {
                             setSearchParams({
@@ -1267,16 +1221,16 @@ export default function ({ localServer }: { localServer: string }) {
                 }
                 {
                   builderSource !== 'Dockerfile' ? (
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-2">
                       <label htmlFor="dockerfilePath" className="block text-sm font-medium leading-6 text-gray-900">
                         Dockerfile Path
                       </label>
-                      <div className="mt-2 flex flex-row items-center h-9">
-                        <input
+                      <div className="mt-2">
+                        <Input
                           type="text"
                           name="dockerfilePath"
                           id="dockerfilePath"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                          placeholder="Dockerfile"
                           value={dockerfilePath}
                           onChange={e => {
                             setSearchParams({
@@ -1291,14 +1245,14 @@ export default function ({ localServer }: { localServer: string }) {
                   ) : null
                 }
                 <div className="sm:col-span-2">
-                  <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
+                  <label htmlFor="platforms" className="block text-sm font-medium leading-6 text-gray-900">
                     Platforms
                   </label>
-                  <div className="mt-2 flex flex-row items-center h-9">
+                  <div className="mt-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
-                          <Button variant="outline" className="w-full justify-between font-normal">
+                          <Button id="platforms" variant="outline" className="w-full justify-between font-normal">
                             {selectedPlatforms.map((platform) => platform.name).join(', ') || "Select"}
                             <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
                           </Button>
@@ -1338,8 +1292,15 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
             </div>
             <div className="py-6 px-8 border-gray-200 border-b w-full">
-              <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.cronBuild")}</h2>
-              <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{t("builder.cronBuildDescription")}</p>
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("builder.cronBuild")}</h2>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>{t("builder.cronBuildDescription")}</TooltipContent>
+                </Tooltip>
+              </div>
               <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div className="sm:col-span-1">
                   <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
@@ -1390,50 +1351,37 @@ export default function ({ localServer }: { localServer: string }) {
                         Branch
                       </label>
                       <div className="mt-2">
-                        <Popover>
-                          <PopoverTrigger
-                            render={
-                              <Button variant="outline" className="w-full justify-between font-normal">
-                                {cronBranchSelected?.name || "Select"}
-                                <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                              </Button>
+                        <Select
+                          value={cronBranchSelected?.name || ""}
+                          onValueChange={(value) => {
+                            if (!value) {
+                              return;
                             }
-                          />
-                          <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                            <Command shouldFilter={false}>
-                              <CommandInput
-                                placeholder="Search"
-                                value={cronBranchSearch}
-                                onValueChange={setCronBranchSearch}
-                              />
-                              <CommandList>
-                                <CommandEmpty>Nothing found.</CommandEmpty>
-                                <CommandGroup>
-                                  {cronBranchFilteredList?.map(item => (
-                                    <CommandItem
-                                      key={item.id}
-                                      value={item.name}
-                                      onSelect={() => {
-                                        const branch = item;
-                                        if (!branch) {
-                                        return;
-                                        }
-                                        setSearchParams({
-                                        ...Object.fromEntries(searchParams.entries()),
-                                        cron_branch_name: branch.name,
-                                        cron_branch_id: branch.id.toString(),
-                                        });
-                                        setCronBranchSelected(branch);
-                                      }}
-                                    >
-                                      {item.name}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                            setSearchParams({
+                              ...Object.fromEntries(searchParams.entries()),
+                              cron_branch_name: value,
+                            });
+                            setCronBranchSelected({ name: value } as ICodeRepositoryBranchItem);
+                          }}
+                          open={openPicker === "cronBranch"}
+                          onOpenChange={(open) => {
+                            setOpenPicker(open ? "cronBranch" : null);
+                            if (open) refreshCodeRepositoryBranches();
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          {codeRepositoryBranchList?.length ? (
+                            <SelectContent align="start">
+                              {codeRepositoryBranchList.map(item => (
+                                <SelectItem key={item.name} value={item.name}>
+                                  {item.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          ) : null}
+                        </Select>
                       </div>
                     </div>
                   ) : (
@@ -1442,12 +1390,12 @@ export default function ({ localServer }: { localServer: string }) {
                         <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
                           Branch
                         </label>
-                        <div className="mt-2 flex flex-row items-center h-9">
-                          <input
+                        <div className="mt-2">
+                          <Input
                             type="text"
-                            name="mergeEventTagTemplate"
-                            id="mergeEventTagTemplate"
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                            name="cronBranch"
+                            id="cronBranch"
+                            placeholder="main"
                             value={cronBranch}
                             onChange={e => setCronBranch(e.target.value)}
                           />
@@ -1480,8 +1428,15 @@ export default function ({ localServer }: { localServer: string }) {
             {
               builderSource === 'CodeRepository11' ? ( // TODO: show this section in code repository
                 <div className="py-6 px-8 border-gray-200 border-b w-full">
-                  <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("common.webhook")}</h2>
-                  <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{t("builder.webhookDescription")}</p>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">{t("common.webhook")}</h2>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                      </TooltipTrigger>
+                      <TooltipContent>{t("builder.webhookDescription")}</TooltipContent>
+                    </Tooltip>
+                  </div>
                   <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div className="sm:col-span-1">
                       <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
@@ -1501,50 +1456,37 @@ export default function ({ localServer }: { localServer: string }) {
                             Branch
                           </label>
                           <div className="mt-2">
-                            <Popover>
-                              <PopoverTrigger
-                                render={
-                                  <Button variant="outline" className="w-full justify-between font-normal">
-                                    {mergeEventBranchSelected?.name || "Select"}
-                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-                                  </Button>
+                            <Select
+                              value={mergeEventBranchSelected?.name || ""}
+                              onValueChange={(value) => {
+                                if (!value) {
+                                  return;
                                 }
-                              />
-                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
-                                <Command shouldFilter={false}>
-                                  <CommandInput
-                                    placeholder="Search"
-                                    value={mergeEventBranchSearch}
-                                    onValueChange={setMergeEventBranchSearch}
-                                  />
-                                  <CommandList>
-                                    <CommandEmpty>Nothing found.</CommandEmpty>
-                                    <CommandGroup>
-                                      {mergeEventBranchFilteredList?.map(item => (
-                                        <CommandItem
-                                          key={item.id}
-                                          value={item.name}
-                                          onSelect={() => {
-                                            const branch = item;
-                                            if (!branch) {
-                                            return;
-                                            }
-                                            setSearchParams({
-                                            ...Object.fromEntries(searchParams.entries()),
-                                            merge_event_branch_name: branch.name,
-                                            merge_event_branch_id: branch.id.toString(),
-                                            });
-                                            setMergeEventBranchSelected(branch);
-                                          }}
-                                        >
-                                          {item.name}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                                setSearchParams({
+                                  ...Object.fromEntries(searchParams.entries()),
+                                  merge_event_branch_name: value,
+                                });
+                                setMergeEventBranchSelected({ name: value } as ICodeRepositoryBranchItem);
+                              }}
+                              open={openPicker === "mergeEventBranch"}
+                              onOpenChange={(open) => {
+                                setOpenPicker(open ? "mergeEventBranch" : null);
+                                if (open) refreshCodeRepositoryBranches();
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              {codeRepositoryBranchList?.length ? (
+                                <SelectContent align="start">
+                                  {codeRepositoryBranchList.map(item => (
+                                    <SelectItem key={item.name} value={item.name}>
+                                      {item.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              ) : null}
+                            </Select>
                           </div>
                         </div>
                       ) : (
@@ -1553,12 +1495,12 @@ export default function ({ localServer }: { localServer: string }) {
                             <label htmlFor="mergeEventBranch" className="block text-sm font-medium leading-6 text-gray-900">
                               Branch
                             </label>
-                            <div className="mt-2 flex flex-row items-center h-9">
-                              <input
+                            <div className="mt-2">
+                              <Input
                                 type="text"
                                 name="mergeEventBranch"
                                 id="mergeEventBranch"
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
+                                placeholder="main"
                                 value={mergeEventBranch}
                                 onChange={e => setMergeEventBranch(e.target.value)}
                               />
@@ -1638,7 +1580,10 @@ export default function ({ localServer }: { localServer: string }) {
                   onClick={() => {
                     if (backTo !== "") {
                       navigate(backTo);
+                      return;
                     }
+                    // Opened as a repository tab: go back the way the user came.
+                    navigate(-1);
                   }}
                 >
                   Cancel
@@ -1655,6 +1600,22 @@ export default function ({ localServer }: { localServer: string }) {
           {/* part 3 end */}
         </div>
       </div>
+      {credentialDialogOpen && (
+        <CredentialDialog
+          localServer={localServer}
+          provider={
+            codeRepositoryProviderList?.find(item => item.provider === codeRepositoryProviderSelected.provider) ??
+            codeRepositoryProviderSelected
+          }
+          endpoint={endpoint}
+          onClose={() => setCredentialDialogOpen(false)}
+          onSaved={() => {
+            setCredentialDialogOpen(false);
+            // Reload so has_credential flips and the organization picker unlocks.
+            loadCodeRepositoryProviders();
+          }}
+        />
+      )}
     </Fragment >
   );
 }
