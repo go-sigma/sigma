@@ -145,7 +145,7 @@ proxy:
 # daemon task config
 daemon:
   builder:
-    enabled: false
+    enabled: true
     image: docker.io/tosone/sigma-builder:latest
     type: docker
     tlsVerify: true
