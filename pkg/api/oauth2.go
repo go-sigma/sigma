@@ -35,12 +35,10 @@ type Oauth2RedirectCallbackRequest struct {
 
 // Oauth2UserInfo represents user information returned by an OAuth2 provider.
 type Oauth2UserInfo struct {
-	Provider     enums.Provider `json:"provider"`
-	ID           string         `json:"id"`
-	Username     string         `json:"username"`
-	Email        string         `json:"email"`
-	Token        string         `json:"token"`
-	RefreshToken string         `json:"refresh_token"`
+	Provider enums.Provider `json:"provider"`
+	ID       string         `json:"id"`
+	Username string         `json:"username"`
+	Email    string         `json:"email"`
 }
 
 // Oauth2CallbackResponse is the response returned after a successful OAuth2 callback.

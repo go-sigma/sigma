@@ -37,7 +37,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
-	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
@@ -63,7 +62,6 @@ type service struct {
 	RepoUser    repouser.UserRepository
 	SvcToken    token.Service
 	SvcPassword password.Service
-	Producer    workq.Producer
 }
 
 func NewService(params service) Service {
@@ -105,26 +103,29 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 			},
 		}
 	case enums.ProviderGitlab:
+		baseURL := s.scmBaseURL(provider)
 		conf = &oauth2.Config{
 			ClientID:     s.Config.Auth.Oauth2.Gitlab.ClientID,
 			ClientSecret: s.Config.Auth.Oauth2.Gitlab.ClientSecret,
 			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://gitlab.com/oauth/authorize", // #nosec G101 -- public OAuth endpoint, not a credential
-				TokenURL: "https://gitlab.com/oauth/token",     // #nosec G101 -- public OAuth endpoint, not a credential
+				AuthURL:  baseURL + "/oauth/authorize",
+				TokenURL: baseURL + "/oauth/token",
 			},
 			RedirectURL: fmt.Sprintf("%s/api/v1/oauth2/%s/redirect_callback?endpoint=%s",
 				s.Config.HTTP.Endpoint, enums.ProviderGitlab.String(), url.QueryEscape(endpoint)),
 			Scopes: []string{"api", "read_api", "read_user", "read_repository"},
 		}
 	case enums.ProviderGitea:
+		baseURL := s.scmBaseURL(provider)
 		conf = &oauth2.Config{
 			ClientID:     s.Config.Auth.Oauth2.Gitea.ClientID,
 			ClientSecret: s.Config.Auth.Oauth2.Gitea.ClientSecret,
 			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://gitlab.com/oauth/authorize", // #nosec G101 -- public OAuth endpoint, not a credential
-				TokenURL: "https://gitlab.com/oauth/token",     // #nosec G101 -- public OAuth endpoint, not a credential
+				AuthURL:  baseURL + "/login/oauth/authorize",
+				TokenURL: baseURL + "/login/oauth/access_token",
 			},
-			RedirectURL: "http://localhost:3000/api/v1/oauth2/github/redirect_callback",
+			RedirectURL: fmt.Sprintf("%s/api/v1/oauth2/%s/redirect_callback?endpoint=%s",
+				s.Config.HTTP.Endpoint, enums.ProviderGitea.String(), url.QueryEscape(endpoint)),
 		}
 	}
 
@@ -150,12 +151,10 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 			return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
 		}
 		userInfo = api.Oauth2UserInfo{
-			Provider:     provider,
-			ID:           strconv.FormatInt(user.GetID(), 10),
-			Username:     user.GetLogin(),
-			Email:        user.GetEmail(),
-			Token:        oauth2Token.AccessToken,
-			RefreshToken: oauth2Token.RefreshToken,
+			Provider: provider,
+			ID:       strconv.FormatInt(user.GetID(), 10),
+			Username: user.GetLogin(),
+			Email:    user.GetEmail(),
 		}
 	case enums.ProviderGitlab:
 		glClient, err := gitlab.NewOAuthClient(oauth2Token.AccessToken) // nolint: staticcheck
@@ -169,12 +168,10 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 			return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user info failed: %v", err))
 		}
 		userInfo = api.Oauth2UserInfo{
-			Provider:     provider,
-			ID:           strconv.FormatInt(user.ID, 10),
-			Username:     user.Name,
-			Email:        user.Email,
-			Token:        oauth2Token.AccessToken,
-			RefreshToken: oauth2Token.RefreshToken,
+			Provider: provider,
+			ID:       strconv.FormatInt(user.ID, 10),
+			Username: user.Name,
+			Email:    user.Email,
 		}
 	case enums.ProviderGitea:
 		// gitea.NewClient("", gitea.SetHTTPClient(client))
@@ -197,16 +194,9 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 		return "", "", "", "", "", errcode.HTTPErrCodeConflict.Detail("User already bound to another account")
 	}
 
-	if userExist {
-		err = s.RepoUser.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
-			query.User3rdParty.Token.ColumnName().String():        oauth2Token.AccessToken,
-			query.User3rdParty.RefreshToken.ColumnName().String(): oauth2Token.RefreshToken,
-		})
-		if err != nil {
-			slog.Error("update user 3rdparty failed", "err", err)
-			return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(err.Error())
-		}
-	}
+	// OAuth tokens are no longer persisted: SCM credentials are configured
+	// explicitly per provider (see pkg/service/coderepos) because OAuth access
+	// tokens expire and refresh tokens were never used.
 
 	if !userExist {
 		if userSignedObj == nil {
@@ -236,23 +226,15 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
 				}
 				user3rdPartyObj = &models.User3rdParty{
-					ID:           uuid.NewV7String(),
-					Provider:     provider,
-					AccountID:    new(userInfo.ID),
-					Token:        new(userInfo.Token),
-					RefreshToken: new(userInfo.RefreshToken),
-					UserID:       userSignedObj.ID,
+					ID:        uuid.NewV7String(),
+					Provider:  provider,
+					AccountID: new(userInfo.ID),
+					UserID:    userSignedObj.ID,
 				}
 				err = txUserRepository.CreateUser3rdParty(ctx, user3rdPartyObj)
 				if err != nil {
 					slog.Error("create user failed", "err", err)
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
-				}
-				err = s.Producer.Produce(ctx, enums.DaemonCodeRepository,
-					api.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
-				if err != nil {
-					slog.Error("publish sync code repository failed", "err", err, "user_id", user3rdPartyObj.UserID)
-					return errcode.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
 				}
 				user3rdPartyObj.User = ptr.To(userSignedObj)
 				return nil
@@ -264,23 +246,15 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 			err = query.Q.Transaction(func(tx *query.Query) error {
 				txUserRepository := repouser.NewUserRepository(tx)
 				user3rdPartyObj = &models.User3rdParty{
-					ID:           uuid.NewV7String(),
-					Provider:     provider,
-					AccountID:    new(userInfo.ID),
-					Token:        new(userInfo.Token),
-					RefreshToken: new(userInfo.RefreshToken),
-					UserID:       userSignedObj.ID,
+					ID:        uuid.NewV7String(),
+					Provider:  provider,
+					AccountID: new(userInfo.ID),
+					UserID:    userSignedObj.ID,
 				}
 				err = txUserRepository.CreateUser3rdParty(ctx, user3rdPartyObj)
 				if err != nil {
 					slog.Error("create user failed", "err", err)
 					return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create user failed: %v", err))
-				}
-				err = s.Producer.Produce(ctx, enums.DaemonCodeRepository,
-					api.DaemonCodeRepositoryPayload{User3rdPartyID: user3rdPartyObj.ID})
-				if err != nil {
-					slog.Error("publish sync code repository failed", "err", err, "user_id", user3rdPartyObj.UserID)
-					return errcode.HTTPErrCodeInternalError.Detail("Publish sync code repository failed")
 				}
 				user3rdPartyObj.User = ptr.To(userSignedObj)
 				return nil
@@ -304,6 +278,21 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 	}
 
 	return user3rdPartyObj.User.ID, user3rdPartyObj.User.Username, ptr.To(user3rdPartyObj.User.Email), accessToken, refreshToken, nil
+}
+
+// scmBaseURL returns the base URL of a provider from the scm configuration, falling back to
+// the hosted endpoint when the provider is not configured.
+func (s *service) scmBaseURL(provider enums.Provider) string {
+	if scmProvider, ok := s.Config.ScmProvider(provider); ok && scmProvider.BaseURL != "" {
+		return scmProvider.BaseURL
+	}
+	switch provider {
+	case enums.ProviderGithub:
+		return "https://github.com"
+	case enums.ProviderGitlab:
+		return "https://gitlab.com"
+	}
+	return ""
 }
 
 // tryGetUser resolves the user from the Authorization header.
