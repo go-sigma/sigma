@@ -70,7 +70,12 @@ type CodeRepositoryOwner struct {
 	User3rdParty User3rdParty `gorm:"foreignKey:User3rdPartyID"`
 }
 
-// CodeRepositoryCloneCredential stores the per-provider credentials (SSH key, username/password or token) used to clone a User3rdParty's code repositories.
+// CodeRepositoryCloneCredential stores the per-provider credentials (token, SSH key or
+// username/password) used to list and clone a User3rdParty's code repositories.
+//
+// It is the single source of SCM credentials: the code repository daemon and the image
+// builder both read it, and secrets are stored encrypted (see pkg/service/credential).
+// Type = none is equivalent to "not configured".
 type CodeRepositoryCloneCredential struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`

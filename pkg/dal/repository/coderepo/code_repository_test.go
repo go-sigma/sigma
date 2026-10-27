@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
@@ -196,4 +197,50 @@ func TestCodeRepositoryCloneCredential(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, credential.ID, got.ID)
 	require.Equal(t, "token", ptr.To(got.Token))
+}
+
+func TestCodeRepositoryUpsertCredential(t *testing.T) {
+	testkit.InitRepository(t)
+
+	ctx := t.Context()
+	codeRepositoryRepository := repocoderepo.NewCodeRepositoryRepository()
+	user3rdPartyID := uuid.NewV7String()
+
+	firstToken := "first-token"
+	require.NoError(t, codeRepositoryRepository.UpsertCredential(ctx, &models.CodeRepositoryCloneCredential{
+		ID:             uuid.NewV7String(),
+		User3rdPartyID: user3rdPartyID,
+		Type:           enums.ScmCredentialTypeToken,
+		Token:          &firstToken,
+	}))
+
+	got, err := codeRepositoryRepository.GetCloneCredential(ctx, user3rdPartyID)
+	require.NoError(t, err)
+	require.Equal(t, firstToken, ptr.To(got.Token))
+
+	// Upserting again replaces the live row instead of creating a second one.
+	secondPassword := "second-password"
+	username := "sigma"
+	require.NoError(t, codeRepositoryRepository.UpsertCredential(ctx, &models.CodeRepositoryCloneCredential{
+		ID:             uuid.NewV7String(),
+		User3rdPartyID: user3rdPartyID,
+		Type:           enums.ScmCredentialTypeUsername,
+		Username:       &username,
+		Password:       &secondPassword,
+	}))
+
+	got, err = codeRepositoryRepository.GetCloneCredential(ctx, user3rdPartyID)
+	require.NoError(t, err)
+	require.Equal(t, enums.ScmCredentialTypeUsername, got.Type)
+	require.Equal(t, secondPassword, ptr.To(got.Password))
+	require.Nil(t, got.Token)
+
+	rows, err := query.Q.CodeRepositoryCloneCredential.WithContext(ctx).
+		Where(query.Q.CodeRepositoryCloneCredential.User3rdPartyID.Eq(user3rdPartyID)).Find()
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+
+	require.NoError(t, codeRepositoryRepository.DeleteCredential(ctx, user3rdPartyID))
+	_, err = codeRepositoryRepository.GetCloneCredential(ctx, user3rdPartyID)
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
 }

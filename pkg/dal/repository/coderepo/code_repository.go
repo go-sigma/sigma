@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"gorm.io/gorm/clause"
+
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/consts"
@@ -63,6 +65,10 @@ type CodeRepositoryRepository interface {
 	GetBranchByName(ctx context.Context, codeRepositoryID string, branch string) (*models.CodeRepositoryBranch, error)
 	// GetCloneCredential gets clone credentials for a third-party user
 	GetCloneCredential(ctx context.Context, user3rdPartyID string) (*models.CodeRepositoryCloneCredential, error)
+	// UpsertCredential creates or replaces the SCM credential of a third-party user
+	UpsertCredential(ctx context.Context, credential *models.CodeRepositoryCloneCredential) error
+	// DeleteCredential soft deletes the SCM credential of a third-party user
+	DeleteCredential(ctx context.Context, user3rdPartyID string) error
 }
 
 type codeRepositoryRepository struct {
@@ -239,4 +245,29 @@ func (s *codeRepositoryRepository) GetBranchByName(ctx context.Context, codeRepo
 // GetCloneCredential gets clone credentials for a third-party user
 func (s *codeRepositoryRepository) GetCloneCredential(ctx context.Context, user3rdPartyID string) (*models.CodeRepositoryCloneCredential, error) {
 	return s.tx.CodeRepositoryCloneCredential.WithContext(ctx).Where(s.tx.CodeRepositoryCloneCredential.User3rdPartyID.Eq(user3rdPartyID)).First()
+}
+
+// UpsertCredential creates or replaces the SCM credential of a third-party user.
+//
+// It relies on the unique constraint over (user_3rdparty_id, deleted_at): a live row per
+// third-party user. Callers are expected to seal the secret fields before calling it.
+func (s *codeRepositoryRepository) UpsertCredential(ctx context.Context, credential *models.CodeRepositoryCloneCredential) error {
+	return s.tx.CodeRepositoryCloneCredential.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "user_3rdparty_id"}, {Name: "deleted_at"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			query.CodeRepositoryCloneCredential.Type.ColumnName().String(),
+			query.CodeRepositoryCloneCredential.SshKey.ColumnName().String(),
+			query.CodeRepositoryCloneCredential.Username.ColumnName().String(),
+			query.CodeRepositoryCloneCredential.Password.ColumnName().String(),
+			query.CodeRepositoryCloneCredential.Token.ColumnName().String(),
+			query.CodeRepositoryCloneCredential.UpdatedAt.ColumnName().String(),
+		}),
+	}).Create(credential)
+}
+
+// DeleteCredential soft deletes the SCM credential of a third-party user
+func (s *codeRepositoryRepository) DeleteCredential(ctx context.Context, user3rdPartyID string) error {
+	_, err := s.tx.CodeRepositoryCloneCredential.WithContext(ctx).
+		Where(s.tx.CodeRepositoryCloneCredential.User3rdPartyID.Eq(user3rdPartyID)).Delete()
+	return err
 }

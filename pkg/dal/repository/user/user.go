@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
@@ -58,6 +59,10 @@ type UserRepository interface {
 	GetUser3rdParty(ctx context.Context, user3rdPartyID string) (*models.User3rdParty, error)
 	// ListUser3rdParty lists third-party user bindings for a user
 	ListUser3rdParty(ctx context.Context, userID string) ([]*models.User3rdParty, error)
+	// UpsertUser3rdPartyByAccountID inserts the binding of a provider account when it does
+	// not exist yet and returns the canonical row. It never rebinds an account that is
+	// already owned by another user: callers must compare UserID and reject conflicts.
+	UpsertUser3rdPartyByAccountID(ctx context.Context, user3rdParty *models.User3rdParty) (*models.User3rdParty, error)
 	// GetRecoverCodeByUserID gets the recover code with the specified user ID
 	GetRecoverCodeByUserID(ctx context.Context, userID string) (*models.UserRecoverCode, error)
 	// GetByRecoverCode gets the user with the specified recover code
@@ -197,6 +202,19 @@ func (s *userRepository) GetUser3rdParty(ctx context.Context, user3rdPartyID str
 // ListUser3rdParty lists third-party user bindings for a user
 func (s *userRepository) ListUser3rdParty(ctx context.Context, userID string) ([]*models.User3rdParty, error) {
 	return s.tx.User3rdParty.WithContext(ctx).Where(s.tx.User3rdParty.UserID.Eq(userID)).Find()
+}
+
+// UpsertUser3rdPartyByAccountID inserts the binding of a provider account when it does not
+// exist yet and returns the canonical row.
+func (s *userRepository) UpsertUser3rdPartyByAccountID(ctx context.Context, user3rdParty *models.User3rdParty) (*models.User3rdParty, error) {
+	err := s.tx.User3rdParty.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(user3rdParty)
+	if err != nil {
+		return nil, err
+	}
+	if user3rdParty.AccountID == nil {
+		return nil, fmt.Errorf("third-party account id is required")
+	}
+	return s.GetUser3rdPartyByAccountID(ctx, user3rdParty.Provider, ptr.To(user3rdParty.AccountID))
 }
 
 // GetRecoverCodeByUserID gets the recover code with the specified user ID

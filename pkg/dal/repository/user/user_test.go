@@ -103,14 +103,12 @@ func TestUserRepositoryThirdParty(t *testing.T) {
 	userRepository := repouser.NewUserRepository()
 	userObj := &models.User{ID: uuid.NewV7String(), Username: "third-party"}
 	accountID := "account-1"
-	token := "token"
-	updatedToken := "updated-token"
+	updatedMessage := "updated-message"
 	user3rdPartyObj := &models.User3rdParty{
 		ID:        uuid.NewV7String(),
 		UserID:    userObj.ID,
 		Provider:  enums.ProviderGithub,
 		AccountID: &accountID,
-		Token:     &token,
 	}
 	require.NoError(t, userRepository.Create(ctx, userObj))
 	require.NoError(t, userRepository.CreateUser3rdParty(ctx, user3rdPartyObj))
@@ -133,17 +131,46 @@ func TestUserRepositoryThirdParty(t *testing.T) {
 	require.Len(t, thirdParties, 1)
 
 	require.NoError(t, userRepository.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{
-		query.User3rdParty.Token.ColumnName().String(): updatedToken,
+		query.User3rdParty.CrLastUpdateMessage.ColumnName().String(): updatedMessage,
 	}))
 	require.NoError(t, userRepository.UpdateUser3rdParty(ctx, user3rdPartyObj.ID, map[string]any{}))
 	got, err = userRepository.GetUser3rdParty(ctx, user3rdPartyObj.ID)
 	require.NoError(t, err)
-	require.Equal(t, updatedToken, ptr.To(got.Token))
+	require.Equal(t, updatedMessage, ptr.To(got.CrLastUpdateMessage))
 
 	err = userRepository.UpdateUser3rdParty(ctx, uuid.NewV7String(), map[string]any{
-		query.User3rdParty.Token.ColumnName().String(): "missing",
+		query.User3rdParty.CrLastUpdateMessage.ColumnName().String(): "missing",
 	})
 	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+}
+
+func TestUserRepositoryUpsertUser3rdPartyByAccountID(t *testing.T) {
+	testkit.InitRepository(t)
+
+	ctx := t.Context()
+	userRepository := repouser.NewUserRepository()
+	userObj := &models.User{ID: uuid.NewV7String(), Username: "upsert-third-party"}
+	require.NoError(t, userRepository.Create(ctx, userObj))
+
+	accountID := "account-upsert"
+	first, err := userRepository.UpsertUser3rdPartyByAccountID(ctx, &models.User3rdParty{
+		ID:        uuid.NewV7String(),
+		UserID:    userObj.ID,
+		Provider:  enums.ProviderGithub,
+		AccountID: &accountID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, userObj.ID, first.UserID)
+
+	// A second call with a different ID must return the existing row instead of duplicating it.
+	second, err := userRepository.UpsertUser3rdPartyByAccountID(ctx, &models.User3rdParty{
+		ID:        uuid.NewV7String(),
+		UserID:    userObj.ID,
+		Provider:  enums.ProviderGithub,
+		AccountID: &accountID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, first.ID, second.ID)
 }
 
 func TestUserRepositoryRecoverCode(t *testing.T) {

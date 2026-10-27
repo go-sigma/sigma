@@ -293,3 +293,18 @@ func (mr *MockUserRepositoryMockRecorder) UpdateUser3rdParty(ctx, id, updates an
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser3rdParty", reflect.TypeOf((*MockUserRepository)(nil).UpdateUser3rdParty), ctx, id, updates)
 }
+
+// UpsertUser3rdPartyByAccountID mocks base method.
+func (m *MockUserRepository) UpsertUser3rdPartyByAccountID(ctx context.Context, user3rdParty *models.User3rdParty) (*models.User3rdParty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertUser3rdPartyByAccountID", ctx, user3rdParty)
+	ret0, _ := ret[0].(*models.User3rdParty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpsertUser3rdPartyByAccountID indicates an expected call of UpsertUser3rdPartyByAccountID.
+func (mr *MockUserRepositoryMockRecorder) UpsertUser3rdPartyByAccountID(ctx, user3rdParty any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertUser3rdPartyByAccountID", reflect.TypeOf((*MockUserRepository)(nil).UpsertUser3rdPartyByAccountID), ctx, user3rdParty)
+}

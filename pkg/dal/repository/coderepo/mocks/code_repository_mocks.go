@@ -99,6 +99,20 @@ func (mr *MockCodeRepositoryRepositoryMockRecorder) DeleteBranchesInBatches(ctx,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBranchesInBatches", reflect.TypeOf((*MockCodeRepositoryRepository)(nil).DeleteBranchesInBatches), ctx, ids)
 }
 
+// DeleteCredential mocks base method.
+func (m *MockCodeRepositoryRepository) DeleteCredential(ctx context.Context, user3rdPartyID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCredential", ctx, user3rdPartyID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCredential indicates an expected call of DeleteCredential.
+func (mr *MockCodeRepositoryRepositoryMockRecorder) DeleteCredential(ctx, user3rdPartyID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCredential", reflect.TypeOf((*MockCodeRepositoryRepository)(nil).DeleteCredential), ctx, user3rdPartyID)
+}
+
 // DeleteInBatches mocks base method.
 func (m *MockCodeRepositoryRepository) DeleteInBatches(ctx context.Context, ids []string) error {
 	m.ctrl.T.Helper()
@@ -276,4 +290,18 @@ func (m *MockCodeRepositoryRepository) UpdateOwnersInBatches(ctx context.Context
 func (mr *MockCodeRepositoryRepositoryMockRecorder) UpdateOwnersInBatches(ctx, codeRepositoryOwners any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOwnersInBatches", reflect.TypeOf((*MockCodeRepositoryRepository)(nil).UpdateOwnersInBatches), ctx, codeRepositoryOwners)
+}
+
+// UpsertCredential mocks base method.
+func (m *MockCodeRepositoryRepository) UpsertCredential(ctx context.Context, credential *models.CodeRepositoryCloneCredential) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertCredential", ctx, credential)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertCredential indicates an expected call of UpsertCredential.
+func (mr *MockCodeRepositoryRepositoryMockRecorder) UpsertCredential(ctx, credential any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertCredential", reflect.TypeOf((*MockCodeRepositoryRepository)(nil).UpsertCredential), ctx, credential)
 }

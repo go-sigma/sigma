@@ -34,8 +34,6 @@ func newUser3rdParty(db *gorm.DB, opts ...gen.DOOption) user3rdParty {
 	_user3rdParty.UserID = field.NewString(tableName, "user_id")
 	_user3rdParty.Provider = field.NewField(tableName, "provider")
 	_user3rdParty.AccountID = field.NewString(tableName, "account_id")
-	_user3rdParty.Token = field.NewString(tableName, "token")
-	_user3rdParty.RefreshToken = field.NewString(tableName, "refresh_token")
 	_user3rdParty.CrLastUpdateTimestamp = field.NewInt64(tableName, "cr_last_update_timestamp")
 	_user3rdParty.CrLastUpdateStatus = field.NewField(tableName, "cr_last_update_status")
 	_user3rdParty.CrLastUpdateMessage = field.NewString(tableName, "cr_last_update_message")
@@ -61,8 +59,6 @@ type user3rdParty struct {
 	UserID                field.String
 	Provider              field.Field
 	AccountID             field.String
-	Token                 field.String
-	RefreshToken          field.String
 	CrLastUpdateTimestamp field.Int64
 	CrLastUpdateStatus    field.Field
 	CrLastUpdateMessage   field.String
@@ -90,8 +86,6 @@ func (u *user3rdParty) updateTableName(table string) *user3rdParty {
 	u.UserID = field.NewString(table, "user_id")
 	u.Provider = field.NewField(table, "provider")
 	u.AccountID = field.NewString(table, "account_id")
-	u.Token = field.NewString(table, "token")
-	u.RefreshToken = field.NewString(table, "refresh_token")
 	u.CrLastUpdateTimestamp = field.NewInt64(table, "cr_last_update_timestamp")
 	u.CrLastUpdateStatus = field.NewField(table, "cr_last_update_status")
 	u.CrLastUpdateMessage = field.NewString(table, "cr_last_update_message")
@@ -123,7 +117,7 @@ func (u *user3rdParty) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (u *user3rdParty) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 13)
+	u.fieldMap = make(map[string]field.Expr, 11)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["deleted_at"] = u.DeletedAt
@@ -131,8 +125,6 @@ func (u *user3rdParty) fillFieldMap() {
 	u.fieldMap["user_id"] = u.UserID
 	u.fieldMap["provider"] = u.Provider
 	u.fieldMap["account_id"] = u.AccountID
-	u.fieldMap["token"] = u.Token
-	u.fieldMap["refresh_token"] = u.RefreshToken
 	u.fieldMap["cr_last_update_timestamp"] = u.CrLastUpdateTimestamp
 	u.fieldMap["cr_last_update_status"] = u.CrLastUpdateStatus
 	u.fieldMap["cr_last_update_message"] = u.CrLastUpdateMessage

@@ -37,20 +37,24 @@ type User struct {
 	NamespaceCount int64            `gorm:"default:0"`
 }
 
-// User3rdParty stores a third-party (e.g. GitHub, GitLab) account linked to a User, including its OAuth tokens and last code-repository sync status.
+// User3rdParty stores a third-party (e.g. GitHub, GitLab) account linked to a User, together with the last code-repository sync status.
+//
+// It is an identity binding only: OAuth access tokens are no longer persisted here,
+// because they expire and were never refreshed. SCM credentials live in
+// CodeRepositoryCloneCredential.
 type User3rdParty struct {
 	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
 
-	UserID       string
-	Provider     enums.Provider
-	AccountID    *string
-	Token        *string
-	RefreshToken *string
+	UserID    string
+	Provider  enums.Provider
+	AccountID *string
 
-	CrLastUpdateTimestamp int64                  `gorm:"autoUpdateTime:milli"`
+	// CrLastUpdateTimestamp must only be written by the sync flow: without the
+	// autoUpdateTime tag, unrelated updates no longer fake a sync.
+	CrLastUpdateTimestamp int64                  `gorm:"column:cr_last_update_timestamp"`
 	CrLastUpdateStatus    enums.TaskCommonStatus `gorm:"default:Doing"`
 	CrLastUpdateMessage   *string
 

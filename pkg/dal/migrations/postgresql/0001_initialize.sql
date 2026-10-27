@@ -26,8 +26,6 @@ CREATE TABLE IF NOT EXISTS "user_3rdparty" (
   "user_id" varchar(36) NOT NULL,
   "provider" varchar(64) NOT NULL DEFAULT 'github',
   "account_id" varchar(256),
-  "token" varchar(256),
-  "refresh_token" varchar(256),
   "cr_last_update_timestamp" bigint NOT NULL,
   "cr_last_update_status" varchar(64) NOT NULL DEFAULT 'Doing',
   "cr_last_update_message" varchar(256),
@@ -43,11 +41,12 @@ CREATE TABLE IF NOT EXISTS "code_repository_clone_credentials" (
   "type" varchar(64) NOT NULL,
   "ssh_key" bytea,
   "username" varchar(256),
-  "password" varchar(256),
-  "token" varchar(256),
+  "password" varchar(512),
+  "token" varchar(512),
   "created_at" bigint NOT NULL,
   "updated_at" bigint NOT NULL,
-  "deleted_at" bigint NOT NULL DEFAULT 0
+  "deleted_at" bigint NOT NULL DEFAULT 0,
+  CONSTRAINT "code_repository_clone_credentials_unique_with_user_3rdparty_id" UNIQUE ("user_3rdparty_id", "deleted_at")
 );
 
 CREATE INDEX "code_repository_clone_credentials_idx_created_at" ON "code_repository_clone_credentials" ("created_at");
