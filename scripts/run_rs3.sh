@@ -11,7 +11,7 @@ DOCKER=${DOCKER:-docker}
   -e RS3_SECRET_KEY=sigma-sigma \
   --rm -d \
   --entrypoint "" \
-  --health-cmd 'curl --fail "http://127.0.0.1:${RS3_PORT}/readyz" || exit 1' \
+  --health-cmd "curl --fail \"http://127.0.0.1:\${RS3_PORT}/readyz\" || exit 1" \
   --health-interval 30s \
   --health-timeout 3s \
   --health-start-period 5s \
