@@ -30,6 +30,7 @@ type bootstrapTask struct {
 // bootstrapTasks are startup tasks that run before long-lived commands start.
 var bootstrapTasks = []bootstrapTask{
 	{name: "service", run: service.InitDigContainer},
+	{name: "credential", run: credentialBootstrap},
 	{name: "signing", run: signing},
 	{name: "user", run: initUser},
 	{name: "namespace", run: initNamespaces},
