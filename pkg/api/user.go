@@ -141,9 +141,65 @@ type PutUserSelfRequest struct {
 	Email    *string `json:"email,omitempty" validate:"omitempty,is_valid_email" example:"test@mail.com"`
 }
 
-// ListCodeRepositoryProvidersResponse represents an enabled source code provider.
+// ListCodeRepositoryProvidersResponse describes one source code provider together with the
+// caller's state: whether the provider is usable for OAuth login, whether the account is
+// linked and whether an SCM credential is configured, plus the last sync result.
 type ListCodeRepositoryProvidersResponse struct {
-	Provider enums.Provider `json:"provider" example:"github"`
+	Provider              enums.Provider          `json:"provider" example:"github"`
+	DisplayName           string                  `json:"display_name" example:"GitHub"`
+	BaseURL               string                  `json:"base_url" example:"https://github.com"`
+	OauthEnabled          bool                    `json:"oauth_enabled"`
+	Linked                bool                    `json:"linked"`
+	AccountID             *string                 `json:"account_id"`
+	CredentialType        enums.ScmCredentialType `json:"credential_type" example:"none"`
+	HasCredential         bool                    `json:"has_credential"`
+	CrLastUpdateTimestamp string                  `json:"cr_last_update_timestamp"`
+	CrLastUpdateStatus    enums.TaskCommonStatus  `json:"cr_last_update_status"`
+	CrLastUpdateMessage   *string                 `json:"cr_last_update_message"`
+}
+
+// GetCodeRepositoryCredentialRequest is the request for getting the SCM credential of a provider.
+type GetCodeRepositoryCredentialRequest struct {
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+}
+
+// GetCodeRepositoryCredentialResponse returns credential metadata. Secrets are never echoed
+// back: only a masked token and "has" flags are exposed.
+type GetCodeRepositoryCredentialResponse struct {
+	Type        enums.ScmCredentialType `json:"type" example:"token"`
+	Token       *string                 `json:"token" example:"ghp_****abcd"`
+	Username    *string                 `json:"username" example:"sigma"`
+	HasSshKey   bool                    `json:"has_ssh_key"`
+	HasPassword bool                    `json:"has_password"`
+	CreatedAt   string                  `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt   string                  `json:"updated_at" example:"2006-01-02 15:04:05"`
+}
+
+// UpdateCodeRepositoryCredentialRequest creates or replaces the SCM credential of a provider.
+type UpdateCodeRepositoryCredentialRequest struct {
+	Provider enums.Provider          `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+	Type     enums.ScmCredentialType `json:"type" validate:"required,is_valid_scm_credential_type" example:"token"`
+	Token    *string                 `json:"token" validate:"required_if=Type token,max=1024" example:"ghp_xxx"`
+	SshKey   *string                 `json:"ssh_key" validate:"required_if=Type ssh,max=8192" example:"-----BEGIN OPENSSH PRIVATE KEY-----"`
+	Username *string                 `json:"username" validate:"required_if=Type username,max=256" example:"sigma"`
+	Password *string                 `json:"password" validate:"required_if=Type username,max=512" example:"sigma"`
+}
+
+// DeleteCodeRepositoryCredentialRequest clears the SCM credential of a provider.
+type DeleteCodeRepositoryCredentialRequest struct {
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+}
+
+// ValidateCodeRepositoryCredentialResponse reports the account a credential resolves to.
+type ValidateCodeRepositoryCredentialResponse struct {
+	Provider  enums.Provider          `json:"provider" example:"github"`
+	Type      enums.ScmCredentialType `json:"type" example:"token"`
+	AccountID string                  `json:"account_id" example:"1234567"`
+	Username  string                  `json:"username" example:"sigma"`
+	// Validated reports whether the credential was verified against the provider API.
+	// SSH keys and username/password credentials are only usable for cloning, so they
+	// cannot be verified.
+	Validated bool `json:"validated"`
 }
 
 // GetCodeRepositoryResyncRequest is the request for resynchronizing source code repositories.

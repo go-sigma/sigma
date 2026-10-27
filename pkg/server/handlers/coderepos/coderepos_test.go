@@ -263,14 +263,16 @@ func TestProviders(t *testing.T) {
 	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
 		ListCodeRepositoryProviders(gomock.Any(), "10").
-		DoAndReturn(func(_ context.Context, userID string) ([]*models.User3rdParty, error) {
+		DoAndReturn(func(_ context.Context, userID string) ([]api.ListCodeRepositoryProvidersResponse, error) {
 			require.Equal(t, "10", userID)
-			return []*models.User3rdParty{{
-				ID:        "1",
-				UserID:    "10",
-				Provider:  enums.ProviderGithub,
-				CreatedAt: 1,
-				UpdatedAt: 1,
+			return []api.ListCodeRepositoryProvidersResponse{{
+				Provider:       enums.ProviderGithub,
+				DisplayName:    "GitHub",
+				BaseURL:        "https://github.com",
+				OauthEnabled:   true,
+				Linked:         true,
+				AccountID:      new("account-1"),
+				CredentialType: enums.ScmCredentialTypeNone,
 			}}, nil
 		})
 
@@ -329,4 +331,97 @@ func newCodereposContext(t *testing.T) (*httptest.ResponseRecorder, *gin.Context
 	c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
 	c.Set(consts.ContextUser, &models.User{ID: "10", Role: enums.UserRoleAdmin})
 	return recorder, c
+}
+
+func TestGetCredential(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
+	serviceObj.EXPECT().
+		GetCodeRepositoryCredential(gomock.Any(), "10", enums.ProviderGithub).
+		Return(&models.CodeRepositoryCloneCredential{
+			ID:        "1",
+			Type:      enums.ScmCredentialTypeToken,
+			Token:     new("ghp_1234567890abcd"),
+			CreatedAt: 1,
+			UpdatedAt: 2,
+		}, nil)
+
+	recorder, c := newCodereposContext(t)
+	(&handler{CodeRepoSvc: serviceObj}).GetCredential(c, &api.GetCodeRepositoryCredentialRequest{Provider: enums.ProviderGithub})
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Contains(t, recorder.Body.String(), `"token":"ghp_****abcd"`)
+	require.NotContains(t, recorder.Body.String(), "ghp_1234567890abcd")
+}
+
+func TestGetCredentialReturnsNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
+	serviceObj.EXPECT().
+		GetCodeRepositoryCredential(gomock.Any(), "10", enums.ProviderGithub).
+		Return(nil, errcode.HTTPErrCodeNotFound)
+
+	recorder, c := newCodereposContext(t)
+	(&handler{CodeRepoSvc: serviceObj}).GetCredential(c, &api.GetCodeRepositoryCredentialRequest{Provider: enums.ProviderGithub})
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusNotFound, recorder.Code)
+}
+
+func TestUpdateCredential(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
+	serviceObj.EXPECT().
+		UpsertCodeRepositoryCredential(gomock.Any(), "10", gomock.Any()).
+		Return(nil)
+
+	recorder, c := newCodereposContext(t)
+	(&handler{CodeRepoSvc: serviceObj}).UpdateCredential(c, &api.UpdateCodeRepositoryCredentialRequest{
+		Provider: enums.ProviderGithub,
+		Type:     enums.ScmCredentialTypeToken,
+		Token:    new("ghp_sigma"),
+	})
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+}
+
+func TestDeleteCredential(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
+	serviceObj.EXPECT().
+		DeleteCodeRepositoryCredential(gomock.Any(), "10", enums.ProviderGithub).
+		Return(nil)
+
+	recorder, c := newCodereposContext(t)
+	(&handler{CodeRepoSvc: serviceObj}).DeleteCredential(c, &api.DeleteCodeRepositoryCredentialRequest{Provider: enums.ProviderGithub})
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+}
+
+func TestValidateCredential(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
+	serviceObj.EXPECT().
+		ValidateCodeRepositoryCredential(gomock.Any(), gomock.Any()).
+		Return(&api.ValidateCodeRepositoryCredentialResponse{
+			Provider:  enums.ProviderGithub,
+			Type:      enums.ScmCredentialTypeToken,
+			AccountID: "1",
+			Username:  "sigma",
+			Validated: true,
+		}, nil)
+
+	recorder, c := newCodereposContext(t)
+	(&handler{CodeRepoSvc: serviceObj}).ValidateCredential(c, &api.UpdateCodeRepositoryCredentialRequest{
+		Provider: enums.ProviderGithub,
+		Type:     enums.ScmCredentialTypeToken,
+		Token:    new("ghp_sigma"),
+	})
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Contains(t, recorder.Body.String(), `"account_id":"1"`)
 }

@@ -658,6 +658,29 @@ definitions:
         example: "2006-01-02 15:04:05"
         type: string
     type: object
+  api.GetCodeRepositoryCredentialResponse:
+    properties:
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      has_password:
+        type: boolean
+      has_ssh_key:
+        type: boolean
+      token:
+        example: ghp_****abcd
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: token
+      updated_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      username:
+        example: sigma
+        type: string
+    type: object
   api.GetCodeRepositoryUser3rdPartyResponse:
     properties:
       account_id:
@@ -829,6 +852,30 @@ definitions:
     type: object
   api.ListCodeRepositoryProvidersResponse:
     properties:
+      account_id:
+        type: string
+      base_url:
+        example: https://github.com
+        type: string
+      cr_last_update_message:
+        type: string
+      cr_last_update_status:
+        $ref: '#/definitions/enums.TaskCommonStatus'
+      cr_last_update_timestamp:
+        type: string
+      credential_type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: none
+      display_name:
+        example: GitHub
+        type: string
+      has_credential:
+        type: boolean
+      linked:
+        type: boolean
+      oauth_enabled:
+        type: boolean
       provider:
         allOf:
         - $ref: '#/definitions/enums.Provider'
@@ -1536,6 +1583,34 @@ definitions:
     required:
     - buildkit_platforms
     type: object
+  api.UpdateCodeRepositoryCredentialRequest:
+    properties:
+      password:
+        example: sigma
+        maxLength: 512
+        type: string
+      provider:
+        $ref: '#/definitions/enums.Provider'
+      ssh_key:
+        example: '-----BEGIN OPENSSH PRIVATE KEY-----'
+        maxLength: 8192
+        type: string
+      token:
+        example: ghp_xxx
+        maxLength: 1024
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: token
+      username:
+        example: sigma
+        maxLength: 256
+        type: string
+    required:
+    - provider
+    - type
+    type: object
   api.UpdateGcArtifactRuleRequest:
     properties:
       cron_enabled:
@@ -1683,6 +1758,29 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  api.ValidateCodeRepositoryCredentialResponse:
+    properties:
+      account_id:
+        example: "1234567"
+        type: string
+      provider:
+        allOf:
+        - $ref: '#/definitions/enums.Provider'
+        example: github
+      type:
+        allOf:
+        - $ref: '#/definitions/enums.ScmCredentialType'
+        example: token
+      username:
+        example: sigma
+        type: string
+      validated:
+        description: |-
+          Validated reports whether the credential was verified against the provider API.
+          SSH keys and username/password credentials are only usable for cloning, so they
+          cannot be verified.
+        type: boolean
     type: object
   api.ValidateCronRequest:
     properties:
@@ -2117,6 +2215,136 @@ paths:
       security:
       - BasicAuth: []
       summary: List code repositories
+      tags:
+      - CodeRepository
+  /coderepos/{provider}/credential:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Delete the SCM credential of the provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Delete code repository credential
+      tags:
+      - CodeRepository
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Get the SCM credential of the provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetCodeRepositoryCredentialResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get code repository credential
+      tags:
+      - CodeRepository
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update the SCM credential of the provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: SCM credential
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateCodeRepositoryCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Update code repository credential
+      tags:
+      - CodeRepository
+  /coderepos/{provider}/credential/validate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Validate the SCM credential of the provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: SCM credential
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateCodeRepositoryCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ValidateCodeRepositoryCredentialResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Validate code repository credential
       tags:
       - CodeRepository
   /coderepos/{provider}/owners:

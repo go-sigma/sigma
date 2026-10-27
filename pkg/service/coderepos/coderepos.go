@@ -26,12 +26,15 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	repocoderepo "github.com/go-sigma/sigma/pkg/dal/repository/coderepo"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
 	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	svccredential "github.com/go-sigma/sigma/pkg/service/credential"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
 
@@ -51,18 +54,30 @@ type Service interface {
 	GetCodeRepositoryBranch(ctx context.Context, codeRepositoryID string, name string) (*models.CodeRepositoryBranch, error)
 	// ResyncCodeRepositories resync all code repositories for the user's 3rd party (includes: update user status + produce daemon task).
 	ResyncCodeRepositories(ctx context.Context, userID string, provider enums.Provider) error
-	// ListCodeRepositoryProviders lists code repository providers (user 3rd party).
-	ListCodeRepositoryProviders(ctx context.Context, userID string) ([]*models.User3rdParty, error)
+	// ListCodeRepositoryProviders lists the configured source code providers together with
+	// the caller's binding, credential and last sync state.
+	ListCodeRepositoryProviders(ctx context.Context, userID string) ([]api.ListCodeRepositoryProvidersResponse, error)
 	// GetCodeRepositoryUser3rdParty gets the user 3rd party by provider.
 	GetCodeRepositoryUser3rdParty(ctx context.Context, userID string, provider enums.Provider) (*models.User3rdParty, error)
+	// GetCodeRepositoryCredential gets the SCM credential metadata of a provider.
+	GetCodeRepositoryCredential(ctx context.Context, userID string, provider enums.Provider) (*models.CodeRepositoryCloneCredential, error)
+	// UpsertCodeRepositoryCredential validates and stores the SCM credential of a provider,
+	// then triggers a sync.
+	UpsertCodeRepositoryCredential(ctx context.Context, userID string, req api.UpdateCodeRepositoryCredentialRequest) error
+	// DeleteCodeRepositoryCredential clears the SCM credential of a provider.
+	DeleteCodeRepositoryCredential(ctx context.Context, userID string, provider enums.Provider) error
+	// ValidateCodeRepositoryCredential verifies a credential without storing it.
+	ValidateCodeRepositoryCredential(ctx context.Context, req api.UpdateCodeRepositoryCredentialRequest) (*api.ValidateCodeRepositoryCredentialResponse, error)
 }
 
 type service struct {
 	dig.In
 
-	RepoCode repocoderepo.CodeRepositoryRepository
-	RepoUser repouser.UserRepository
-	Producer workq.Producer
+	RepoCode      repocoderepo.CodeRepositoryRepository
+	RepoUser      repouser.UserRepository
+	Producer      workq.Producer
+	Config        *config.Configuration
+	SvcCredential svccredential.Service
 }
 
 func NewService(params service) Service {
@@ -184,13 +199,90 @@ func (s *service) ResyncCodeRepositories(ctx context.Context, userID string, pro
 	return nil
 }
 
-func (s *service) ListCodeRepositoryProviders(ctx context.Context, userID string) ([]*models.User3rdParty, error) {
+// ListCodeRepositoryProviders lists the configured source code providers together with the
+// caller's binding, credential and last sync state.
+//
+// Providers come from the configuration (not from the user's bindings), so a provider that
+// is configured but not linked yet is still listed: the web UI needs it to offer the
+// "configure access token" action.
+func (s *service) ListCodeRepositoryProviders(ctx context.Context, userID string) ([]api.ListCodeRepositoryProvidersResponse, error) {
 	user3rdPartyObjs, err := s.RepoUser.ListUser3rdParty(ctx, userID)
 	if err != nil {
 		slog.Error("list providers failed", "err", err)
 		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List providers failed: %v", err))
 	}
-	return user3rdPartyObjs, nil
+	bindings := make(map[enums.Provider]*models.User3rdParty, len(user3rdPartyObjs))
+	for _, user3rdPartyObj := range user3rdPartyObjs {
+		bindings[user3rdPartyObj.Provider] = user3rdPartyObj
+	}
+
+	scmProviders := s.Config.ResolveScmProviders()
+	resp := make([]api.ListCodeRepositoryProvidersResponse, 0, len(scmProviders))
+	for _, scmProvider := range scmProviders {
+		provider := enums.Provider(scmProvider.Provider.String())
+		item := api.ListCodeRepositoryProvidersResponse{
+			Provider:              provider,
+			DisplayName:           scmProviderDisplayName(scmProvider.Provider),
+			BaseURL:               scmProvider.BaseURL,
+			OauthEnabled:          s.oauthEnabled(provider),
+			CredentialType:        enums.ScmCredentialTypeNone,
+			CrLastUpdateStatus:    enums.TaskCommonStatusPending,
+			CrLastUpdateTimestamp: time.Unix(0, 0).UTC().Format(consts.DefaultTimePattern),
+		}
+
+		user3rdPartyObj, ok := bindings[provider]
+		if !ok {
+			resp = append(resp, item)
+			continue
+		}
+		item.Linked = true
+		item.AccountID = user3rdPartyObj.AccountID
+		item.CrLastUpdateTimestamp = time.UnixMilli(user3rdPartyObj.CrLastUpdateTimestamp).UTC().Format(consts.DefaultTimePattern)
+		item.CrLastUpdateStatus = user3rdPartyObj.CrLastUpdateStatus
+		item.CrLastUpdateMessage = user3rdPartyObj.CrLastUpdateMessage
+
+		credentialObj, err := s.RepoCode.GetCloneCredential(ctx, user3rdPartyObj.ID)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				slog.Error("get code repository credential failed", "err", err, "user_3rdparty_id", user3rdPartyObj.ID)
+				return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository credential failed: %v", err))
+			}
+			resp = append(resp, item)
+			continue
+		}
+		if credentialObj.Type != enums.ScmCredentialTypeNone {
+			item.CredentialType = credentialObj.Type
+			item.HasCredential = true
+		}
+		resp = append(resp, item)
+	}
+	return resp, nil
+}
+
+// oauthEnabled reports whether the provider can be used to sign in.
+func (s *service) oauthEnabled(provider enums.Provider) bool {
+	switch provider {
+	case enums.ProviderGithub:
+		return s.Config.Auth.Oauth2.Github.Enabled
+	case enums.ProviderGitlab:
+		return s.Config.Auth.Oauth2.Gitlab.Enabled
+	case enums.ProviderGitea:
+		return s.Config.Auth.Oauth2.Gitea.Enabled
+	}
+	return false
+}
+
+// scmProviderDisplayName returns the human readable name of a source code provider.
+func scmProviderDisplayName(provider enums.ScmProvider) string {
+	switch provider {
+	case enums.ScmProviderGithub:
+		return "GitHub"
+	case enums.ScmProviderGitlab:
+		return "GitLab"
+	case enums.ScmProviderGitea:
+		return "Gitea"
+	}
+	return provider.String()
 }
 
 func (s *service) GetCodeRepositoryUser3rdParty(ctx context.Context, userID string, provider enums.Provider) (*models.User3rdParty, error) {

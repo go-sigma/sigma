@@ -43,6 +43,14 @@ type Handler interface {
 	Providers(c *gin.Context)
 	// User3rdParty get user 3rdparty
 	User3rdParty(c *gin.Context, req *api.GetCodeRepositoryUser3rdPartyRequest)
+	// GetCredential gets the SCM credential of the provider
+	GetCredential(c *gin.Context, req *api.GetCodeRepositoryCredentialRequest)
+	// UpdateCredential creates or replaces the SCM credential of the provider
+	UpdateCredential(c *gin.Context, req *api.UpdateCodeRepositoryCredentialRequest)
+	// DeleteCredential clears the SCM credential of the provider
+	DeleteCredential(c *gin.Context, req *api.DeleteCodeRepositoryCredentialRequest)
+	// ValidateCredential verifies the SCM credential of the provider
+	ValidateCredential(c *gin.Context, req *api.UpdateCodeRepositoryCredentialRequest)
 }
 
 var _ Handler = &handler{}
@@ -62,6 +70,10 @@ func Initialize(e *gin.Engine, h handler) error {
 		codereposGroup.GET("/:provider", server.WrapRequest(h.List))
 		codereposGroup.GET("/:provider/repos/:repo_id", server.WrapRequest(h.Get))
 		codereposGroup.GET("/:provider/user3rdparty", server.WrapRequest(h.User3rdParty))
+		codereposGroup.GET("/:provider/credential", server.WrapRequest(h.GetCredential))
+		codereposGroup.PUT("/:provider/credential", server.WrapRequest(h.UpdateCredential))
+		codereposGroup.DELETE("/:provider/credential", server.WrapRequest(h.DeleteCredential))
+		codereposGroup.POST("/:provider/credential/validate", server.WrapRequest(h.ValidateCredential))
 		codereposGroup.GET("/:provider/resync", server.WrapRequest(h.Resync))
 		codereposGroup.GET("/:provider/owners", server.WrapRequest(h.ListOwners))
 		codereposGroup.GET("/:provider/repos/:repo_id/branches", server.WrapRequest(h.ListBranches))

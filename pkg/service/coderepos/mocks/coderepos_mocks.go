@@ -43,6 +43,20 @@ func (m *MockCodeRepositoryService) EXPECT() *MockCodeRepositoryServiceMockRecor
 	return m.recorder
 }
 
+// DeleteCodeRepositoryCredential mocks base method.
+func (m *MockCodeRepositoryService) DeleteCodeRepositoryCredential(ctx context.Context, userID string, provider enums.Provider) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCodeRepositoryCredential", ctx, userID, provider)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCodeRepositoryCredential indicates an expected call of DeleteCodeRepositoryCredential.
+func (mr *MockCodeRepositoryServiceMockRecorder) DeleteCodeRepositoryCredential(ctx, userID, provider any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeRepositoryCredential", reflect.TypeOf((*MockCodeRepositoryService)(nil).DeleteCodeRepositoryCredential), ctx, userID, provider)
+}
+
 // GetCodeRepository mocks base method.
 func (m *MockCodeRepositoryService) GetCodeRepository(ctx context.Context, userID string, provider enums.Provider, id string) (*models.CodeRepository, []*models.CodeRepositoryOwner, error) {
 	m.ctrl.T.Helper()
@@ -72,6 +86,21 @@ func (m *MockCodeRepositoryService) GetCodeRepositoryBranch(ctx context.Context,
 func (mr *MockCodeRepositoryServiceMockRecorder) GetCodeRepositoryBranch(ctx, codeRepositoryID, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeRepositoryBranch", reflect.TypeOf((*MockCodeRepositoryService)(nil).GetCodeRepositoryBranch), ctx, codeRepositoryID, name)
+}
+
+// GetCodeRepositoryCredential mocks base method.
+func (m *MockCodeRepositoryService) GetCodeRepositoryCredential(ctx context.Context, userID string, provider enums.Provider) (*models.CodeRepositoryCloneCredential, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCodeRepositoryCredential", ctx, userID, provider)
+	ret0, _ := ret[0].(*models.CodeRepositoryCloneCredential)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCodeRepositoryCredential indicates an expected call of GetCodeRepositoryCredential.
+func (mr *MockCodeRepositoryServiceMockRecorder) GetCodeRepositoryCredential(ctx, userID, provider any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeRepositoryCredential", reflect.TypeOf((*MockCodeRepositoryService)(nil).GetCodeRepositoryCredential), ctx, userID, provider)
 }
 
 // GetCodeRepositoryUser3rdParty mocks base method.
@@ -139,10 +168,10 @@ func (mr *MockCodeRepositoryServiceMockRecorder) ListCodeRepositoryOwners(ctx, u
 }
 
 // ListCodeRepositoryProviders mocks base method.
-func (m *MockCodeRepositoryService) ListCodeRepositoryProviders(ctx context.Context, userID string) ([]*models.User3rdParty, error) {
+func (m *MockCodeRepositoryService) ListCodeRepositoryProviders(ctx context.Context, userID string) ([]api.ListCodeRepositoryProvidersResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListCodeRepositoryProviders", ctx, userID)
-	ret0, _ := ret[0].([]*models.User3rdParty)
+	ret0, _ := ret[0].([]api.ListCodeRepositoryProvidersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -165,4 +194,33 @@ func (m *MockCodeRepositoryService) ResyncCodeRepositories(ctx context.Context, 
 func (mr *MockCodeRepositoryServiceMockRecorder) ResyncCodeRepositories(ctx, userID, provider any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResyncCodeRepositories", reflect.TypeOf((*MockCodeRepositoryService)(nil).ResyncCodeRepositories), ctx, userID, provider)
+}
+
+// UpsertCodeRepositoryCredential mocks base method.
+func (m *MockCodeRepositoryService) UpsertCodeRepositoryCredential(ctx context.Context, userID string, req api.UpdateCodeRepositoryCredentialRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertCodeRepositoryCredential", ctx, userID, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertCodeRepositoryCredential indicates an expected call of UpsertCodeRepositoryCredential.
+func (mr *MockCodeRepositoryServiceMockRecorder) UpsertCodeRepositoryCredential(ctx, userID, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertCodeRepositoryCredential", reflect.TypeOf((*MockCodeRepositoryService)(nil).UpsertCodeRepositoryCredential), ctx, userID, req)
+}
+
+// ValidateCodeRepositoryCredential mocks base method.
+func (m *MockCodeRepositoryService) ValidateCodeRepositoryCredential(ctx context.Context, req api.UpdateCodeRepositoryCredentialRequest) (*api.ValidateCodeRepositoryCredentialResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateCodeRepositoryCredential", ctx, req)
+	ret0, _ := ret[0].(*api.ValidateCodeRepositoryCredentialResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ValidateCodeRepositoryCredential indicates an expected call of ValidateCodeRepositoryCredential.
+func (mr *MockCodeRepositoryServiceMockRecorder) ValidateCodeRepositoryCredential(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateCodeRepositoryCredential", reflect.TypeOf((*MockCodeRepositoryService)(nil).ValidateCodeRepositoryCredential), ctx, req)
 }

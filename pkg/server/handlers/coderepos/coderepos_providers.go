@@ -49,7 +49,7 @@ func (h *handler) Providers(c *gin.Context) {
 		return
 	}
 
-	user3rdPartyObjs, err := h.CodeRepoSvc.ListCodeRepositoryProviders(ctx, user.ID)
+	providers, err := h.CodeRepoSvc.ListCodeRepositoryProviders(ctx, user.ID)
 	if err != nil {
 		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
 			errcode.NewHTTPError(c, e)
@@ -58,11 +58,9 @@ func (h *handler) Providers(c *gin.Context) {
 		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List providers failed: %v", err))
 		return
 	}
-	resp := make([]any, 0, len(user3rdPartyObjs))
-	for _, user3rdPartyObj := range user3rdPartyObjs {
-		resp = append(resp, api.ListCodeRepositoryProvidersResponse{
-			Provider: user3rdPartyObj.Provider,
-		})
+	resp := make([]any, 0, len(providers))
+	for _, provider := range providers {
+		resp = append(resp, provider)
 	}
-	c.JSON(http.StatusOK, api.CommonList{Total: int64(len(user3rdPartyObjs)), Items: resp})
+	c.JSON(http.StatusOK, api.CommonList{Total: int64(len(providers)), Items: resp})
 }

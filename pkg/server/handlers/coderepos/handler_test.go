@@ -41,7 +41,7 @@ func TestInitialize(t *testing.T) {
 	require.NoError(t, digCon.Invoke(Initialize))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
 		routes := engine.Routes()
-		require.Len(t, routes, 8)
+		require.Len(t, routes, 12)
 		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/providers"))
 		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/coderepos/:provider/repos/:repo_id/branches/:name"))
 	}))
