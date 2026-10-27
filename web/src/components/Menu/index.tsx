@@ -109,7 +109,6 @@ type MenuProps = {
   repository_id?: string;
   section?: MenuSection;
   repositorySection?: MenuRepositorySection;
-  provider?: string;
   tag?: string;
   selfClick?: boolean;
   persistent?: boolean;
@@ -167,14 +166,14 @@ export default function Menu(props: MenuProps) {
   );
 }
 
-function MenuContent({ localServer, item, namespace, namespace_id, repository, repository_id, section, repositorySection, provider }: MenuProps) {
+function MenuContent({ localServer, item, namespace, namespace_id, repository, repository_id, section, repositorySection }: MenuProps) {
   const { t } = useTranslation();
   const themeMode = useUiStore((state) => state.themeMode);
   const setThemeMode = useUiStore((state) => state.setThemeMode);
   const locale = useUiStore((state) => state.locale);
   const setLocale = useUiStore((state) => state.setLocale);
   const namespacesActive = item === "namespaces";
-  const settingsGroupActive = item === "settings" || item === "users" || item === "daemon-tasks" || item === "webhooks";
+  const settingsGroupActive = item === "settings" || item === "users" || item === "daemon-tasks" || item === "webhooks" || item === "coderepos";
   const codeRepositoryActive = item === "coderepos";
   const homeActive = item === "home";
   const navigate = useNavigate();
@@ -291,13 +290,6 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, r
     }
     return items;
   }, [hotNamespaceList, namespace, namespace_id, isAnonymous]);
-
-  const providerItems = useMemo(() => {
-    const items: { key: string; label: string }[] = [];
-    if (config.oauth2?.github) items.push({ key: "github", label: "GitHub" });
-    if (config.oauth2?.gitlab) items.push({ key: "gitlab", label: "GitLab" });
-    return items;
-  }, [config.oauth2?.github, config.oauth2?.gitlab]);
 
   const [updateProfileModal, setUpdateProfileModal] = useState(false);
   const [updatePasswordModal, setUpdatePasswordModal] = useState(false);
@@ -446,47 +438,6 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, r
                 </CollapsiblePanel>
               </Collapsible>
 
-              {!isAnonymous && config.daemon?.builder && (
-                providerItems.length > 0 ? (
-                  <Collapsible
-                    open={codeRepositoryActive}
-                    render={<SidebarMenuItem />}
-                    className="group/collapsible"
-                  >
-                    <CollapsibleTrigger
-                      nativeButton={false}
-                      render={
-                        <SidebarMenuButton render={<Link to="/coderepos" />} isActive={codeRepositoryActive && !provider} />
-                      }
-                    >
-                      <Server />
-                      <span>{t("menu.codeRepository")}</span>
-                      <ChevronRight className={`ml-auto transition-transform duration-200 ${codeRepositoryActive ? "rotate-90" : ""}`} />
-                    </CollapsibleTrigger>
-                    <CollapsiblePanel>
-                      <SidebarMenuSub>
-                        {providerItems.map((providerItem) => (
-                          <SidebarSubLink
-                            key={providerItem.key}
-                            to={`/coderepos/${providerItem.key}`}
-                            active={provider === providerItem.key}
-                          >
-                            <span>{providerItem.label}</span>
-                          </SidebarSubLink>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsiblePanel>
-                  </Collapsible>
-                ) : (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton render={<Link to="/coderepos" />} isActive={codeRepositoryActive}>
-                      <Server />
-                      <span>{t("menu.codeRepository")}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              )}
-
               {!isAnonymous && (
                 <Collapsible
                   open={settingsGroupActive}
@@ -520,6 +471,12 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, r
                         <Webhook />
                         <span>{t("menu.webhook")}</span>
                       </SidebarSubLink>
+                      {config.daemon?.builder && (
+                        <SidebarSubLink to="/coderepos" active={codeRepositoryActive}>
+                          <Server />
+                          <span>{t("menu.codeRepository")}</span>
+                        </SidebarSubLink>
+                      )}
                     </SidebarMenuSub>
                   </CollapsiblePanel>
                 </Collapsible>

@@ -234,6 +234,42 @@ export interface ICodeRepositoryBranchList {
 
 export interface ICodeRepositoryProviderItem {
   provider: string;
+  display_name: string;
+  base_url: string;
+  oauth_enabled: boolean;
+  linked: boolean;
+  account_id?: string;
+  credential_type: string;
+  has_credential: boolean;
+  cr_last_update_timestamp: string;
+  cr_last_update_status: string;
+  cr_last_update_message?: string;
+}
+
+export interface ICodeRepositoryCredential {
+  type: string;
+  token?: string;
+  username?: string;
+  has_ssh_key: boolean;
+  has_password: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ICodeRepositoryCredentialPayload {
+  type: string;
+  token?: string;
+  ssh_key?: string;
+  username?: string;
+  password?: string;
+}
+
+export interface ICodeRepositoryCredentialValidation {
+  provider: string;
+  type: string;
+  account_id: string;
+  username: string;
+  validated: boolean;
 }
 
 export interface ICodeRepositoryProviderList {

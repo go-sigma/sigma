@@ -783,7 +783,12 @@ export default function ({ localServer }: { localServer: string }) {
                               <PopoverContent align="start" className="w-(--anchor-width) p-0">
                                 <Command shouldFilter={false}>
                                   <CommandList>
-                                    <CommandEmpty>Nothing found.</CommandEmpty>
+                                    <CommandEmpty>
+                                      {t("codeRepository.emptyProviders")}{" "}
+                                      <a href="/coderepos" className="underline">
+                                        {t("codeRepository.addCredential")}
+                                      </a>
+                                    </CommandEmpty>
                                     <CommandGroup>
                                       {codeRepositoryProviderList?.map(item => (
                                         <CommandItem

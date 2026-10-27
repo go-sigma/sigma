@@ -55,7 +55,8 @@ import {
   ICodeRepositoryList,
   ICodeRepositoryOwnerItem,
   ICodeRepositoryOwnerList,
-  ICodeRepositoryUser3rdParty,
+  ICodeRepositoryProviderItem,
+  ICodeRepositoryProviderList,
 } from "@/interfaces";
 import Settings from "@/Settings";
 
@@ -98,16 +99,18 @@ export default function ({ localServer }: { localServer: string }) {
       .catch(() => {});
   }, [provider, refresh, localServer]);
 
-  const [user3rdparty, setUser3rdparty] =
-    useState<ICodeRepositoryUser3rdParty>();
+  const [providerItem, setProviderItem] =
+    useState<ICodeRepositoryProviderItem>();
   const [refreshUser3rdparty, setRefreshUser3rdparty] = useState({});
   useEffect(() => {
     if (!provider) return;
     axios
-      .get(`${localServer}/api/v1/coderepos/${provider}/user3rdparty`)
+      .get(`${localServer}/api/v1/coderepos/providers`)
       .then((response) => {
-        if (response.status == 200)
-          setUser3rdparty(response.data as ICodeRepositoryUser3rdParty);
+        if (response.status == 200) {
+          const items = (response.data as ICodeRepositoryProviderList).items;
+          setProviderItem(items.find((item) => item.provider === provider));
+        }
       })
       .catch(() => {});
   }, [provider, refresh, refreshUser3rdparty, localServer]);
@@ -148,7 +151,7 @@ export default function ({ localServer }: { localServer: string }) {
 
   const crResync = () => {
     if (!provider) return;
-    if (user3rdparty?.cr_last_update_status == "Doing") {
+    if (providerItem?.cr_last_update_status == "Doing") {
       Toast({
         level: "warning",
         title: "Code repository is already synchronizing",
@@ -241,13 +244,13 @@ export default function ({ localServer }: { localServer: string }) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {user3rdparty?.cr_last_update_status || ""}
-                    {user3rdparty?.cr_last_update_status == "Failed" &&
-                    user3rdparty?.cr_last_update_message != ""
-                      ? ", " + user3rdparty?.cr_last_update_message
+                    {providerItem?.cr_last_update_status || ""}
+                    {providerItem?.cr_last_update_status == "Failed" &&
+                    providerItem?.cr_last_update_message != ""
+                      ? ", " + providerItem?.cr_last_update_message
                       : ""}
                     . Last updated{" "}
-                    {dayjs().to(dayjs(user3rdparty?.cr_last_update_timestamp))}
+                    {dayjs().to(dayjs(providerItem?.cr_last_update_timestamp))}
                   </TooltipContent>
                 </Tooltip>
               </div>

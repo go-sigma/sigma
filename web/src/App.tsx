@@ -55,7 +55,7 @@ function getAppMenuProps(pathname: string, search: string): Omit<AppMenuProps, "
   }
 
   if (section === "coderepos") {
-    return { item: "coderepos", provider: namespace };
+    return { item: "coderepos" };
   }
 
   if (section === "builders") {
