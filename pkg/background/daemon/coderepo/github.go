@@ -29,8 +29,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.User3rdParty) error {
-	client := github.NewTokenClient(ctx, ptr.To(user3rdPartyObj.Token))
+func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.User3rdParty, credential scmCredential) error {
+	client := github.NewTokenClient(ctx, credential.Token)
 
 	userObj, _, err := client.Users.Get(ctx, "")
 	if err != nil {

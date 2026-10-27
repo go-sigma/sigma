@@ -17,6 +17,7 @@ package coderepo
 import (
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"log/slog"
 	"path"
@@ -24,19 +25,27 @@ import (
 	"time"
 
 	"go.uber.org/dig"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/background/daemon"
+	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	repocoderepo "github.com/go-sigma/sigma/pkg/dal/repository/coderepo"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
 	"github.com/go-sigma/sigma/pkg/infra/workq"
+	svccredential "github.com/go-sigma/sigma/pkg/service/credential"
 	"github.com/go-sigma/sigma/pkg/utils"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 const (
 	perPage = 100
+	// maxStatusMessageLength keeps the sync error message within the size of the
+	// cr_last_update_message column.
+	maxStatusMessageLength = 250
 )
 
 func init() {
@@ -51,6 +60,8 @@ type params struct {
 	HandlerRegistry          workq.HandlerRegistry
 	UserRepository           repouser.UserRepository
 	CodeRepositoryRepository repocoderepo.CodeRepositoryRepository
+	Config                   *config.Configuration
+	SvcCredential            svccredential.Service
 }
 
 // Initialize initializes the code repository daemon, which is used to sync the code repository.
@@ -76,6 +87,8 @@ func crRunner(p params) func(ctx context.Context, payload []byte) error {
 		cr := codeRepository{
 			userRepository:           p.UserRepository,
 			codeRepositoryRepository: p.CodeRepositoryRepository,
+			config:                   p.Config,
+			svcCredential:            p.SvcCredential,
 		}
 
 		status := enums.TaskCommonStatusSuccess
@@ -83,7 +96,7 @@ func crRunner(p params) func(ctx context.Context, payload []byte) error {
 		err = cr.runner(ctx, task)
 		if err != nil {
 			status = enums.TaskCommonStatusFailed
-			statusMessage = err.Error()
+			statusMessage = truncateStatusMessage(err.Error())
 		}
 		userRepository := p.UserRepository
 		err = userRepository.UpdateUser3rdParty(ctx, task.User3rdPartyID, map[string]any{
@@ -98,26 +111,103 @@ func crRunner(p params) func(ctx context.Context, payload []byte) error {
 	}
 }
 
+// truncateStatusMessage keeps an error message within the column size.
+func truncateStatusMessage(message string) string {
+	runes := []rune(message)
+	if len(runes) <= maxStatusMessageLength {
+		return message
+	}
+	return string(runes[:maxStatusMessageLength])
+}
+
 type codeRepository struct {
 	userRepository           repouser.UserRepository
 	codeRepositoryRepository repocoderepo.CodeRepositoryRepository
+	config                   *config.Configuration
+	svcCredential            svccredential.Service
+}
+
+// scmCredential is a decrypted SCM credential used to talk to a provider.
+type scmCredential struct {
+	Type     enums.ScmCredentialType
+	Token    string
+	Username string
+	Password string
+	SshKey   string
+}
+
+// credential loads and decrypts the SCM credential of a third-party account.
+func (cr codeRepository) credential(ctx context.Context, user3rdPartyObj *models.User3rdParty) (scmCredential, error) {
+	notConfigured := fmt.Errorf("no SCM credential is configured for %s, add an access token in settings first", user3rdPartyObj.Provider.String())
+
+	credentialObj, err := cr.codeRepositoryRepository.GetCloneCredential(ctx, user3rdPartyObj.ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return scmCredential{}, notConfigured
+		}
+		slog.Error("get scm credential failed", "err", err, "user_3rdparty_id", user3rdPartyObj.ID)
+		return scmCredential{}, fmt.Errorf("get SCM credential failed: %w", err)
+	}
+	if credentialObj.Type == enums.ScmCredentialTypeNone {
+		return scmCredential{}, notConfigured
+	}
+
+	credential := scmCredential{Type: credentialObj.Type}
+	if credentialObj.Username != nil {
+		credential.Username = ptr.To(credentialObj.Username)
+	}
+	for _, field := range []struct {
+		name string
+		src  *string
+		dst  *string
+	}{
+		{name: "token", src: credentialObj.Token, dst: &credential.Token},
+		{name: "password", src: credentialObj.Password, dst: &credential.Password},
+		{name: "ssh key", src: credentialObj.SshKey, dst: &credential.SshKey},
+	} {
+		if field.src == nil || *field.src == "" {
+			continue
+		}
+		plaintext, err := cr.svcCredential.Open(*field.src)
+		if err != nil {
+			slog.Error("decrypt scm credential failed", "err", err, "user_3rdparty_id", user3rdPartyObj.ID, "field", field.name)
+			return scmCredential{}, fmt.Errorf("decrypt SCM credential failed, please configure it again")
+		}
+		*field.dst = plaintext
+	}
+	return credential, nil
 }
 
 func (cr codeRepository) runner(ctx context.Context, payload api.DaemonCodeRepositoryPayload) error {
-	userRepository := cr.userRepository
-	// TODO: fix get user 3rdparty
-	user3rdPartyObj, err := userRepository.GetUser3rdParty(ctx, payload.User3rdPartyID)
+	user3rdPartyObj, err := cr.userRepository.GetUser3rdParty(ctx, payload.User3rdPartyID)
 	if err != nil {
 		slog.Error("get 3rdParty user failed", "err", err)
 		return fmt.Errorf("get 3rdParty user failed: %v", err)
 	}
+
+	credential, err := cr.credential(ctx, user3rdPartyObj)
+	if err != nil {
+		return err
+	}
+	// Listing repositories is an API call: only token credentials can do it, SSH keys
+	// and username/password are only usable for cloning.
+	if credential.Type != enums.ScmCredentialTypeToken || credential.Token == "" {
+		return fmt.Errorf("listing %s repositories requires a token credential, the configured %s credential cannot list them",
+			user3rdPartyObj.Provider.String(), credential.Type.String())
+	}
+
+	scmProvider, ok := cr.config.ScmProvider(user3rdPartyObj.Provider)
+	if !ok {
+		return fmt.Errorf("scm provider %s is not configured", user3rdPartyObj.Provider.String())
+	}
+
 	switch user3rdPartyObj.Provider {
 	case enums.ProviderGithub:
-		return cr.github(ctx, user3rdPartyObj)
+		return cr.github(ctx, user3rdPartyObj, credential)
 	case enums.ProviderGitlab:
-		return cr.gitlab(ctx, user3rdPartyObj)
+		return cr.gitlab(ctx, user3rdPartyObj, credential, scmProvider.BaseURL)
 	case enums.ProviderGitea:
-		return cr.gitea(ctx, user3rdPartyObj)
+		return cr.gitea(ctx, user3rdPartyObj, credential, scmProvider.BaseURL)
 	}
-	return nil
+	return fmt.Errorf("unsupported scm provider %s", user3rdPartyObj.Provider.String())
 }

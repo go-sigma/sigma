@@ -27,8 +27,8 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User3rdParty) error {
-	client, err := gitea.NewClient("", gitea.SetToken(ptr.To(user3rdPartyObj.Token)), gitea.SetContext(ctx))
+func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User3rdParty, credential scmCredential, baseURL string) error {
+	client, err := gitea.NewClient(baseURL, gitea.SetToken(credential.Token), gitea.SetContext(ctx))
 	if err != nil {
 		return err
 	}

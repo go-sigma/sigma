@@ -24,18 +24,17 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.User3rdParty) error {
+func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.User3rdParty, credential scmCredential, baseURL string) error {
 	as := gitlab.OAuthTokenSource{
 		TokenSource: oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: ptr.To(user3rdPartyObj.Token),
+			AccessToken: credential.Token,
 		}),
 	}
 
-	client, err := gitlab.NewAuthSourceClient(as)
+	client, err := gitlab.NewAuthSourceClient(as, gitlab.WithBaseURL(baseURL))
 	if err != nil {
 		return err
 	}
