@@ -37,6 +37,7 @@ import (
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	svccredential "github.com/go-sigma/sigma/pkg/service/credential"
 	"github.com/go-sigma/sigma/pkg/utils"
 	"github.com/go-sigma/sigma/pkg/utils/compress"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
@@ -70,10 +71,11 @@ type Service interface {
 type service struct {
 	dig.In
 
-	RepoBuilder  repobuilder.BuilderRepository
-	RepoRegistry reporegistry.RepositoryRepository
-	RepoCode     repocoderepo.CodeRepositoryRepository
-	Producer     workq.Producer
+	RepoBuilder   repobuilder.BuilderRepository
+	RepoRegistry  reporegistry.RepositoryRepository
+	RepoCode      repocoderepo.CodeRepositoryRepository
+	Producer      workq.Producer
+	SvcCredential svccredential.Service
 }
 
 func NewService(params service) Service {
@@ -244,22 +246,16 @@ func (s *service) CreateBuilder(ctx context.Context, userID string, req api.Crea
 			slog.Error("get code repository by id failed", "err", err, "CodeRepositoryID", ptr.To(req.CodeRepositoryID))
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%s) failed: %v", ptr.To(req.CodeRepositoryID), err))
 		}
-		cloneCredentialObj, err := s.RepoCode.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
+		credentialObj, err := s.decryptedCredential(ctx, codeRepositoryObj.User3rdPartyID)
 		if err != nil {
-			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Error("get code repository clone credential failed", "err", err)
-			} else {
-				scmCredentialType := enums.ScmCredentialTypeToken
-				builderObj.ScmCredentialType = &scmCredentialType
-				builderObj.ScmToken = codeRepositoryObj.User3rdParty.Token
-			}
-		} else {
-			builderObj.ScmCredentialType = new(cloneCredentialObj.Type)
-			builderObj.ScmUsername = cloneCredentialObj.Username
-			builderObj.ScmPassword = cloneCredentialObj.Password
-			builderObj.ScmSshKey = cloneCredentialObj.SshKey
-			builderObj.ScmToken = cloneCredentialObj.Token
+			return err
 		}
+		scmCredentialType := credentialObj.Type
+		builderObj.ScmCredentialType = &scmCredentialType
+		builderObj.ScmUsername = credentialObj.Username
+		builderObj.ScmPassword = credentialObj.Password
+		builderObj.ScmSshKey = credentialObj.SshKey
+		builderObj.ScmToken = credentialObj.Token
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
 		repoBuilder := repobuilder.NewBuilderRepository(tx)
@@ -313,22 +309,16 @@ func (s *service) UpdateBuilder(ctx context.Context, userID string, builderID st
 			slog.Error("get code repository by id failed", "err", err, "CodeRepositoryID", ptr.To(req.CodeRepositoryID))
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository by id(%s) failed: %v", ptr.To(req.CodeRepositoryID), err))
 		}
-		cloneCredentialObj, err := s.RepoCode.GetCloneCredential(ctx, codeRepositoryObj.User3rdPartyID)
+		credentialObj, err := s.decryptedCredential(ctx, codeRepositoryObj.User3rdPartyID)
 		if err != nil {
-			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Error("get code repository clone credential failed", "err", err)
-			} else {
-				scmCredentialType := enums.ScmCredentialTypeToken
-				updates[query.Builder.ScmCredentialType.ColumnName().String()] = &scmCredentialType
-				updates[query.Builder.ScmToken.ColumnName().String()] = codeRepositoryObj.User3rdParty.Token
-			}
-		} else {
-			updates[query.Builder.ScmCredentialType.ColumnName().String()] = new(cloneCredentialObj.Type)
-			updates[query.Builder.ScmToken.ColumnName().String()] = cloneCredentialObj.Token
-			updates[query.Builder.ScmUsername.ColumnName().String()] = cloneCredentialObj.Username
-			updates[query.Builder.ScmPassword.ColumnName().String()] = cloneCredentialObj.Password
-			updates[query.Builder.ScmSshKey.ColumnName().String()] = cloneCredentialObj.SshKey
+			return err
 		}
+		scmCredentialType := credentialObj.Type
+		updates[query.Builder.ScmCredentialType.ColumnName().String()] = &scmCredentialType
+		updates[query.Builder.ScmToken.ColumnName().String()] = credentialObj.Token
+		updates[query.Builder.ScmUsername.ColumnName().String()] = credentialObj.Username
+		updates[query.Builder.ScmPassword.ColumnName().String()] = credentialObj.Password
+		updates[query.Builder.ScmSshKey.ColumnName().String()] = credentialObj.SshKey
 	}
 	return query.Q.Transaction(func(tx *query.Query) error {
 		builderRepository := repobuilder.NewBuilderRepository(tx)
@@ -527,4 +517,35 @@ func (s *service) StopRunner(ctx context.Context, req api.GetRunnerStop) error {
 		}
 		return nil
 	})
+}
+
+// decryptedCredential returns the SCM credential of a third-party user with its
+// sealed secret fields opened, and rejects builders that would clone without one.
+func (s *service) decryptedCredential(ctx context.Context, user3rdPartyID string) (*models.CodeRepositoryCloneCredential, error) {
+	credentialObj, err := s.RepoCode.GetCloneCredential(ctx, user3rdPartyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			slog.Error("code repository has no credential", "user_3rdparty_id", user3rdPartyID)
+			return nil, errcode.HTTPErrCodeBadRequest.Detail("Code repository has no credential, configure it in settings first")
+		}
+		slog.Error("get code repository credential failed", "err", err)
+		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get code repository credential failed: %v", err))
+	}
+	if credentialObj.Type == enums.ScmCredentialTypeNone {
+		slog.Error("code repository has no credential", "user_3rdparty_id", user3rdPartyID)
+		return nil, errcode.HTTPErrCodeBadRequest.Detail("Code repository has no credential, configure it in settings first")
+	}
+
+	for _, field := range []**string{&credentialObj.Token, &credentialObj.SshKey, &credentialObj.Password} {
+		if *field == nil || **field == "" {
+			continue
+		}
+		plaintext, err := s.SvcCredential.Open(**field)
+		if err != nil {
+			slog.Error("decrypt code repository credential failed", "err", err, "user_3rdparty_id", user3rdPartyID)
+			return nil, errcode.HTTPErrCodeInternalError.Detail("Decrypt code repository credential failed")
+		}
+		*field = &plaintext
+	}
+	return credentialObj, nil
 }
