@@ -112,7 +112,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>{t("common.codeRepository")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-background min-w-400">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <Menu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>

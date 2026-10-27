@@ -17,15 +17,16 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import _ from "lodash";
-import { RefreshCw, UserPlus } from "lucide-react";
+import { CornerDownLeft, RefreshCw } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import Header from "@/components/Header";
 import HeaderMenu from "@/components/Menu";
 import Toast from "@/components/Notification";
 import Pagination from "@/components/Pagination";
+import RelativeTime from "@/components/RelativeTime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,8 +58,11 @@ import {
   ICodeRepositoryOwnerList,
   ICodeRepositoryProviderItem,
   ICodeRepositoryProviderList,
+  IOrder,
 } from "@/interfaces";
-import Settings from "@/Settings";
+
+// codeRepositoryPageSize is the number of code repositories shown per page.
+const codeRepositoryPageSize = 20;
 
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
@@ -122,10 +126,17 @@ export default function ({ localServer }: { localServer: string }) {
 
   useEffect(() => {
     if (!provider || organization == "") return;
-    let url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&limit=${Settings.PageSize}&page=${page}`;
+    const params = new URLSearchParams({
+      owner: organization,
+      limit: String(codeRepositoryPageSize),
+      page: String(page),
+      sort: "pushed_at",
+      method: String(IOrder.Desc),
+    });
     if (searchCodeRepo != "") {
-      url = `${localServer}/api/v1/coderepos/${provider}?owner=${organization}&name=${searchCodeRepo}&limit=${Settings.PageSize}&page=${page}`;
+      params.set("name", searchCodeRepo);
     }
+    const url = `${localServer}/api/v1/coderepos/${provider}?${params.toString()}`;
     axios
       .get(url)
       .then((response) => {
@@ -181,7 +192,7 @@ export default function ({ localServer }: { localServer: string }) {
           <title>{t("common.codeRepository")}</title>
         </Helmet>
       </HelmetProvider>
-      <div className="min-h-screen flex overflow-hidden bg-background min-w-400">
+      <div className="min-h-screen flex overflow-hidden bg-background">
         <HeaderMenu localServer={localServer} item="coderepos" />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative focus:outline-none" tabIndex={0}>
@@ -189,10 +200,10 @@ export default function ({ localServer }: { localServer: string }) {
             <div className="pt-4 pb-4 flex justify-between items-center">
               <div className="px-4 flex-1">
                 <div className="flex items-end gap-2">
-                  <div className="grid gap-1 relative w-40">
+                  <div className="relative flex items-center w-40">
                     <Label
                       htmlFor="codeRepositorySearch"
-                      className="text-xs text-foreground"
+                      className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10"
                     >
                       Organization
                     </Label>
@@ -202,10 +213,10 @@ export default function ({ localServer }: { localServer: string }) {
                         if (v) setOrganization(v);
                       }}
                     >
-                      <SelectTrigger id="codeRepositorySearch" className="h-10">
+                      <SelectTrigger id="codeRepositorySearch" className="h-10 w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent align="start">
                         {codeRepositoryOwners.map((cro) => (
                           <SelectItem key={cro.id} value={cro.owner}>
                             {cro.owner}
@@ -214,16 +225,16 @@ export default function ({ localServer }: { localServer: string }) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid gap-1 relative flex-1 max-w-xs">
+                  <div className="relative flex items-center flex-1 max-w-xs">
                     <Label
                       htmlFor="codeRepoSearchInput"
-                      className="text-xs text-foreground"
+                      className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10"
                     >
-                      Code Repository
+                      {t("common.codeRepository")}
                     </Label>
                     <Input
                       id="codeRepoSearchInput"
-                      placeholder="search code repository"
+                      placeholder={t("codeRepository.searchPlaceholder")}
                       value={searchCodeRepo}
                       onChange={(e) => setSearchCodeRepo(e.target.value)}
                       onKeyDown={(e) => {
@@ -232,10 +243,16 @@ export default function ({ localServer }: { localServer: string }) {
                       }}
                       className="h-10 pr-14"
                     />
+                    <kbd
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                      aria-hidden="true"
+                    >
+                      <CornerDownLeft className="size-3.5" />
+                    </kbd>
                   </div>
                 </div>
               </div>
-              <div>
+              <div className="px-4">
                 <Tooltip>
                   <TooltipTrigger>
                     <Button onClick={crResync}>
@@ -249,16 +266,11 @@ export default function ({ localServer }: { localServer: string }) {
                     providerItem?.cr_last_update_message != ""
                       ? ", " + providerItem?.cr_last_update_message
                       : ""}
-                    . Last updated{" "}
-                    {dayjs().to(dayjs(providerItem?.cr_last_update_timestamp))}
+                    {providerItem?.cr_last_update_timestamp
+                      ? `. Last updated ${dayjs.utc(providerItem.cr_last_update_timestamp).fromNow()}`
+                      : ""}
                   </TooltipContent>
                 </Tooltip>
-              </div>
-              <div className="pr-2 flex flex-col">
-                <Button variant="outline">
-                  <UserPlus data-icon="inline-start" />
-                  Clone credential
-                </Button>
               </div>
             </div>
           </main>
@@ -268,44 +280,30 @@ export default function ({ localServer }: { localServer: string }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead className="text-right">Oci Repo Count</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="text-right">Last Update</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {repositories?.map((repository) => (
-                    <TableItem
-                      key={repository.id}
-                      provider={provider || ""}
-                      repository={repository}
-                    />
+                    <TableItem key={repository.id} repository={repository} />
                   ))}
                 </TableBody>
               </Table>
             </div>
           </div>
-          <div style={{ marginTop: "auto" }}>
-            <Pagination
-              limit={Settings.PageSize}
-              page={page}
-              setPage={setPageAndScrollTop}
-              total={total}
-            />
-          </div>
+          <Pagination
+            limit={codeRepositoryPageSize}
+            page={page}
+            setPage={setPageAndScrollTop}
+            total={total}
+          />
         </div>
       </div>
     </Fragment>
   );
 }
 
-function TableItem({
-  provider,
-  repository,
-}: {
-  provider: string;
-  repository: ICodeRepositoryItem;
-}) {
-  const navigate = useNavigate();
+function TableItem({ repository }: { repository: ICodeRepositoryItem }) {
   return (
     <TableRow className="align-middle">
       <TableCell
@@ -320,17 +318,7 @@ function TableItem({
         </div>
       </TableCell>
       <TableCell className="text-right text-muted-foreground cursor-pointer">
-        {repository.oci_repo_count}
-      </TableCell>
-      <TableCell
-        className="text-right text-muted-foreground cursor-pointer hover:text-foreground"
-        onClick={() => {
-          navigate(
-            `/builders/setup?builder_source=CodeRepository&provider=${provider}&code_repository_stick=true&code_repository_owner=${repository.owner}&code_repository_owner_id=${repository.owner_id}&code_repository_name=${repository.name}&code_repository_id=${repository.id}&back_to=/coderepos/${provider}`,
-          );
-        }}
-      >
-        Setup
+        <RelativeTime time={repository.pushed_at} />
       </TableCell>
     </TableRow>
   );
