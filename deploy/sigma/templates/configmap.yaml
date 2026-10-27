@@ -146,3 +146,7 @@ data:
         maxFailures: {{ .Values.config.auth.loginRateLimit.maxFailures | default 5 }}
         window: {{ .Values.config.auth.loginRateLimit.window | default "5m" | quote }}
         delay: {{ .Values.config.auth.loginRateLimit.delay | default "1s" | quote }}
+      credentialKey: {{ .Values.config.auth.credentialKey | default "" | quote }}
+    scm:
+      providers:
+        {{- toYaml (.Values.config.scm.providers | default list) | nindent 8 }}

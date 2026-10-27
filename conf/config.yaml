@@ -220,6 +220,23 @@ auth:
     lockDuration: 60s
     # inmemory | redis
     backend: inmemory
+  # master key used to encrypt source code credentials at rest.
+  # when empty, sigma generates one on first start and stores it in the settings table.
+  # generate the key with: openssl rand -base64 32
+  credentialKey: ""
+
+scm:
+  # source code management providers available for code repository sync and image builds.
+  # this section is independent of auth.oauth2, which only decides whether a provider can be
+  # used to sign in. when empty, the providers are derived from the enabled oauth2 providers.
+  providers: []
+  # providers:
+  #   - provider: github
+  #     baseUrl: https://github.com
+  #   - provider: gitlab
+  #     baseUrl: https://gitlab.com
+  #   - provider: gitea
+  #     baseUrl: https://gitea.example.com
 
 audit:
   # record completed authenticated business HTTP requests

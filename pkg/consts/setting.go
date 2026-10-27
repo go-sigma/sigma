@@ -19,4 +19,8 @@ const (
 	SettingSignPrivateKey = "signing.private_key"
 	// SettingSignPublicKey is the public key for signing
 	SettingSignPublicKey = "signing.public_key"
+	// SettingCredentialMasterKey is the settings key holding the master key that encrypts
+	// SCM credentials at rest. The value is generated on first start when
+	// auth.credentialKey is not configured.
+	SettingCredentialMasterKey = "credential.master_key" // #nosec G101 -- settings key name, not a credential
 )

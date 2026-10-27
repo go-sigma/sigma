@@ -15,6 +15,8 @@
 package config
 
 import (
+	"log/slog"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -64,6 +66,7 @@ type Configuration struct {
 	Proxy     ConfigurationProxy     `yaml:"proxy"`
 	Daemon    ConfigurationDaemon    `yaml:"daemon"`
 	Auth      ConfigurationAuth      `yaml:"auth"`
+	Scm       ConfigurationScm       `yaml:"scm"`
 	Audit     ConfigurationAudit     `yaml:"audit"`
 	Trace     ConfigurationTrace     `yaml:"trace"`
 	Analytics ConfigurationAnalytics `yaml:"analytics"`
@@ -81,6 +84,7 @@ func (c *Configuration) WithDefaults() {
 	c.Cache.WithDefaults()
 	c.Locker.WithDefaults()
 	c.Database.WithDefaults()
+	c.Scm.WithDefaults()
 }
 
 // ConfigurationAudit configures HTTP audit recording.
@@ -707,6 +711,97 @@ func (c *ConfigurationDaemon) WithDefaults() {
 	c.SizeReconcile.WithDefaults()
 }
 
+// Default base URLs of the hosted source-code management providers. Gitea has no
+// default because self-hosted instances are the only sensible target.
+const (
+	defaultScmBaseURLGithub = "https://github.com"
+	defaultScmBaseURLGitlab = "https://gitlab.com"
+)
+
+// ConfigurationScmProvider configures one source-code management provider: which
+// provider is available for code repository sync and image builds, and where it lives.
+//
+// It is intentionally separate from auth.oauth2, which only decides whether a provider
+// can be used to sign in.
+type ConfigurationScmProvider struct {
+	Provider enums.ScmProvider `yaml:"provider"`
+	BaseURL  string            `yaml:"baseUrl"`
+}
+
+// ConfigurationScm configures the source-code management providers available to users.
+type ConfigurationScm struct {
+	Providers []ConfigurationScmProvider `yaml:"providers"`
+}
+
+// WithDefaults normalizes the configured providers: it trims trailing slashes, fills the
+// hosted default base URLs and drops entries that are not usable.
+func (c *ConfigurationScm) WithDefaults() {
+	providers := make([]ConfigurationScmProvider, 0, len(c.Providers))
+	for _, provider := range c.Providers {
+		provider.BaseURL = strings.TrimSuffix(strings.TrimSpace(provider.BaseURL), "/")
+		switch provider.Provider {
+		case enums.ScmProviderGithub:
+			if provider.BaseURL == "" {
+				provider.BaseURL = defaultScmBaseURLGithub
+			}
+		case enums.ScmProviderGitlab:
+			if provider.BaseURL == "" {
+				provider.BaseURL = defaultScmBaseURLGitlab
+			}
+		case enums.ScmProviderGitea:
+			if provider.BaseURL == "" {
+				slog.Warn("scm provider gitea is ignored because baseUrl is empty", "provider", provider.Provider.String())
+				continue
+			}
+		default:
+			slog.Warn("scm provider is ignored because it is unknown", "provider", provider.Provider.String())
+			continue
+		}
+		if slices.ContainsFunc(providers, func(item ConfigurationScmProvider) bool { return item.Provider == provider.Provider }) {
+			slog.Warn("duplicated scm provider is ignored", "provider", provider.Provider.String())
+			continue
+		}
+		providers = append(providers, provider)
+	}
+	c.Providers = providers
+}
+
+// ResolveScmProviders returns the effective provider list.
+//
+// When scm.providers is empty it is derived from the enabled OAuth2 login providers, so
+// existing configurations keep working: a deployment that could sign in with GitHub or
+// GitLab could already list and clone code repositories.
+func (c *Configuration) ResolveScmProviders() []ConfigurationScmProvider {
+	if len(c.Scm.Providers) > 0 {
+		return c.Scm.Providers
+	}
+	var providers []ConfigurationScmProvider
+	if c.Auth.Oauth2.Github.Enabled {
+		providers = append(providers, ConfigurationScmProvider{
+			Provider: enums.ScmProviderGithub,
+			BaseURL:  defaultScmBaseURLGithub,
+		})
+	}
+	if c.Auth.Oauth2.Gitlab.Enabled {
+		providers = append(providers, ConfigurationScmProvider{
+			Provider: enums.ScmProviderGitlab,
+			BaseURL:  defaultScmBaseURLGitlab,
+		})
+	}
+	return providers
+}
+
+// ScmProvider returns the configuration of one provider and whether it is enabled.
+func (c *Configuration) ScmProvider(provider enums.Provider) (ConfigurationScmProvider, bool) {
+	scmProvider := enums.ScmProvider(provider.String())
+	for _, item := range c.ResolveScmProviders() {
+		if item.Provider == scmProvider {
+			return item, true
+		}
+	}
+	return ConfigurationScmProvider{}, false
+}
+
 // ConfigurationAuthInternalUser configures the built-in internal user account used by system components.
 type ConfigurationAuthInternalUser struct {
 	Username string `yaml:"username"`
@@ -783,6 +878,11 @@ type ConfigurationAuth struct {
 	Oauth2         ConfigurationAuthOauth2         `yaml:"oauth2"`
 	Jwt            ConfigurationAuthJwt            `yaml:"jwt"`
 	LoginRateLimit ConfigurationAuthLoginRateLimit `yaml:"loginRateLimit"`
+	// CredentialKey is the master key used to encrypt SCM credentials at rest
+	// (AES-256-GCM). When empty, sigma generates a random key on first start and
+	// stores it in the settings table. Rotating it makes all stored SCM
+	// credentials unreadable, so they must be re-entered afterwards.
+	CredentialKey string `yaml:"credentialKey"`
 }
 
 // ConfigurationAuthLoginRateLimit configures failed-login throttling by username.

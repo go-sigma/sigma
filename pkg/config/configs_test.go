@@ -21,6 +21,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+
+	"github.com/go-sigma/sigma/pkg/api/enums"
 )
 
 func errChecker(config Configuration) error {
@@ -198,4 +200,92 @@ func TestConfigurationApplyEnvOverridesKeepsUnsetValues(t *testing.T) {
 	require.Equal(t, "cos-sk-yaml", cfg.Storage.Cos.Sk)
 	require.Equal(t, "oss-ak-yaml", cfg.Storage.Oss.Ak)
 	require.Equal(t, "oss-sk-yaml", cfg.Storage.Oss.Sk)
+}
+
+func TestConfigurationScmWithDefaults(t *testing.T) {
+	tests := []struct {
+		name      string
+		providers []ConfigurationScmProvider
+		want      []ConfigurationScmProvider
+	}{
+		{
+			name: "fills hosted defaults and trims slash",
+			providers: []ConfigurationScmProvider{
+				{Provider: enums.ScmProviderGithub, BaseURL: "https://github.example.com/"},
+				{Provider: enums.ScmProviderGitlab},
+			},
+			want: []ConfigurationScmProvider{
+				{Provider: enums.ScmProviderGithub, BaseURL: "https://github.example.com"},
+				{Provider: enums.ScmProviderGitlab, BaseURL: defaultScmBaseURLGitlab},
+			},
+		},
+		{
+			name: "drops gitea without base url",
+			providers: []ConfigurationScmProvider{
+				{Provider: enums.ScmProviderGitea},
+				{Provider: enums.ScmProviderGithub},
+			},
+			want: []ConfigurationScmProvider{
+				{Provider: enums.ScmProviderGithub, BaseURL: defaultScmBaseURLGithub},
+			},
+		},
+		{
+			name: "drops unknown and duplicated providers",
+			providers: []ConfigurationScmProvider{
+				{Provider: enums.ScmProviderNone},
+				{Provider: enums.ScmProviderGithub},
+				{Provider: enums.ScmProviderGithub, BaseURL: "https://github.example.com"},
+			},
+			want: []ConfigurationScmProvider{
+				{Provider: enums.ScmProviderGithub, BaseURL: defaultScmBaseURLGithub},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scm := ConfigurationScm{Providers: tt.providers}
+			scm.WithDefaults()
+			require.Equal(t, tt.want, scm.Providers)
+		})
+	}
+}
+
+func TestConfigurationResolveScmProviders(t *testing.T) {
+	t.Run("configured providers win", func(t *testing.T) {
+		cfg := &Configuration{
+			Auth: ConfigurationAuth{Oauth2: ConfigurationAuthOauth2{Github: ConfigurationAuthOauth2Github{Enabled: true}}},
+			Scm:  ConfigurationScm{Providers: []ConfigurationScmProvider{{Provider: enums.ScmProviderGitea, BaseURL: "https://gitea.example.com"}}},
+		}
+		require.Equal(t, cfg.Scm.Providers, cfg.ResolveScmProviders())
+	})
+
+	t.Run("derives from oauth2 login providers", func(t *testing.T) {
+		cfg := &Configuration{
+			Auth: ConfigurationAuth{Oauth2: ConfigurationAuthOauth2{
+				Github: ConfigurationAuthOauth2Github{Enabled: true},
+				Gitlab: ConfigurationAuthOauth2Gitlab{Enabled: true},
+			}},
+		}
+		require.Equal(t, []ConfigurationScmProvider{
+			{Provider: enums.ScmProviderGithub, BaseURL: defaultScmBaseURLGithub},
+			{Provider: enums.ScmProviderGitlab, BaseURL: defaultScmBaseURLGitlab},
+		}, cfg.ResolveScmProviders())
+	})
+
+	t.Run("no oauth2 login provider means no scm provider", func(t *testing.T) {
+		cfg := &Configuration{}
+		require.Empty(t, cfg.ResolveScmProviders())
+	})
+
+	t.Run("ScmProvider reports enablement", func(t *testing.T) {
+		cfg := &Configuration{
+			Scm: ConfigurationScm{Providers: []ConfigurationScmProvider{{Provider: enums.ScmProviderGithub, BaseURL: defaultScmBaseURLGithub}}},
+		}
+		provider, ok := cfg.ScmProvider(enums.ProviderGithub)
+		require.True(t, ok)
+		require.Equal(t, defaultScmBaseURLGithub, provider.BaseURL)
+
+		_, ok = cfg.ScmProvider(enums.ProviderGitlab)
+		require.False(t, ok)
+	})
 }

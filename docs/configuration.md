@@ -205,6 +205,28 @@ auth:
     window: 5m
     # fixed delay applied to every authentication attempt after maxFailures
     delay: 1s
+  # master key used to encrypt source code credentials (access tokens, ssh keys,
+  # passwords) at rest. when empty, sigma generates one on first start and stores it in
+  # the settings table. rotating it makes the stored credentials unreadable, so users have
+  # to enter them again.
+  # generate the key with: openssl rand -base64 32
+  credentialKey: ""
+
+scm:
+  # source code management providers available for code repository sync and image builds.
+  # this section is independent of auth.oauth2, which only decides whether a provider can be
+  # used to sign in. when empty, the providers are derived from the enabled oauth2 providers,
+  # so an existing configuration keeps working.
+  providers: []
+  # providers:
+  #   - provider: github
+  #     baseUrl: https://github.com
+  #   - provider: gitlab
+  #     # self-hosted gitlab
+  #     baseUrl: https://gitlab.example.com
+  #   - provider: gitea
+  #     # gitea has no default base url and is skipped when it is empty
+  #     baseUrl: https://gitea.example.com
 
 audit:
   # record completed authenticated business HTTP requests

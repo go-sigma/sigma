@@ -238,6 +238,19 @@ config:
       maxFailures: 5
       window: 5m
       delay: 1s
+    # master key used to encrypt source code credentials at rest.
+    # when empty, sigma generates one on first start and stores it in the database.
+    credentialKey: ""
+  scm:
+    # source code management providers available for code repository sync and builds,
+    # independent of the oauth2 login providers. When empty, they are derived from the
+    # enabled oauth2 providers.
+    # providers:
+    #   - provider: github
+    #     baseUrl: https://github.com
+    #   - provider: gitea
+    #     baseUrl: https://gitea.example.com
+    providers: []
 
 external:
   postgresql:
