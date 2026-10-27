@@ -192,28 +192,49 @@ func (s *service) mustScmProvider(provider enums.Provider) (config.Configuration
 	return scmProvider, nil
 }
 
-// validateCredentialRequest checks that the required fields of a credential type are present.
+// Maximum sizes of the credential fields. They are enforced here rather than with the
+// max validator tag, which panics on a nil pointer field when combined with required_if.
+const (
+	maxTokenLength    = 1024
+	maxSshKeyLength   = 8192
+	maxUsernameLength = 256
+	maxPasswordLength = 512
+)
+
+// validateCredentialRequest checks that the required fields of a credential type are
+// present and within their size limits.
 func validateCredentialRequest(req api.UpdateCodeRepositoryCredentialRequest) error {
 	switch req.Type {
 	case enums.ScmCredentialTypeToken:
-		if req.Token == nil || *req.Token == "" {
-			return errcode.HTTPErrCodeBadRequest.Detail("token is required for a token credential")
+		if err := checkSecret("token", req.Token, maxTokenLength); err != nil {
+			return err
 		}
 	case enums.ScmCredentialTypeSsh:
-		if req.SshKey == nil || *req.SshKey == "" {
-			return errcode.HTTPErrCodeBadRequest.Detail("ssh_key is required for an ssh credential")
+		if err := checkSecret("ssh_key", req.SshKey, maxSshKeyLength); err != nil {
+			return err
 		}
 	case enums.ScmCredentialTypeUsername:
-		if req.Username == nil || *req.Username == "" {
-			return errcode.HTTPErrCodeBadRequest.Detail("username is required for a username credential")
+		if err := checkSecret("username", req.Username, maxUsernameLength); err != nil {
+			return err
 		}
-		if req.Password == nil || *req.Password == "" {
-			return errcode.HTTPErrCodeBadRequest.Detail("password is required for a username credential")
+		if err := checkSecret("password", req.Password, maxPasswordLength); err != nil {
+			return err
 		}
 	case enums.ScmCredentialTypeNone:
 		return errcode.HTTPErrCodeBadRequest.Detail("type none is not a credential, delete the credential instead")
 	default:
 		return errcode.HTTPErrCodeBadRequest.Detail(fmt.Sprintf("invalid credential type %s", req.Type.String()))
+	}
+	return nil
+}
+
+// checkSecret reports whether a credential field is present and not oversized.
+func checkSecret(name string, value *string, maxLength int) error {
+	if value == nil || *value == "" {
+		return errcode.HTTPErrCodeBadRequest.Detail(fmt.Sprintf("%s is required", name))
+	}
+	if len(*value) > maxLength {
+		return errcode.HTTPErrCodeBadRequest.Detail(fmt.Sprintf("%s must be at most %d bytes", name, maxLength))
 	}
 	return nil
 }

@@ -1587,17 +1587,14 @@ definitions:
     properties:
       password:
         example: sigma
-        maxLength: 512
         type: string
       provider:
         $ref: '#/definitions/enums.Provider'
       ssh_key:
         example: '-----BEGIN OPENSSH PRIVATE KEY-----'
-        maxLength: 8192
         type: string
       token:
         example: ghp_xxx
-        maxLength: 1024
         type: string
       type:
         allOf:
@@ -1605,7 +1602,6 @@ definitions:
         example: token
       username:
         example: sigma
-        maxLength: 256
         type: string
     required:
     - provider

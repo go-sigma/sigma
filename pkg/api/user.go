@@ -176,13 +176,17 @@ type GetCodeRepositoryCredentialResponse struct {
 }
 
 // UpdateCodeRepositoryCredentialRequest creates or replaces the SCM credential of a provider.
+//
+// The secrets are pointer fields so an absent value can be told apart from an empty
+// one, and length limits are enforced by the service: validator panics with
+// "Bad field type *string" when max is combined with required_if on a pointer field.
 type UpdateCodeRepositoryCredentialRequest struct {
 	Provider enums.Provider          `json:"provider" param:"provider" validate:"required,is_valid_provider"`
 	Type     enums.ScmCredentialType `json:"type" validate:"required,is_valid_scm_credential_type" example:"token"`
-	Token    *string                 `json:"token" validate:"required_if=Type token,max=1024" example:"ghp_xxx"`
-	SshKey   *string                 `json:"ssh_key" validate:"required_if=Type ssh,max=8192" example:"-----BEGIN OPENSSH PRIVATE KEY-----"`
-	Username *string                 `json:"username" validate:"required_if=Type username,max=256" example:"sigma"`
-	Password *string                 `json:"password" validate:"required_if=Type username,max=512" example:"sigma"`
+	Token    *string                 `json:"token" validate:"required_if=Type token" example:"ghp_xxx"`
+	SshKey   *string                 `json:"ssh_key" validate:"required_if=Type ssh" example:"-----BEGIN OPENSSH PRIVATE KEY-----"`
+	Username *string                 `json:"username" validate:"required_if=Type username" example:"sigma"`
+	Password *string                 `json:"password" validate:"required_if=Type username" example:"sigma"`
 }
 
 // DeleteCodeRepositoryCredentialRequest clears the SCM credential of a provider.
