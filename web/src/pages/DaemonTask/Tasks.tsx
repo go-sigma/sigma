@@ -26,7 +26,6 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,7 +73,7 @@ export default function ({ localServer }: { localServer: string }) {
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
-  const namespaceId = searchParams.get('namespace_id') == null ? 0 : parseInt(searchParams.get('namespace_id') || "");
+  const namespaceId = searchParams.get('namespace_id') || "";
 
   const [gcRepositoryRuleExist, setGcRepositoryRuleExist] = useState(false);
   const [gcRepositoryRuleConfigModal, setGcRepositoryRuleConfigModal] = useState(false);
@@ -618,12 +617,7 @@ export default function ({ localServer }: { localServer: string }) {
         <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "daemon-tasks" : "repositories"} namespace={namespace} />
         <div className="flex flex-col w-0 flex-1 overflow-visible">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header title={location.pathname.startsWith("/settings") ? t("header.settingDaemonTask") : t("header.namespaceDaemonTask")}
-              props={
-                location.pathname.startsWith("/settings") ? null : (
-                  <NamespaceTabs namespace={namespace} namespaceId={namespaceId ? namespaceId.toString() : ""} active="daemon-tasks" />
-                )
-              } />
+            <Header title={location.pathname.startsWith("/settings") ? t("header.settingDaemonTask") : t("header.namespaceDaemonTask")} />
             <div className="flex flex-1 overflow-visible">
               <div className="align-middle inline-block min-w-full border-gray-200">
                 <table className="min-w-full flex-1 overflow-visible">
@@ -795,7 +789,7 @@ export default function ({ localServer }: { localServer: string }) {
                       </td>
                     </tr>
                     {
-                      namespaceId !== 0 ? null : (
+                      namespaceId ? null : (
                         <tr className="border-b">
                           <td className="px-6 py-4 max-w-0 w-full whitespace-nowrap text-sm font-normal text-gray-900 cursor-pointer"
                             onClick={() => {

@@ -23,7 +23,6 @@ import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import {
-  useParams,
   useSearchParams,
   useLocation,
   useNavigate,
@@ -31,7 +30,6 @@ import {
 
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
 import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
@@ -69,7 +67,6 @@ import { Tooltip } from "@/utils";
 export default function ({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
   const location = useLocation();
-  const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get("namespace_id");
   const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>(
@@ -271,11 +268,12 @@ export default function ({ localServer }: { localServer: string }) {
     }
 
     if (location.pathname.startsWith("/settings")) {
+      // A webhook created from the settings page is global: the API takes the
+      // absence of namespace_id as "owned by the administrator".
       data["event_namespace"] = eventNamespace;
-      data["namespace_id"] = parseInt(namespaceId || "");
     }
     let u = `${localServer}/api/v1/webhooks/`;
-    if (namespaceObj.id != 0) {
+    if (namespaceObj.id) {
       data["event_namespace"] = eventNamespace;
       u += `?namespace_id=${namespaceObj.id}`;
     }
@@ -339,18 +337,7 @@ export default function ({ localServer }: { localServer: string }) {
         />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header
-              title={t("header.webhook")}
-              props={
-                location.pathname.startsWith("/settings") ? null : (
-                  <NamespaceTabs
-                    namespace={namespace}
-                    namespaceId={namespaceId || ""}
-                    active="webhooks"
-                  />
-                )
-              }
-            />
+            <Header title={t("header.webhook")} />
             <div className="pt-4 pb-4 flex justify-end items-center">
               <div className="px-4">
                 <Button onClick={() => setCreateWebhookModal(true)}>
@@ -731,7 +718,7 @@ function TableItem({
       data["ssl_verify"] = sslVerify;
     }
 
-    if (namespaceObj.id != 0) {
+    if (namespaceObj.id) {
       data["event_namespace"] = eventNamespace;
     }
     axios

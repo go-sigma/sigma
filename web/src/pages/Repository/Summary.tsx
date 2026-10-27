@@ -26,13 +26,15 @@ import "./index.css";
 import Header from "@/components/Header";
 import Menu from "@/components/Menu";
 import Toast from "@/components/Notification";
+import { useTranslation } from "@/i18n/useTranslation";
 import { IHTTPError, IRepositoryItem, ISystemConfig } from "@/interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
+  const { t } = useTranslation();
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
-  const repository_id = parseInt(searchParams.get("repository_id") || "");
-  const namespaceId = parseInt(searchParams.get("namespace_id") || "");
+  const repository_id = searchParams.get("repository_id") || "";
+  const namespaceId = searchParams.get("namespace_id") || "";
 
   const [repositoryObj, setRepositoryObj] = useState<IRepositoryItem>({} as IRepositoryItem);
 
@@ -110,7 +112,7 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen max-h-screen flex overflow-hidden bg-background">
-        <Menu localServer={localServer} item="repositories" namespace={namespace} namespace_id={namespaceId.toString()} />
+        <Menu localServer={localServer} item="repositories" namespace={namespace} namespace_id={namespaceId} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
             <Header title="Repository"
@@ -125,10 +127,20 @@ export default function ({ localServer }: { localServer: string }) {
                     {
                       config.daemon.builder && (
                         <Link
+                          to={`/namespaces/${namespace}/repository/builder?namespace=${namespace}&namespace_id=${namespaceId}&repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_stick=true&repository_stick=true`}
+                          className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                        >
+                          {t("common.builder")}
+                        </Link>
+                      )
+                    }
+                    {
+                      config.daemon.builder && (
+                        <Link
                           to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
                           className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                         >
-                          Builder
+                          {t("common.runs")}
                         </Link>
                       )
                     }

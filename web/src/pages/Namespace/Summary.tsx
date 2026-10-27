@@ -25,7 +25,6 @@ import { useParams, useSearchParams } from "react-router-dom";
 import "./index.css";
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
 import { Button } from "@/components/ui/button";
 import { IHTTPError, INamespaceItem } from "@/interfaces";
@@ -33,8 +32,8 @@ import { IHTTPError, INamespaceItem } from "@/interfaces";
 export default function ({ localServer }: { localServer: string }) {
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
-  const repositoryId = parseInt(searchParams.get("repository_id") || "");
-  const namespaceId = parseInt(searchParams.get("namespace_id") || "");
+  const repositoryId = searchParams.get("repository_id") || "";
+  const namespaceId = searchParams.get("namespace_id") || "";
 
   const [, setNamespaceObj] = useState<INamespaceItem>({} as INamespaceItem);
 
@@ -136,18 +135,7 @@ export default function ({ localServer }: { localServer: string }) {
         />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
-            <Header
-              title="Repository"
-              props={
-                <NamespaceTabs
-                  namespace={namespace}
-                  namespaceId={
-                    Number.isNaN(namespaceId) ? "" : namespaceId.toString()
-                  }
-                  active="summary"
-                />
-              }
-            />
+            <Header title="Repository" />
           </main>
           <div className="flex flex-1 overflow-y-auto">
             <div

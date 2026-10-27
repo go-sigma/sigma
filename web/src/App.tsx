@@ -83,15 +83,13 @@ function getAppMenuProps(pathname: string, search: string): Omit<AppMenuProps, "
     };
 
     if (detail === "repository" && resource) {
-      const repositorySection: "summary" | "tags" | "builder" =
-        resource === "tags" ? "tags" : resource === "runners" || resource === "runner-logs" ? "builder" : "summary";
-      return {
-        ...base,
-        section: "repositories",
-        repository: params.get("repository") || "",
-        repository_id: params.get("repository_id") || "",
-        repositorySection,
-      };
+      // Opened from the namespace navigation, with no repository chosen yet.
+      if (resource === "builder" && !params.get("repository")) {
+        return { ...base, section: "builder" };
+      }
+      // The repository sections are tabs on the repository pages, so the menu only needs the
+      // namespace level: "Repository list" stays active while browsing into a repository.
+      return { ...base, section: "repositories" };
     }
 
     if (detail === "namespace-summary") {
@@ -161,6 +159,7 @@ export default function App() {
             <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={apiBaseURL} />} />
+            <Route path="/namespaces/:namespace/repository/builder" element={<BuildersSetup localServer={apiBaseURL} />} />
 
             <Route path="/namespaces/:namespace/repository/runners" element={<BuilderRunnerList localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/runner-logs/:runner_id" element={<BuilderRunnerLog localServer={apiBaseURL} />} />

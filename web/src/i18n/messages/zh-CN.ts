@@ -73,6 +73,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "common.resetPassword": "重置密码",
   "common.role": "角色",
   "common.run": "运行",
+  "common.runs": "运行记录",
   "common.running": "运行中",
   "common.search": "搜索",
   "common.setting": "设置",
@@ -155,6 +156,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "header.codeRepository": "代码仓库",
 
   "namespace.create": "创建命名空间",
+  "codeRepository.searchPlaceholder": "搜索代码仓库",
   "namespace.searchPlaceholder": "搜索命名空间",
   "namespace.table.name": "命名空间",
   "namespace.table.size": "大小",
@@ -185,6 +187,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "builder.ociRepository": "OCI 仓库",
   "builder.ociRepositoryDescription": "构建器会将制品推送到此仓库",
   "builder.codeRepository": "代码仓库",
+  "builder.cloneDepthHint": "0 表示克隆完整历史",
   "builder.codeRepositoryDescription": "构建器会从这里克隆源代码",
   "builder.buildOptions": "构建选项",
   "builder.buildOptionsDescription": "镜像构建选项",

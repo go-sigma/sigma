@@ -26,7 +26,6 @@ import { useParams, useSearchParams, useLocation } from "react-router-dom";
 
 import Header from "@/components/Header";
 import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
 import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
@@ -57,16 +56,13 @@ import Settings from "@/Settings";
 
 export default function ({ localServer }: { localServer: string }) {
   const location = useLocation();
-  const { namespace, webhook_id } = useParams<{
-    namespace: string;
-    webhook_id: string;
-  }>();
+  const { webhook_id } = useParams<{ webhook_id: string }>();
   const [searchParams] = useSearchParams();
   const namespaceId = searchParams.get("namespace_id");
   const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>(
     {} as INamespaceItem,
   );
-  const webhookId = parseInt(webhook_id || "0");
+  const webhookId = webhook_id || "";
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -257,18 +253,7 @@ export default function ({ localServer }: { localServer: string }) {
         />
         <div className="flex flex-col flex-1 max-h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
-            <Header
-              title="Webhook"
-              props={
-                location.pathname.startsWith("/settings") ? null : (
-                  <NamespaceTabs
-                    namespace={namespace}
-                    namespaceId={namespaceId || ""}
-                    active="webhooks"
-                  />
-                )
-              }
-            />
+            <Header title="Webhook" />
             <div className="pt-1 pb-1 flex justify-between items-center min-h-15">
               <div className="px-4">
                 <div className="flex gap-4">

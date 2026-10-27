@@ -71,6 +71,7 @@ const enUS = {
   "common.resetPassword": "Reset password",
   "common.role": "Role",
   "common.run": "Run",
+  "common.runs": "Runs",
   "common.running": "Running",
   "common.search": "Search",
   "common.setting": "Setting",
@@ -153,6 +154,7 @@ const enUS = {
   "header.codeRepository": "Code Repository",
 
   "namespace.create": "Create namespace",
+  "codeRepository.searchPlaceholder": "search repository",
   "namespace.searchPlaceholder": "search namespace",
   "namespace.table.name": "Namespace",
   "namespace.table.size": "Size",
@@ -183,6 +185,7 @@ const enUS = {
   "builder.ociRepository": "OCI Repository",
   "builder.ociRepositoryDescription": "Builder will push the artifact to this repository",
   "builder.codeRepository": "Code Repository",
+  "builder.cloneDepthHint": "0 clones the full history",
   "builder.codeRepositoryDescription": "Builder will clone source code from here",
   "builder.buildOptions": "Build Options",
   "builder.buildOptionsDescription": "The image build options",

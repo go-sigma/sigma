@@ -19,12 +19,12 @@ import dayjs from "dayjs";
 import { CornerDownLeft, SquarePen, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDebounce } from "react-use";
 
 import Header from "@/components/Header";
+import { useNamespaceId } from "@/hooks/useNamespaceId";
 import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
 import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
@@ -89,8 +89,9 @@ export default function ({ localServer }: { localServer: string }) {
   const [total, setTotal] = useState(0);
 
   const { namespace } = useParams<{ namespace: string }>();
-  const [searchParams] = useSearchParams();
-  const namespaceId = searchParams.get("namespace_id");
+  // Resolved from ?namespace_id, or looked up from the namespace in the route: interpolating a
+  // missing id produced requests such as "/namespaces/null/repositories".
+  const namespaceId = useNamespaceId(localServer);
   const [namespaceObj, setNamespaceObj] = useState<INamespaceItem>(
     {} as INamespaceItem,
   );
@@ -220,6 +221,9 @@ export default function ({ localServer }: { localServer: string }) {
   };
 
   const fetchRepository = useCallback(() => {
+    if (!namespaceId) {
+      return;
+    }
     let url =
       localServer +
       `/api/v1/namespaces/${namespaceId}/repositories/?limit=${Settings.PageSize}&page=${page}`;
@@ -280,16 +284,7 @@ export default function ({ localServer }: { localServer: string }) {
         />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
-            <Header
-              title={t("header.repository")}
-              props={
-                <NamespaceTabs
-                  namespace={namespace}
-                  namespaceId={namespaceId || ""}
-                  active="repositories"
-                />
-              }
-            />
+            <Header title={t("header.repository")} />
             <div className="pt-4 pb-4 flex justify-between items-center">
               <div className="px-4">
                 <div className="relative flex items-center">

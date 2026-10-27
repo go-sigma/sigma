@@ -32,7 +32,7 @@ export default function ({ localServer }: { localServer: string }) {
 
   const { namespace, resource, runner_id } = useParams<{ namespace: string, resource: string, runner_id: string }>();
   const [searchParams] = useSearchParams();
-  const namespaceId = searchParams.get('namespace_id') == null ? 0 : parseInt(searchParams.get('namespace_id') || "");
+  const namespaceId = searchParams.get('namespace_id') || "";
 
   const [sortOrder] = useState(IOrder.None);
   const [sortName] = useState("");

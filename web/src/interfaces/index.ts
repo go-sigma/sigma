@@ -67,7 +67,8 @@ export interface IUserLoginResponse {
 }
 
 export interface INamespaceItem {
-  id: number;
+  // Entity ids are UUIDv7 strings: never parse them as numbers.
+  id: string;
   name: string;
   description: string;
   overview: string;
@@ -89,8 +90,8 @@ export interface INamespaceList {
 }
 
 export interface IRepositoryItem {
-  id: number;
-  namespace_id: number;
+  id: string;
+  namespace_id: string;
   name: string;
   description: string;
   overview: string;
@@ -188,7 +189,7 @@ export interface IEndpoint {
 }
 
 export interface ICodeRepositoryOwnerItem {
-  id: number;
+  id: string;
   owner_id: string;
   owner: string;
   is_org: boolean;
@@ -202,15 +203,16 @@ export interface ICodeRepositoryOwnerList {
 }
 
 export interface ICodeRepositoryItem {
-  id: number;
+  id: string;
   repository_id: string;
   name: string;
-  owner_id: number;
+  owner_id: string;
   owner: string;
   is_org: boolean;
   clone_url: string;
   ssh_url: string;
   oci_repo_count: number;
+  pushed_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -221,10 +223,7 @@ export interface ICodeRepositoryList {
 }
 
 export interface ICodeRepositoryBranchItem {
-  id: number;
   name: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface ICodeRepositoryBranchList {
@@ -288,11 +287,11 @@ export interface ICodeRepositoryUser3rdParty {
 }
 
 export interface IBuilderItem {
-  id: number;
-  repository_id: number;
+  id: string;
+  repository_id: string;
   source: string;
 
-  code_repository_id?: number;
+  code_repository_id?: string;
 
   dockerfile?: string;
 

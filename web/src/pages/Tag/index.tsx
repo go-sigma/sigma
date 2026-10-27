@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import humanFormat from "human-format";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import { CornerDownLeft } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
@@ -45,6 +46,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useTranslation } from "@/i18n/useTranslation";
 import {
   IArtifact,
@@ -173,6 +176,11 @@ export default function Tag({ localServer }: { localServer: string }) {
   }, [localServer]);
 
   const fetchTags = useCallback(() => {
+    // Without a resolved namespace and repository there is nothing to ask for; building the URL
+    // anyway sent "/namespaces/null/..." and surfaced a 404 toast.
+    if (!namespaceId || !repositoryId || !repository) {
+      return;
+    }
     let url =
       localServer +
       `/api/v1/namespaces/${namespaceId}/repositories/${repositoryId}/tags/?repository=${repository}&limit=${Settings.PageSize}&page=${page}&type=Image&type=ImageIndex&type=Chart&type=Sif`;
@@ -294,7 +302,7 @@ export default function Tag({ localServer }: { localServer: string }) {
         <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
           <main className="">
             <Header
-              title={t("header.repository")}
+              title={t("common.tags")}
               props={
                 gotConfig && (
                   <div className="flex space-x-8">
@@ -306,10 +314,18 @@ export default function Tag({ localServer }: { localServer: string }) {
                     </Link>
                     {config.daemon.builder && (
                       <Link
-                        to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
+                        to={`/namespaces/${namespace}/repository/builder?namespace=${namespace}&namespace_id=${namespaceId}&repository=${repository}&repository_id=${repositoryId}&namespace_stick=true&repository_stick=true`}
                         className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                       >
                         {t("common.builder")}
+                      </Link>
+                    )}
+                    {config.daemon.builder && (
+                      <Link
+                        to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
+                        className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                      >
+                        {t("common.runs")}
                       </Link>
                     )}
                     <span className="z-10 inline-flex items-center border-b border-primary px-1 pt-1 text-sm font-medium text-foreground capitalize cursor-pointer">
@@ -322,15 +338,14 @@ export default function Tag({ localServer }: { localServer: string }) {
             <div className="pt-4 pb-4 flex">
               <div className="px-4">
                 <div className="flex gap-4">
-                  <div className="relative mt-2 flex items-center">
-                    <label
+                  <div className="relative flex items-center">
+                    <Label
                       htmlFor="tagSearch"
-                      className="absolute -top-2 left-2 inline-block bg-white px-1 text-xs font-medium text-gray-900 dark:bg-gray-950 dark:text-gray-100"
+                      className="absolute -top-2 left-2 inline-block bg-background px-1 text-xs font-medium text-foreground z-10"
                     >
                       {t("common.tag")}
-                    </label>
-                    <input
-                      type="text"
+                    </Label>
+                    <Input
                       id="tagSearch"
                       placeholder={t("tag.searchPlaceholder")}
                       value={searchTag}
@@ -342,13 +357,14 @@ export default function Tag({ localServer }: { localServer: string }) {
                           fetchTags();
                         }
                       }}
-                      className="block w-full h-10 rounded-md border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring dark:bg-gray-950 dark:text-gray-100 dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
+                      className="h-10 pr-14"
                     />
-                    <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
-                      <kbd className="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">
-                        enter
-                      </kbd>
-                    </div>
+                    <kbd
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                      aria-hidden="true"
+                    >
+                      <CornerDownLeft className="size-3.5" />
+                    </kbd>
                   </div>
                 </div>
               </div>

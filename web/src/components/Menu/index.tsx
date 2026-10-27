@@ -20,7 +20,6 @@ import {
   ChevronRight,
   ChevronUp,
   List,
-  Folder,
   House,
   Server,
   Settings,
@@ -97,8 +96,7 @@ import { setupAutoRefreshToken, teardownAutoRefreshToken } from "@/utils/request
 
 export const AppLayoutMenuContext = createContext(false);
 
-type MenuSection = "summary" | "repositories" | "members" | "daemon-tasks" | "webhooks";
-type MenuRepositorySection = "summary" | "tags" | "builder";
+type MenuSection = "summary" | "repositories" | "members" | "builder" | "daemon-tasks" | "webhooks";
 
 type MenuProps = {
   localServer: string;
@@ -108,7 +106,6 @@ type MenuProps = {
   repository?: string;
   repository_id?: string;
   section?: MenuSection;
-  repositorySection?: MenuRepositorySection;
   tag?: string;
   selfClick?: boolean;
   persistent?: boolean;
@@ -118,14 +115,9 @@ const namespaceSections: { key: MenuSection; path: string; labelKey: MessageKey 
   { key: "summary", path: "namespace-summary", labelKey: "common.summary" },
   { key: "repositories", path: "repositories", labelKey: "common.repositoryList" },
   { key: "members", path: "members", labelKey: "common.members" },
+  { key: "builder", path: "repository/builder", labelKey: "common.builder" },
   { key: "daemon-tasks", path: "daemon-tasks", labelKey: "common.daemonTask" },
   { key: "webhooks", path: "webhooks", labelKey: "common.webhook" },
-];
-
-const repositorySections: { key: MenuRepositorySection; path: string; labelKey: MessageKey }[] = [
-  { key: "summary", path: "summary", labelKey: "common.summary" },
-  { key: "tags", path: "tags", labelKey: "common.tagList" },
-  { key: "builder", path: "runners", labelKey: "common.builder" },
 ];
 
 function SidebarSubLink({ to, active, children }: { to: string; active?: boolean; children: ReactNode }) {
@@ -166,7 +158,7 @@ export default function Menu(props: MenuProps) {
   );
 }
 
-function MenuContent({ localServer, item, namespace, namespace_id, repository, repository_id, section, repositorySection }: MenuProps) {
+function MenuContent({ localServer, item, namespace, namespace_id, section }: MenuProps) {
   const { t } = useTranslation();
   const themeMode = useUiStore((state) => state.themeMode);
   const setThemeMode = useUiStore((state) => state.setThemeMode);
@@ -286,7 +278,7 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, r
   const namespaceItems = useMemo(() => {
     const items = isAnonymous ? [] : hotNamespaceList.map(ns => ({ id: ns.id, name: ns.name }));
     if (namespace && !items.some(ns => ns.name === namespace)) {
-      items.unshift({ id: Number(namespace_id) || 0, name: namespace });
+      items.unshift({ id: namespace_id || "", name: namespace });
     }
     return items;
   }, [hotNamespaceList, namespace, namespace_id, isAnonymous]);
@@ -372,49 +364,21 @@ function MenuContent({ localServer, item, namespace, namespace_id, repository, r
                           </CollapsibleTrigger>
                           <CollapsiblePanel>
                             <SidebarMenuSub>
-                              {namespaceSections.map((sectionItem) => (
+                              {namespaceSections
+                                .filter((sectionItem) => sectionItem.key !== "builder" || config.daemon?.builder)
+                                .map((sectionItem) => (
                                 <Fragment key={sectionItem.key}>
                                   <SidebarSubLink
-                                    to={`/namespaces/${namespace}/${sectionItem.path}${namespace_id ? `?namespace_id=${namespace_id}` : ""}`}
-                                    active={section === sectionItem.key && !(sectionItem.key === "repositories" && repository)}
+                                    to={
+                                      sectionItem.key === "builder"
+                                        // Only the namespace is locked here: the builder form picks the repository.
+                                        ? `/namespaces/${namespace}/repository/builder?namespace=${namespace}${namespace_id ? `&namespace_id=${namespace_id}` : ""}&namespace_stick=true`
+                                        : `/namespaces/${namespace}/${sectionItem.path}${namespace_id ? `?namespace_id=${namespace_id}` : ""}`
+                                    }
+                                    active={section === sectionItem.key}
                                   >
                                     <span>{t(sectionItem.labelKey)}</span>
                                   </SidebarSubLink>
-                                  {sectionItem.key === "repositories" && repository && (
-                                    <Collapsible
-                                      open
-                                      render={<SidebarMenuSubItem />}
-                                      className="group/collapsible"
-                                    >
-                                      <CollapsibleTrigger
-                                        nativeButton={false}
-                                        render={
-                                          <SidebarMenuSubButton
-                                            render={<Link to={`/namespaces/${namespace}/repository/tags?repository=${repository}&repository_id=${repository_id}&namespace_id=${namespace_id}`} />}
-                                          />
-                                        }
-                                      >
-                                        <Folder />
-                                        <span className="truncate">{repository}</span>
-                                        <ChevronRight className="ml-auto transition-transform duration-200 rotate-90" />
-                                      </CollapsibleTrigger>
-                                      <CollapsiblePanel>
-                                        <SidebarMenuSub>
-                                          {repositorySections
-                                            .filter((repoSection) => repoSection.key !== "builder" || config.daemon?.builder)
-                                            .map((repoSection) => (
-                                              <SidebarSubLink
-                                                key={repoSection.key}
-                                                to={`/namespaces/${namespace}/repository/${repoSection.path}?repository=${repository}&repository_id=${repository_id}&namespace_id=${namespace_id}`}
-                                                active={repositorySection === repoSection.key}
-                                              >
-                                                <span>{t(repoSection.labelKey)}</span>
-                                              </SidebarSubLink>
-                                            ))}
-                                        </SidebarMenuSub>
-                                      </CollapsiblePanel>
-                                    </Collapsible>
-                                  )}
                                 </Fragment>
                               ))}
                             </SidebarMenuSub>

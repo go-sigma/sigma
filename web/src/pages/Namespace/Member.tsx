@@ -23,11 +23,10 @@ import { CornerDownLeft } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import Toast from "react-hot-toast";
-import { useParams, useSearchParams } from "react-router-dom";
 
 import Header from "@/components/Header";
+import { useNamespaceId } from "@/hooks/useNamespaceId";
 import IMenu from "@/components/Menu";
-import NamespaceTabs from "@/components/NamespaceTabs";
 import Notification from "@/components/Notification";
 import Pagination from "@/components/Pagination";
 import RelativeTime from "@/components/RelativeTime";
@@ -91,12 +90,7 @@ const namespaceRoles = [
 ];
 
 export default function Member({ localServer }: { localServer: string }) {
-  const { namespace } = useParams<{ namespace: string }>();
-  const [searchParams] = useSearchParams();
-  const namespaceId =
-    searchParams.get("namespace_id") == null
-      ? 0
-      : parseInt(searchParams.get("namespace_id") || "");
+  const namespaceId = useNamespaceId(localServer);
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -111,7 +105,7 @@ export default function Member({ localServer }: { localServer: string }) {
   );
 
   useEffect(() => {
-    if (namespaceId == 0) {
+    if (!namespaceId) {
       return;
     }
     let url = `${localServer}/api/v1/namespaces/${namespaceId}`;
@@ -145,6 +139,10 @@ export default function Member({ localServer }: { localServer: string }) {
   }, [namespaceId, localServer]);
 
   const fetchMembers = useCallback(() => {
+    // Skip until the namespace id is resolved, otherwise the URL becomes "/namespaces//members".
+    if (!namespaceId) {
+      return;
+    }
     let url = `${localServer}/api/v1/namespaces/${namespaceId}/members/?limit=${Settings.AutoCompleteSize}`;
     if (memberSearch !== "") {
       url += `&name=${memberSearch}`;
@@ -265,16 +263,7 @@ export default function Member({ localServer }: { localServer: string }) {
         <IMenu localServer={localServer} item="Repository" />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="relative z-0 focus:outline-none">
-            <Header
-              title="Namespace - Member"
-              props={
-                <NamespaceTabs
-                  namespace={namespace}
-                  namespaceId={namespaceId ? namespaceId.toString() : ""}
-                  active="members"
-                />
-              }
-            />
+            <Header title="Namespace - Member" />
             <div className="pt-4 pb-4 flex justify-between items-center">
               <div className="px-4">
                 <div className="relative flex items-center">

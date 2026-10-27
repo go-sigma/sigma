@@ -43,10 +43,10 @@ export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
 
   const { namespace, runner_id } = useParams<{ namespace: string, runner_id: string }>();
-  const [runnerId, setRunnerId] = useState(0);
+  const [runnerId, setRunnerId] = useState("");
   const [searchParams] = useSearchParams();
-  const repository_id = parseInt(searchParams.get("repository_id") || "");
-  const namespaceId = parseInt(searchParams.get("namespace_id") || "");
+  const repository_id = searchParams.get("repository_id") || "";
+  const namespaceId = searchParams.get("namespace_id") || "";
   const [repositoryObj, setRepositoryObj] = useState<IRepositoryItem>();
   const [builderObj, setBuilderObj] = useState<IBuilderItem>();
   const [runnerObj, setRunnerObj] = useState<IBuilderRunnerItem>();
@@ -56,7 +56,7 @@ export default function ({ localServer }: { localServer: string }) {
     if (runner_id === undefined) {
       return;
     }
-    setRunnerId(parseInt(runner_id));
+    setRunnerId(runner_id);
   }, [runner_id]);
 
   useEffect(() => {

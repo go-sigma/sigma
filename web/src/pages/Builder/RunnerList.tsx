@@ -22,6 +22,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 
 import Header from "@/components/Header";
+import { useTranslation } from "@/i18n/useTranslation";
 import Menu from "@/components/Menu";
 import Notification from "@/components/Notification";
 import OrderHeader from "@/components/OrderHeader";
@@ -42,11 +43,12 @@ import { Tooltip } from '@/utils';
 
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
-  const repository_id = parseInt(searchParams.get("repository_id") || "");
-  const namespaceId = parseInt(searchParams.get("namespace_id") || "");
+  const repository_id = searchParams.get("repository_id") || "";
+  const namespaceId = searchParams.get("namespace_id") || "";
 
   const [builderObj, setBuilderObj] = useState<IBuilderItem>();
   const [repositoryObj, setRepositoryObj] = useState<IRepositoryItem>();
@@ -225,13 +227,19 @@ export default function ({ localServer }: { localServer: string }) {
                     >
                       Summary
                     </Link>
+                    <Link
+                      to={`/namespaces/${namespace}/repository/builder?namespace=${namespace}&namespace_id=${namespaceId}&repository=${repositoryObj?.name}&repository_id=${repository_id}&namespace_stick=true&repository_stick=true`}
+                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
+                    >
+                      {t("common.builder")}
+                    </Link>
                     <span
                       className="z-10 inline-flex items-center border-b border-primary px-1 pt-1 text-sm font-medium text-foreground capitalize cursor-pointer"
                     >
-                      Builder
+                      {t("common.runs")}
                     </span>
                     <Link
-                      to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj?.name}&repository_id=${repository_id}`}
+                      to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj?.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
                       className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
                     >
                       Tag list
