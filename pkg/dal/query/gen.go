@@ -26,7 +26,6 @@ var (
 	Builder                       *builder
 	BuilderRunner                 *builderRunner
 	CodeRepository                *codeRepository
-	CodeRepositoryBranch          *codeRepositoryBranch
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredential
 	CodeRepositoryOwner           *codeRepositoryOwner
 	DaemonGcRecord                *daemonGcRecord
@@ -57,7 +56,6 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Builder = &Q.Builder
 	BuilderRunner = &Q.BuilderRunner
 	CodeRepository = &Q.CodeRepository
-	CodeRepositoryBranch = &Q.CodeRepositoryBranch
 	CodeRepositoryCloneCredential = &Q.CodeRepositoryCloneCredential
 	CodeRepositoryOwner = &Q.CodeRepositoryOwner
 	DaemonGcRecord = &Q.DaemonGcRecord
@@ -89,7 +87,6 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Builder:                       newBuilder(db, opts...),
 		BuilderRunner:                 newBuilderRunner(db, opts...),
 		CodeRepository:                newCodeRepository(db, opts...),
-		CodeRepositoryBranch:          newCodeRepositoryBranch(db, opts...),
 		CodeRepositoryCloneCredential: newCodeRepositoryCloneCredential(db, opts...),
 		CodeRepositoryOwner:           newCodeRepositoryOwner(db, opts...),
 		DaemonGcRecord:                newDaemonGcRecord(db, opts...),
@@ -122,7 +119,6 @@ type Query struct {
 	Builder                       builder
 	BuilderRunner                 builderRunner
 	CodeRepository                codeRepository
-	CodeRepositoryBranch          codeRepositoryBranch
 	CodeRepositoryCloneCredential codeRepositoryCloneCredential
 	CodeRepositoryOwner           codeRepositoryOwner
 	DaemonGcRecord                daemonGcRecord
@@ -158,7 +154,6 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Builder:                       q.Builder.clone(db),
 		BuilderRunner:                 q.BuilderRunner.clone(db),
 		CodeRepository:                q.CodeRepository.clone(db),
-		CodeRepositoryBranch:          q.CodeRepositoryBranch.clone(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.clone(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.clone(db),
 		DaemonGcRecord:                q.DaemonGcRecord.clone(db),
@@ -199,7 +194,6 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Builder:                       q.Builder.replaceDB(db),
 		BuilderRunner:                 q.BuilderRunner.replaceDB(db),
 		CodeRepository:                q.CodeRepository.replaceDB(db),
-		CodeRepositoryBranch:          q.CodeRepositoryBranch.replaceDB(db),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.replaceDB(db),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.replaceDB(db),
 		DaemonGcRecord:                q.DaemonGcRecord.replaceDB(db),
@@ -230,7 +224,6 @@ type queryCtx struct {
 	Builder                       *builderDo
 	BuilderRunner                 *builderRunnerDo
 	CodeRepository                *codeRepositoryDo
-	CodeRepositoryBranch          *codeRepositoryBranchDo
 	CodeRepositoryCloneCredential *codeRepositoryCloneCredentialDo
 	CodeRepositoryOwner           *codeRepositoryOwnerDo
 	DaemonGcRecord                *daemonGcRecordDo
@@ -261,7 +254,6 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Builder:                       q.Builder.WithContext(ctx),
 		BuilderRunner:                 q.BuilderRunner.WithContext(ctx),
 		CodeRepository:                q.CodeRepository.WithContext(ctx),
-		CodeRepositoryBranch:          q.CodeRepositoryBranch.WithContext(ctx),
 		CodeRepositoryCloneCredential: q.CodeRepositoryCloneCredential.WithContext(ctx),
 		CodeRepositoryOwner:           q.CodeRepositoryOwner.WithContext(ctx),
 		DaemonGcRecord:                q.DaemonGcRecord.WithContext(ctx),

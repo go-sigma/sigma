@@ -87,18 +87,6 @@ func TestCodeRepositoryRepository(t *testing.T) {
 	}
 	require.NoError(t, codeRepositoryRepository.CreateOwnersInBatches(ctx, []*models.CodeRepositoryOwner{ownerObj}))
 
-	branchOne := &models.CodeRepositoryBranch{
-		ID:               uuid.NewV7String(),
-		CodeRepositoryID: repoOne.ID,
-		Name:             "main",
-	}
-	branchTwo := &models.CodeRepositoryBranch{
-		ID:               uuid.NewV7String(),
-		CodeRepositoryID: repoOne.ID,
-		Name:             "release",
-	}
-	require.NoError(t, codeRepositoryRepository.CreateBranchesInBatches(ctx, []*models.CodeRepositoryBranch{branchOne, branchTwo}))
-
 	repositories, err := codeRepositoryRepository.ListAll(ctx, user3rdPartyObj.ID)
 	require.NoError(t, err)
 	require.Len(t, repositories, 2)
@@ -133,15 +121,6 @@ func TestCodeRepositoryRepository(t *testing.T) {
 	require.Equal(t, int64(1), total)
 	require.Len(t, owners, 1)
 
-	branches, total, err := codeRepositoryRepository.ListBranchesWithoutPagination(ctx, repoOne.ID)
-	require.NoError(t, err)
-	require.Equal(t, int64(2), total)
-	require.Len(t, branches, 2)
-
-	branch, err := codeRepositoryRepository.GetBranchByName(ctx, repoOne.ID, "release")
-	require.NoError(t, err)
-	require.Equal(t, branchTwo.ID, branch.ID)
-
 	repoOne.Owner = "go-sigma"
 	repoOne.Name = "go-sigma/api"
 	repoOne.SshUrl = "git@github.com:go-sigma/api.git"
@@ -160,12 +139,6 @@ func TestCodeRepositoryRepository(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "go-sigma", owners[0].Owner)
 	require.False(t, owners[0].IsOrg)
-
-	require.NoError(t, codeRepositoryRepository.DeleteBranchesInBatches(ctx, []string{branchOne.ID, branchTwo.ID}))
-	branches, total, err = codeRepositoryRepository.ListBranchesWithoutPagination(ctx, repoOne.ID)
-	require.NoError(t, err)
-	require.Zero(t, total)
-	require.Empty(t, branches)
 
 	require.NoError(t, codeRepositoryRepository.DeleteOwnerInBatches(ctx, []string{ownerObj.ID}))
 	owners, err = codeRepositoryRepository.ListOwnersAll(ctx, user3rdPartyObj.ID)

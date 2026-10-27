@@ -66,9 +66,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}
 			}
 		}{
@@ -91,9 +88,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Builder", "models.Builder"),
@@ -110,9 +104,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}{
 					RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository", "models.CodeRepository"),
 					User3rdParty: struct {
@@ -127,11 +118,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 						}{
 							RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 						},
-					},
-					Branches: struct {
-						field.RelationField
-					}{
-						RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 					},
 				},
 			},
@@ -187,9 +173,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}
 			}
@@ -216,9 +199,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}
 			}{
@@ -241,9 +221,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}{
 					RelationField: field.NewRelation("Artifact.Tags.Repository.Builder", "models.Builder"),
@@ -260,9 +237,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}{
 						RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository", "models.CodeRepository"),
 						User3rdParty: struct {
@@ -277,11 +251,6 @@ func newArtifactVulnerability(db *gorm.DB, opts ...gen.DOOption) artifactVulnera
 							}{
 								RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 							},
-						},
-						Branches: struct {
-							field.RelationField
-						}{
-							RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 						},
 					},
 				},
@@ -445,9 +414,6 @@ type artifactVulnerabilityBelongsToArtifact struct {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}
 		}
 	}
@@ -485,9 +451,6 @@ type artifactVulnerabilityBelongsToArtifact struct {
 						User struct {
 							field.RelationField
 						}
-					}
-					Branches struct {
-						field.RelationField
 					}
 				}
 			}

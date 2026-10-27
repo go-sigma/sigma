@@ -32,7 +32,6 @@ func main() {
 		models.User3rdParty{},
 		models.UserRecoverCode{},
 		models.CodeRepository{},
-		models.CodeRepositoryBranch{},
 		models.CodeRepositoryOwner{},
 		models.CodeRepositoryCloneCredential{},
 		models.Audit{},

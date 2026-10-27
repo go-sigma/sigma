@@ -75,9 +75,6 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 					field.RelationField
 				}
 			}
-			Branches struct {
-				field.RelationField
-			}
 		}{
 			RelationField: field.NewRelation("Builder.CodeRepository", "models.CodeRepository"),
 			User3rdParty: struct {
@@ -92,11 +89,6 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 				}{
 					RelationField: field.NewRelation("Builder.CodeRepository.User3rdParty.User", "models.User"),
 				},
-			},
-			Branches: struct {
-				field.RelationField
-			}{
-				RelationField: field.NewRelation("Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 			},
 		},
 	}
@@ -238,9 +230,6 @@ type builderRunnerBelongsToBuilder struct {
 			User struct {
 				field.RelationField
 			}
-		}
-		Branches struct {
-			field.RelationField
 		}
 	}
 }

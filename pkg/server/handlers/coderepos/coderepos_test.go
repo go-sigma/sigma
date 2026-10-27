@@ -176,23 +176,21 @@ func TestListBranches(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
-		ListCodeRepositoryBranches(gomock.Any(), "1").
-		DoAndReturn(func(_ context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
+		ListCodeRepositoryBranches(gomock.Any(), "10", enums.ProviderGithub, "1").
+		DoAndReturn(func(_ context.Context, _ string, _ enums.Provider, codeRepositoryID string) ([]string, error) {
 			require.Equal(t, "1", codeRepositoryID)
-			return []*models.CodeRepositoryBranch{{
-				ID:        "2",
-				Name:      "main",
-				CreatedAt: 1,
-				UpdatedAt: 1,
-			}}, 1, nil
+			return []string{"main", "release"}, nil
 		})
 
 	recorder, c := newCodereposContext(t)
-	(&handler{CodeRepoSvc: serviceObj}).ListBranches(c, &api.ListCodeRepositoryBranchesRequest{ID: "1"})
+	(&handler{CodeRepoSvc: serviceObj}).ListBranches(c, &api.ListCodeRepositoryBranchesRequest{
+		Provider: enums.ProviderGithub,
+		ID:       "1",
+	})
 	c.Writer.WriteHeaderNow()
 
 	require.Equal(t, http.StatusOK, recorder.Code)
-	require.Contains(t, recorder.Body.String(), `"total":1`)
+	require.Contains(t, recorder.Body.String(), `"total":2`)
 	require.Contains(t, recorder.Body.String(), `"name":"main"`)
 }
 
@@ -200,11 +198,14 @@ func TestListBranchesReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
-		ListCodeRepositoryBranches(gomock.Any(), "1").
-		Return(nil, int64(0), errors.New("list failed"))
+		ListCodeRepositoryBranches(gomock.Any(), "10", enums.ProviderGithub, "1").
+		Return(nil, errors.New("list failed"))
 
 	recorder, c := newCodereposContext(t)
-	(&handler{CodeRepoSvc: serviceObj}).ListBranches(c, &api.ListCodeRepositoryBranchesRequest{ID: "1"})
+	(&handler{CodeRepoSvc: serviceObj}).ListBranches(c, &api.ListCodeRepositoryBranchesRequest{
+		Provider: enums.ProviderGithub,
+		ID:       "1",
+	})
 	c.Writer.WriteHeaderNow()
 
 	require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -214,16 +215,15 @@ func TestGetBranch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	serviceObj := codereposmocks.NewMockCodeRepositoryService(ctrl)
 	serviceObj.EXPECT().
-		GetCodeRepositoryBranch(gomock.Any(), "1", "main").
-		Return(&models.CodeRepositoryBranch{
-			ID:        "2",
-			Name:      "main",
-			CreatedAt: 1,
-			UpdatedAt: 1,
-		}, nil)
+		GetCodeRepositoryBranch(gomock.Any(), "10", enums.ProviderGithub, "1", "main").
+		Return("main", nil)
 
 	recorder, c := newCodereposContext(t)
-	(&handler{CodeRepoSvc: serviceObj}).GetBranch(c, &api.GetCodeRepositoryBranchRequest{ID: "1", Name: "main"})
+	(&handler{CodeRepoSvc: serviceObj}).GetBranch(c, &api.GetCodeRepositoryBranchRequest{
+		Provider: enums.ProviderGithub,
+		ID:       "1",
+		Name:     "main",
+	})
 	c.Writer.WriteHeaderNow()
 
 	require.Equal(t, http.StatusOK, recorder.Code)

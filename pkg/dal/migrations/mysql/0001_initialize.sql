@@ -72,22 +72,13 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   `created_at` bigint NOT NULL,
   `updated_at` bigint NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,
+  `pushed_at` bigint NOT NULL DEFAULT 0,
   CONSTRAINT `code_repositories_unique_with_name` UNIQUE (
     `user_3rdparty_id`,
     `owner_id`,
     `repository_id`,
     `deleted_at`
   )
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `code_repository_branches` (
-  `id` varchar(36) PRIMARY KEY,
-  `code_repository_id` varchar(36) NOT NULL,
-  `name` varchar(256) NOT NULL,
-  `created_at` bigint NOT NULL,
-  `updated_at` bigint NOT NULL,
-  `deleted_at` bigint NOT NULL DEFAULT 0,
-  CONSTRAINT `code_repository_branches_unique_with_name` UNIQUE (`code_repository_id`, `name`, `deleted_at`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `user_recover_codes` (

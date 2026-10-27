@@ -91,8 +91,9 @@ func (cr codeRepository) gitea(ctx context.Context, user3rdPartyObj *models.User
 			Name:           r.Name,
 			SshUrl:         r.SSHURL,
 			CloneUrl:       r.CloneURL,
+			PushedAt:       r.Updated.UnixMilli(),
 		})
 	}
 
-	return cr.diff(ctx, user3rdPartyObj, newRepos, nil)
+	return cr.diff(ctx, user3rdPartyObj, newRepos)
 }

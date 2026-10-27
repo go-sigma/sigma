@@ -75,22 +75,13 @@ CREATE TABLE IF NOT EXISTS `code_repositories` (
   `created_at` integer NOT NULL,
   `updated_at` integer NOT NULL,
   `deleted_at` integer NOT NULL DEFAULT 0,
+  `pushed_at` integer NOT NULL DEFAULT 0,
   CONSTRAINT `code_repositories_unique_with_name` UNIQUE (
     `user_3rdparty_id`,
     `owner_id`,
     `repository_id`,
     `deleted_at`
   )
-);
-
-CREATE TABLE IF NOT EXISTS `code_repository_branches` (
-  `id` varchar(36) PRIMARY KEY,
-  `code_repository_id` varchar(36) NOT NULL,
-  `name` varchar(256) NOT NULL,
-  `created_at` integer NOT NULL,
-  `updated_at` integer NOT NULL,
-  `deleted_at` integer NOT NULL DEFAULT 0,
-  CONSTRAINT `code_repository_branches_unique_with_name` UNIQUE (`code_repository_id`, `name`, `deleted_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `user_recover_codes` (

@@ -40,12 +40,7 @@ func newCodeRepository(db *gorm.DB, opts ...gen.DOOption) codeRepository {
 	_codeRepository.SshUrl = field.NewString(tableName, "ssh_url")
 	_codeRepository.CloneUrl = field.NewString(tableName, "clone_url")
 	_codeRepository.OciRepoCount = field.NewInt64(tableName, "oci_repo_count")
-	_codeRepository.Branches = codeRepositoryHasManyBranches{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Branches", "models.CodeRepositoryBranch"),
-	}
-
+	_codeRepository.PushedAt = field.NewInt64(tableName, "pushed_at")
 	_codeRepository.User3rdParty = codeRepositoryBelongsToUser3rdParty{
 		db: db.Session(&gorm.Session{}),
 
@@ -79,9 +74,8 @@ type codeRepository struct {
 	SshUrl         field.String
 	CloneUrl       field.String
 	OciRepoCount   field.Int64
-	Branches       codeRepositoryHasManyBranches
-
-	User3rdParty codeRepositoryBelongsToUser3rdParty
+	PushedAt       field.Int64
+	User3rdParty   codeRepositoryBelongsToUser3rdParty
 
 	fieldMap map[string]field.Expr
 }
@@ -111,6 +105,7 @@ func (c *codeRepository) updateTableName(table string) *codeRepository {
 	c.SshUrl = field.NewString(table, "ssh_url")
 	c.CloneUrl = field.NewString(table, "clone_url")
 	c.OciRepoCount = field.NewInt64(table, "oci_repo_count")
+	c.PushedAt = field.NewInt64(table, "pushed_at")
 
 	c.fillFieldMap()
 
@@ -153,13 +148,12 @@ func (c *codeRepository) fillFieldMap() {
 	c.fieldMap["ssh_url"] = c.SshUrl
 	c.fieldMap["clone_url"] = c.CloneUrl
 	c.fieldMap["oci_repo_count"] = c.OciRepoCount
+	c.fieldMap["pushed_at"] = c.PushedAt
 
 }
 
 func (c codeRepository) clone(db *gorm.DB) codeRepository {
 	c.codeRepositoryDo.ReplaceConnPool(db.Statement.ConnPool)
-	c.Branches.db = db.Session(&gorm.Session{Initialized: true})
-	c.Branches.db.Statement.ConnPool = db.Statement.ConnPool
 	c.User3rdParty.db = db.Session(&gorm.Session{Initialized: true})
 	c.User3rdParty.db.Statement.ConnPool = db.Statement.ConnPool
 	return c
@@ -167,90 +161,8 @@ func (c codeRepository) clone(db *gorm.DB) codeRepository {
 
 func (c codeRepository) replaceDB(db *gorm.DB) codeRepository {
 	c.codeRepositoryDo.ReplaceDB(db)
-	c.Branches.db = db.Session(&gorm.Session{})
 	c.User3rdParty.db = db.Session(&gorm.Session{})
 	return c
-}
-
-type codeRepositoryHasManyBranches struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a codeRepositoryHasManyBranches) Where(conds ...field.Expr) *codeRepositoryHasManyBranches {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a codeRepositoryHasManyBranches) WithContext(ctx context.Context) *codeRepositoryHasManyBranches {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a codeRepositoryHasManyBranches) Session(session *gorm.Session) *codeRepositoryHasManyBranches {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a codeRepositoryHasManyBranches) Model(m *models.CodeRepository) *codeRepositoryHasManyBranchesTx {
-	return &codeRepositoryHasManyBranchesTx{a.db.Model(m).Association(a.Name())}
-}
-
-func (a codeRepositoryHasManyBranches) Unscoped() *codeRepositoryHasManyBranches {
-	a.db = a.db.Unscoped()
-	return &a
-}
-
-type codeRepositoryHasManyBranchesTx struct{ tx *gorm.Association }
-
-func (a codeRepositoryHasManyBranchesTx) Find() (result []*models.CodeRepositoryBranch, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a codeRepositoryHasManyBranchesTx) Append(values ...*models.CodeRepositoryBranch) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a codeRepositoryHasManyBranchesTx) Replace(values ...*models.CodeRepositoryBranch) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a codeRepositoryHasManyBranchesTx) Delete(values ...*models.CodeRepositoryBranch) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a codeRepositoryHasManyBranchesTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a codeRepositoryHasManyBranchesTx) Count() int64 {
-	return a.tx.Count()
-}
-
-func (a codeRepositoryHasManyBranchesTx) Unscoped() *codeRepositoryHasManyBranchesTx {
-	a.tx = a.tx.Unscoped()
-	return &a
 }
 
 type codeRepositoryBelongsToUser3rdParty struct {

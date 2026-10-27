@@ -79,8 +79,9 @@ func (h *handler) List(c *gin.Context, req *api.ListCodeRepositoryRequest) {
 			CloneUrl:     codeRepositoryObj.CloneUrl,
 			SshUrl:       codeRepositoryObj.SshUrl,
 			OciRepoCount: codeRepositoryObj.OciRepoCount,
-			CreatedAt:    time.Unix(0, int64(time.Millisecond)*codeRepositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-			UpdatedAt:    time.Unix(0, int64(time.Millisecond)*codeRepositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			PushedAt:     formatPushedAt(codeRepositoryObj.PushedAt),
+			CreatedAt:    time.UnixMilli(codeRepositoryObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
+			UpdatedAt:    time.UnixMilli(codeRepositoryObj.UpdatedAt).UTC().Format(consts.DefaultTimePattern),
 		})
 	}
 
@@ -94,4 +95,13 @@ func getOwnerID(ownerObjs []*models.CodeRepositoryOwner, owner string) string {
 		}
 	}
 	return ""
+}
+
+// formatPushedAt renders the provider push time, leaving it empty when the repository has
+// never been synced with a provider timestamp.
+func formatPushedAt(pushedAt int64) string {
+	if pushedAt <= 0 {
+		return ""
+	}
+	return time.UnixMilli(pushedAt).UTC().Format(consts.DefaultTimePattern)
 }

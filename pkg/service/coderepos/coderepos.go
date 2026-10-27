@@ -48,10 +48,10 @@ type Service interface {
 	GetCodeRepository(ctx context.Context, userID string, provider enums.Provider, id string) (*models.CodeRepository, []*models.CodeRepositoryOwner, error)
 	// ListCodeRepositoryOwners lists code repository owners.
 	ListCodeRepositoryOwners(ctx context.Context, userID string, provider enums.Provider, name *string) ([]*models.CodeRepositoryOwner, int64, error)
-	// ListCodeRepositoryBranches lists branches of a code repository without pagination.
-	ListCodeRepositoryBranches(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error)
-	// GetCodeRepositoryBranch gets a branch by name.
-	GetCodeRepositoryBranch(ctx context.Context, codeRepositoryID string, name string) (*models.CodeRepositoryBranch, error)
+	// ListCodeRepositoryBranches lists the branches of a code repository, read from the provider.
+	ListCodeRepositoryBranches(ctx context.Context, userID string, provider enums.Provider, codeRepositoryID string) ([]string, error)
+	// GetCodeRepositoryBranch verifies that a branch exists and returns its name.
+	GetCodeRepositoryBranch(ctx context.Context, userID string, provider enums.Provider, codeRepositoryID string, name string) (string, error)
 	// ResyncCodeRepositories resync all code repositories for the user's 3rd party (includes: update user status + produce daemon task).
 	ResyncCodeRepositories(ctx context.Context, userID string, provider enums.Provider) error
 	// ListCodeRepositoryProviders lists the configured source code providers together with
@@ -142,24 +142,6 @@ func (s *service) ListCodeRepositoryOwners(ctx context.Context, userID string, p
 		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 	return codeRepositoryOwnerObjs, total, nil
-}
-
-func (s *service) ListCodeRepositoryBranches(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
-	branchObjs, total, err := s.RepoCode.ListBranchesWithoutPagination(ctx, codeRepositoryID)
-	if err != nil {
-		slog.Error("list branches failed", "err", err)
-		return nil, 0, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List branches failed: %v", err))
-	}
-	return branchObjs, total, nil
-}
-
-func (s *service) GetCodeRepositoryBranch(ctx context.Context, codeRepositoryID string, name string) (*models.CodeRepositoryBranch, error) {
-	branchObj, err := s.RepoCode.GetBranchByName(ctx, codeRepositoryID, name)
-	if err != nil {
-		slog.Error("get branch by id failed", "err", err)
-		return nil, errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("List branches failed: %v", err))
-	}
-	return branchObj, nil
 }
 
 func (s *service) ResyncCodeRepositories(ctx context.Context, userID string, provider enums.Provider) error {

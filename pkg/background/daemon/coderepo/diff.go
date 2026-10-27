@@ -27,7 +27,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
-func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3rdParty, newRepos []*models.CodeRepository, branchMap map[string][]*models.CodeRepositoryBranch) error {
+// diff reconciles the stored repositories and owners of a third-party account with the
+// provider. Branches are not synced: they are fetched from the provider when a build form
+// needs them, which keeps a sync from making one API call per repository.
+func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3rdParty, newRepos []*models.CodeRepository) error {
 	codeRepositoryRepository := cr.codeRepositoryRepository
 	oldRepos, err := codeRepositoryRepository.ListAll(ctx, user3rdPartyObj.ID)
 	if err != nil {
@@ -167,86 +170,6 @@ func (cr codeRepository) diff(ctx context.Context, user3rdPartyObj *models.User3
 			if err != nil {
 				slog.Error("delete old code repository owners failed", "err", err)
 				return fmt.Errorf("delete old code repository owners failed: %v", err)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return cr.diffBranch(ctx, user3rdPartyObj, branchMap)
-}
-
-func (cr codeRepository) diffBranch(ctx context.Context, user3rdPartyObj *models.User3rdParty, branchMap map[string][]*models.CodeRepositoryBranch) error {
-	if len(branchMap) == 0 {
-		return nil
-	}
-	codeRepositoryRepository := cr.codeRepositoryRepository
-	repositoryObjs, err := codeRepositoryRepository.ListAll(ctx, user3rdPartyObj.ID)
-	if err != nil {
-		slog.Error("list all repositories failed", "err", err)
-		return fmt.Errorf("list all repositories failed: %v", err)
-	}
-
-	var needInsertBranches []*models.CodeRepositoryBranch
-	var needDelBranches []string
-	for _, repo := range repositoryObjs {
-		oldBranches, _, err := codeRepositoryRepository.ListBranchesWithoutPagination(ctx, repo.ID)
-		if err != nil {
-			slog.Error("list repo branches failed", "err", err, "id", repo.ID)
-			return fmt.Errorf("list repo branches failed: %v", err)
-		}
-		if len(branchMap[repo.RepositoryID]) == 0 {
-			var bs []*models.CodeRepositoryBranch
-			for _, b := range branchMap[repo.RepositoryID] {
-				bs = append(bs, &models.CodeRepositoryBranch{ID: uuid.NewV7String(), CodeRepositoryID: repo.ID, Name: b.Name})
-			}
-			needInsertBranches = append(needInsertBranches, bs...)
-			continue
-		}
-
-		for _, oldB := range oldBranches {
-			found := false
-			for _, newB := range branchMap[repo.RepositoryID] {
-				if newB.Name == oldB.Name {
-					found = true
-				}
-			}
-			if !found {
-				needDelBranches = append(needDelBranches, oldB.ID)
-			}
-		}
-
-		for _, newB := range branchMap[repo.RepositoryID] {
-			found := false
-			for _, oldB := range oldBranches {
-				if newB.Name == oldB.Name {
-					found = true
-				}
-			}
-			if !found {
-				needInsertBranches = append(needInsertBranches, &models.CodeRepositoryBranch{
-					ID:               uuid.NewV7String(),
-					CodeRepositoryID: repo.ID,
-					Name:             newB.Name,
-				})
-			}
-		}
-	}
-	err = query.Q.Transaction(func(tx *query.Query) error {
-		codeRepositoryRepository := repocoderepo.NewCodeRepositoryRepository(tx)
-		if len(needInsertBranches) > 0 {
-			err := codeRepositoryRepository.CreateBranchesInBatches(ctx, needInsertBranches)
-			if err != nil {
-				slog.Error("create new branches failed", "err", err)
-				return fmt.Errorf("create new branches failed: %v", err)
-			}
-		}
-		if len(needDelBranches) > 0 {
-			err := codeRepositoryRepository.DeleteBranchesInBatches(ctx, needDelBranches)
-			if err != nil {
-				slog.Error("delete branches failed", "err", err)
-				return fmt.Errorf("delete branches failed: %v", err)
 			}
 		}
 		return nil

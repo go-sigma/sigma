@@ -65,9 +65,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}
 			}
 		}{
@@ -90,9 +87,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Builder", "models.Builder"),
@@ -109,9 +103,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}{
 					RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository", "models.CodeRepository"),
 					User3rdParty: struct {
@@ -126,11 +117,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 						}{
 							RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 						},
-					},
-					Branches: struct {
-						field.RelationField
-					}{
-						RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 					},
 				},
 			},
@@ -186,9 +172,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}
 			}
@@ -215,9 +198,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}
 			}{
@@ -240,9 +220,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}{
 					RelationField: field.NewRelation("Artifact.Tags.Repository.Builder", "models.Builder"),
@@ -259,9 +236,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}{
 						RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository", "models.CodeRepository"),
 						User3rdParty: struct {
@@ -276,11 +250,6 @@ func newArtifactSbom(db *gorm.DB, opts ...gen.DOOption) artifactSbom {
 							}{
 								RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 							},
-						},
-						Branches: struct {
-							field.RelationField
-						}{
-							RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 						},
 					},
 				},
@@ -441,9 +410,6 @@ type artifactSbomBelongsToArtifact struct {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}
 		}
 	}
@@ -481,9 +447,6 @@ type artifactSbomBelongsToArtifact struct {
 						User struct {
 							field.RelationField
 						}
-					}
-					Branches struct {
-						field.RelationField
 					}
 				}
 			}

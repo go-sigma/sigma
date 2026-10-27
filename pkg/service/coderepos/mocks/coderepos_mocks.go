@@ -74,18 +74,18 @@ func (mr *MockCodeRepositoryServiceMockRecorder) GetCodeRepository(ctx, userID, 
 }
 
 // GetCodeRepositoryBranch mocks base method.
-func (m *MockCodeRepositoryService) GetCodeRepositoryBranch(ctx context.Context, codeRepositoryID, name string) (*models.CodeRepositoryBranch, error) {
+func (m *MockCodeRepositoryService) GetCodeRepositoryBranch(ctx context.Context, userID string, provider enums.Provider, codeRepositoryID, name string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCodeRepositoryBranch", ctx, codeRepositoryID, name)
-	ret0, _ := ret[0].(*models.CodeRepositoryBranch)
+	ret := m.ctrl.Call(m, "GetCodeRepositoryBranch", ctx, userID, provider, codeRepositoryID, name)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCodeRepositoryBranch indicates an expected call of GetCodeRepositoryBranch.
-func (mr *MockCodeRepositoryServiceMockRecorder) GetCodeRepositoryBranch(ctx, codeRepositoryID, name any) *gomock.Call {
+func (mr *MockCodeRepositoryServiceMockRecorder) GetCodeRepositoryBranch(ctx, userID, provider, codeRepositoryID, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeRepositoryBranch", reflect.TypeOf((*MockCodeRepositoryService)(nil).GetCodeRepositoryBranch), ctx, codeRepositoryID, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeRepositoryBranch", reflect.TypeOf((*MockCodeRepositoryService)(nil).GetCodeRepositoryBranch), ctx, userID, provider, codeRepositoryID, name)
 }
 
 // GetCodeRepositoryCredential mocks base method.
@@ -136,19 +136,18 @@ func (mr *MockCodeRepositoryServiceMockRecorder) ListCodeRepositories(ctx, userI
 }
 
 // ListCodeRepositoryBranches mocks base method.
-func (m *MockCodeRepositoryService) ListCodeRepositoryBranches(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
+func (m *MockCodeRepositoryService) ListCodeRepositoryBranches(ctx context.Context, userID string, provider enums.Provider, codeRepositoryID string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListCodeRepositoryBranches", ctx, codeRepositoryID)
-	ret0, _ := ret[0].([]*models.CodeRepositoryBranch)
-	ret1, _ := ret[1].(int64)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret := m.ctrl.Call(m, "ListCodeRepositoryBranches", ctx, userID, provider, codeRepositoryID)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ListCodeRepositoryBranches indicates an expected call of ListCodeRepositoryBranches.
-func (mr *MockCodeRepositoryServiceMockRecorder) ListCodeRepositoryBranches(ctx, codeRepositoryID any) *gomock.Call {
+func (mr *MockCodeRepositoryServiceMockRecorder) ListCodeRepositoryBranches(ctx, userID, provider, codeRepositoryID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCodeRepositoryBranches", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListCodeRepositoryBranches), ctx, codeRepositoryID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCodeRepositoryBranches", reflect.TypeOf((*MockCodeRepositoryService)(nil).ListCodeRepositoryBranches), ctx, userID, provider, codeRepositoryID)
 }
 
 // ListCodeRepositoryOwners mocks base method.

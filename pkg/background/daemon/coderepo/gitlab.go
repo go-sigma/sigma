@@ -116,6 +116,7 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 			Name:           r.Name,
 			SshUrl:         r.SSHURLToRepo,
 			CloneUrl:       r.HTTPURLToRepo,
+			PushedAt:       gitlabPushedAt(r),
 		}
 		if r.Namespace.Path != userObj.Username {
 			repo.IsOrg = true
@@ -123,31 +124,17 @@ func (cr codeRepository) gitlab(ctx context.Context, user3rdPartyObj *models.Use
 		newRepos = append(newRepos, repo)
 	}
 
-	var branchMap = make(map[string][]*models.CodeRepositoryBranch)
-	for _, r := range newRepos {
-		var branches []*models.CodeRepositoryBranch
-		page = 1
-		for {
-			bs, _, err := client.Branches.ListBranches(r.RepositoryID, &gitlab.ListBranchesOptions{Page: page, PerPage: perPage})
-			if err != nil {
-				slog.Error("list branches failed", "err", err, "owner", r.Owner, "repo", r.Name)
-				return fmt.Errorf("list branches for repo(%s/%s) failed: %v", r.Owner, r.Name, err)
-			}
-			var bsObj = make([]*models.CodeRepositoryBranch, 0, len(bs))
-			for _, b := range bs {
-				bsObj = append(bsObj, &models.CodeRepositoryBranch{
-					ID:   uuid.NewV7String(),
-					Name: b.Name,
-				})
-			}
-			branches = append(branches, bsObj...)
-			if len(bs) < perPage {
-				break
-			}
-			page++
-		}
-		branchMap[r.RepositoryID] = branches
-	}
+	return cr.diff(ctx, user3rdPartyObj, newRepos)
+}
 
-	return cr.diff(ctx, user3rdPartyObj, newRepos, branchMap)
+// gitlabPushedAt returns the last activity time of a project, falling back to its own
+// updated_at: GitLab exposes last_activity_at for pushes, updated_at for any change.
+func gitlabPushedAt(project *gitlab.Project) int64 {
+	if project.LastActivityAt != nil {
+		return project.LastActivityAt.UnixMilli()
+	}
+	if project.UpdatedAt != nil {
+		return project.UpdatedAt.UnixMilli()
+	}
+	return 0
 }

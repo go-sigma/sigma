@@ -41,18 +41,10 @@ type CodeRepository struct {
 
 	OciRepoCount int64
 
-	Branches []CodeRepositoryBranch
-}
-
-// CodeRepositoryBranch stores a branch of a CodeRepository.
-type CodeRepositoryBranch struct {
-	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
-	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
-	ID        string                `gorm:"primaryKey;size:36"`
-
-	CodeRepositoryID string
-	Name             string
+	// PushedAt is the last push/activity time reported by the provider, as unix
+	// milliseconds. It is what "most recently updated" means to a user, unlike
+	// UpdatedAt which only tracks our own row.
+	PushedAt int64
 }
 
 // CodeRepositoryOwner caches the owners (users or organizations) seen for a third-party account, for filtering code repositories.

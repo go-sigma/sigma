@@ -16,14 +16,16 @@ package coderepos
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // GetBranch get branch by name
@@ -42,19 +44,21 @@ import (
 func (h *handler) GetBranch(c *gin.Context, req *api.GetCodeRepositoryBranchRequest) {
 	ctx := c.Request.Context()
 
-	branchObj, err := h.CodeRepoSvc.GetCodeRepositoryBranch(ctx, req.ID, req.Name)
+	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)
+	if !ok {
+		slog.Error("get user from context failed")
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
+		return
+	}
+
+	branch, err := h.CodeRepoSvc.GetCodeRepositoryBranch(ctx, user.ID, req.Provider, req.ID, req.Name)
 	if err != nil {
 		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
 			errcode.NewHTTPError(c, e)
 			return
 		}
-		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("Get branch failed: %v", err))
 		return
 	}
-	c.JSON(http.StatusOK, api.CodeRepositoryBranchItem{
-		ID:        branchObj.ID,
-		Name:      branchObj.Name,
-		CreatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-		UpdatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-	})
+	c.JSON(http.StatusOK, api.CodeRepositoryBranchItem{Name: branch})
 }

@@ -182,17 +182,8 @@ definitions:
     type: object
   api.CodeRepositoryBranchItem:
     properties:
-      created_at:
-        example: "2006-01-02 15:04:05"
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
       name:
         example: main
-        type: string
-      updated_at:
-        example: "2006-01-02 15:04:05"
         type: string
     type: object
   api.CodeRepositoryItem:
@@ -225,6 +216,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/enums.ScmProvider'
         example: github
+      pushed_at:
+        description: PushedAt is the last push time reported by the provider.
+        example: "2006-01-02 15:04:05"
+        type: string
       repository_id:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string

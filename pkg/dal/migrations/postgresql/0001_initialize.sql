@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS "code_repositories" (
   "created_at" bigint NOT NULL,
   "updated_at" bigint NOT NULL,
   "deleted_at" bigint NOT NULL DEFAULT 0,
+  "pushed_at" bigint NOT NULL DEFAULT 0,
   CONSTRAINT "code_repositories_unique_with_name" UNIQUE (
     "user_3rdparty_id",
     "owner_id",
@@ -97,25 +98,11 @@ CREATE TABLE IF NOT EXISTS "code_repositories" (
 
 CREATE INDEX "code_repositories_idx_created_at" ON "code_repositories" ("created_at");
 
+CREATE INDEX "code_repositories_idx_pushed_at" ON "code_repositories" ("pushed_at");
+
 CREATE INDEX "code_repositories_idx_updated_at" ON "code_repositories" ("updated_at");
 
 CREATE INDEX "code_repositories_idx_deleted_at" ON "code_repositories" ("deleted_at");
-
-CREATE TABLE IF NOT EXISTS "code_repository_branches" (
-  "id" varchar(36) PRIMARY KEY,
-  "code_repository_id" varchar(36) NOT NULL,
-  "name" varchar(256) NOT NULL,
-  "created_at" bigint NOT NULL,
-  "updated_at" bigint NOT NULL,
-  "deleted_at" bigint NOT NULL DEFAULT 0,
-  CONSTRAINT "code_repository_branches_unique_with_name" UNIQUE ("code_repository_id", "name", "deleted_at")
-);
-
-CREATE INDEX "code_repository_branches_idx_created_at" ON "code_repository_branches" ("created_at");
-
-CREATE INDEX "code_repository_branches_idx_updated_at" ON "code_repository_branches" ("updated_at");
-
-CREATE INDEX "code_repository_branches_idx_deleted_at" ON "code_repository_branches" ("deleted_at");
 
 CREATE TABLE IF NOT EXISTS "user_recover_codes" (
   "id" varchar(36) PRIMARY KEY,

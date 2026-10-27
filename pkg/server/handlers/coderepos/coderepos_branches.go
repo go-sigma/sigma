@@ -16,14 +16,16 @@ package coderepos
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/utils"
 )
 
 // ListBranches list all of the branches
@@ -41,7 +43,14 @@ import (
 func (h *handler) ListBranches(c *gin.Context, req *api.ListCodeRepositoryBranchesRequest) {
 	ctx := c.Request.Context()
 
-	branchObjs, total, err := h.CodeRepoSvc.ListCodeRepositoryBranches(ctx, req.ID)
+	user, ok := utils.GetFromCtx[*models.User](c, consts.ContextUser)
+	if !ok {
+		slog.Error("get user from context failed")
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeUnauthorized)
+		return
+	}
+
+	branches, err := h.CodeRepoSvc.ListCodeRepositoryBranches(ctx, user.ID, req.Provider, req.ID)
 	if err != nil {
 		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
 			errcode.NewHTTPError(c, e)
@@ -50,15 +59,10 @@ func (h *handler) ListBranches(c *gin.Context, req *api.ListCodeRepositoryBranch
 		errcode.NewHTTPError(c, errcode.HTTPErrCodeInternalError, fmt.Sprintf("List branches failed: %v", err))
 		return
 	}
-	resp := make([]any, 0, len(branchObjs))
-	for _, branchObj := range branchObjs {
-		resp = append(resp, api.CodeRepositoryBranchItem{
-			ID:        branchObj.ID,
-			Name:      branchObj.Name,
-			CreatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-			UpdatedAt: time.Unix(0, int64(time.Millisecond)*branchObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
-		})
+	resp := make([]any, 0, len(branches))
+	for _, branch := range branches {
+		resp = append(resp, api.CodeRepositoryBranchItem{Name: branch})
 	}
 
-	c.JSON(http.StatusOK, api.CommonList{Total: total, Items: resp})
+	c.JSON(http.StatusOK, api.CommonList{Total: int64(len(branches)), Items: resp})
 }

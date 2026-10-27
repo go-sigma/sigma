@@ -28,8 +28,10 @@ type CodeRepositoryItem struct {
 	CloneUrl     string            `json:"clone_url" example:"https://github.com/go-sigma/sigma.git"`
 	SshUrl       string            `json:"ssh_url" example:"git@github.com:go-sigma/sigma.git"`
 	OciRepoCount int64             `json:"oci_repo_count" example:"5"`
-	CreatedAt    string            `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt    string            `json:"updated_at" example:"2006-01-02 15:04:05"`
+	// PushedAt is the last push time reported by the provider.
+	PushedAt  string `json:"pushed_at" example:"2006-01-02 15:04:05"`
+	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
+	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
 }
 
 // CodeRepositoryOwnerItem represents a source code repository owner or organization.
@@ -66,21 +68,21 @@ type ListCodeRepositoryOwnerRequest struct {
 
 // ListCodeRepositoryBranchesRequest is the request for listing source code repository branches.
 type ListCodeRepositoryBranchesRequest struct {
-	ID string `json:"id" param:"repo_id" validate:"required"`
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+	ID       string         `json:"id" param:"repo_id" validate:"required"`
 }
 
-// CodeRepositoryBranchItem represents a source code repository branch.
+// CodeRepositoryBranchItem represents a source code repository branch. Branches are read from
+// the provider on demand, so they only carry a name.
 type CodeRepositoryBranchItem struct {
-	ID        string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name      string `json:"name" example:"main"`
-	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
-	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`
+	Name string `json:"name" example:"main"`
 }
 
 // GetCodeRepositoryBranchRequest is the request for getting a source code repository branch.
 type GetCodeRepositoryBranchRequest struct {
-	ID   string `json:"id" param:"repo_id" validate:"required"`
-	Name string `json:"name" param:"name" validate:"required"`
+	Provider enums.Provider `json:"provider" param:"provider" validate:"required,is_valid_provider"`
+	ID       string         `json:"id" param:"repo_id" validate:"required"`
+	Name     string         `json:"name" param:"name" validate:"required"`
 }
 
 // PostCodeRepositorySetupBuilder is the request for creating a builder from a source code repository.

@@ -59,9 +59,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}
 		}{
 			RelationField: field.NewRelation("Repository.Builder", "models.Builder"),
@@ -78,9 +75,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}{
 				RelationField: field.NewRelation("Repository.Builder.CodeRepository", "models.CodeRepository"),
 				User3rdParty: struct {
@@ -95,11 +89,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 					}{
 						RelationField: field.NewRelation("Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 					},
-				},
-				Branches: struct {
-					field.RelationField
-				}{
-					RelationField: field.NewRelation("Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 				},
 			},
 		},
@@ -132,9 +121,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}
 			}
 		}{
@@ -157,9 +143,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}
 			}{
 				RelationField: field.NewRelation("Artifact.Repository.Builder", "models.Builder"),
@@ -176,9 +159,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 							field.RelationField
 						}
 					}
-					Branches struct {
-						field.RelationField
-					}
 				}{
 					RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository", "models.CodeRepository"),
 					User3rdParty: struct {
@@ -193,11 +173,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 						}{
 							RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 						},
-					},
-					Branches: struct {
-						field.RelationField
-					}{
-						RelationField: field.NewRelation("Artifact.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 					},
 				},
 			},
@@ -253,9 +228,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}
 			}
@@ -282,9 +254,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}
 			}{
@@ -307,9 +276,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}
 				}{
 					RelationField: field.NewRelation("Artifact.Tags.Repository.Builder", "models.Builder"),
@@ -326,9 +292,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 								field.RelationField
 							}
 						}
-						Branches struct {
-							field.RelationField
-						}
 					}{
 						RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository", "models.CodeRepository"),
 						User3rdParty: struct {
@@ -343,11 +306,6 @@ func newTag(db *gorm.DB, opts ...gen.DOOption) tag {
 							}{
 								RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 							},
-						},
-						Branches: struct {
-							field.RelationField
-						}{
-							RelationField: field.NewRelation("Artifact.Tags.Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 						},
 					},
 				},
@@ -501,9 +459,6 @@ type tagBelongsToRepository struct {
 					field.RelationField
 				}
 			}
-			Branches struct {
-				field.RelationField
-			}
 		}
 	}
 }
@@ -609,9 +564,6 @@ type tagBelongsToArtifact struct {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}
 		}
 	}
@@ -649,9 +601,6 @@ type tagBelongsToArtifact struct {
 						User struct {
 							field.RelationField
 						}
-					}
-					Branches struct {
-						field.RelationField
 					}
 				}
 			}

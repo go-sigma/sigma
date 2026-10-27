@@ -37,8 +37,6 @@ type CodeRepositoryRepository interface {
 	CreateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
 	// CreateOwnersInBatches creates code repository owner records in batches
 	CreateOwnersInBatches(ctx context.Context, codeRepositoryOwners []*models.CodeRepositoryOwner) error
-	// CreateBranchesInBatches creates code repository branch records in batches
-	CreateBranchesInBatches(ctx context.Context, branches []*models.CodeRepositoryBranch) error
 	// UpdateInBatches updates code repository records in batches
 	UpdateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error
 	// UpdateOwnersInBatches updates code repository owner records in batches
@@ -47,8 +45,6 @@ type CodeRepositoryRepository interface {
 	DeleteInBatches(ctx context.Context, ids []string) error
 	// DeleteOwnerInBatches deletes code repository owner records in batches
 	DeleteOwnerInBatches(ctx context.Context, ids []string) error
-	// DeleteBranchesInBatches deletes code repository branch records in batches
-	DeleteBranchesInBatches(ctx context.Context, ids []string) error
 	// ListAll lists code repositories for a third-party user
 	ListAll(ctx context.Context, user3rdPartyID string) ([]*models.CodeRepository, error)
 	// Get gets a code repository by ID
@@ -59,10 +55,6 @@ type CodeRepositoryRepository interface {
 	ListWithPagination(ctx context.Context, userID string, provider enums.Provider, owner, name *string, pagination api.Pagination, sort api.Sortable) ([]*models.CodeRepository, int64, error)
 	// ListOwnerWithoutPagination lists code repository owners without pagination
 	ListOwnerWithoutPagination(ctx context.Context, userID string, provider enums.Provider, owner *string) ([]*models.CodeRepositoryOwner, int64, error)
-	// ListBranchesWithoutPagination lists branches for a code repository without pagination
-	ListBranchesWithoutPagination(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error)
-	// GetBranchByName gets a branch by code repository ID and branch name
-	GetBranchByName(ctx context.Context, codeRepositoryID string, branch string) (*models.CodeRepositoryBranch, error)
 	// GetCloneCredential gets clone credentials for a third-party user
 	GetCloneCredential(ctx context.Context, user3rdPartyID string) (*models.CodeRepositoryCloneCredential, error)
 	// UpsertCredential creates or replaces the SCM credential of a third-party user
@@ -96,11 +88,6 @@ func (s *codeRepositoryRepository) CreateOwnersInBatches(ctx context.Context, co
 	return s.tx.CodeRepositoryOwner.WithContext(ctx).CreateInBatches(codeRepositoryOwners, consts.InsertBatchSize)
 }
 
-// CreateBranchesInBatches creates code repository branch records in batches
-func (s *codeRepositoryRepository) CreateBranchesInBatches(ctx context.Context, branches []*models.CodeRepositoryBranch) error {
-	return s.tx.CodeRepositoryBranch.WithContext(ctx).CreateInBatches(branches, consts.InsertBatchSize)
-}
-
 // UpdateInBatches updates code repository records in batches
 func (s *codeRepositoryRepository) UpdateInBatches(ctx context.Context, codeRepositories []*models.CodeRepository) error {
 	for _, cr := range codeRepositories {
@@ -111,6 +98,7 @@ func (s *codeRepositoryRepository) UpdateInBatches(ctx context.Context, codeRepo
 			query.CodeRepository.Name.ColumnName().String():     cr.Name,
 			query.CodeRepository.SshUrl.ColumnName().String():   cr.SshUrl,
 			query.CodeRepository.CloneUrl.ColumnName().String(): cr.CloneUrl,
+			query.CodeRepository.PushedAt.ColumnName().String(): cr.PushedAt,
 		})
 		if err != nil {
 			return err
@@ -159,18 +147,6 @@ func (s *codeRepositoryRepository) DeleteOwnerInBatches(ctx context.Context, ids
 	return nil
 }
 
-// DeleteBranchesInBatches deletes code repository branch records in batches
-func (s *codeRepositoryRepository) DeleteBranchesInBatches(ctx context.Context, ids []string) error {
-	if len(ids) == 0 {
-		return nil
-	}
-	_, err := s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.ID.In(ids...)).Delete()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // ListAll lists code repositories for a third-party user
 func (s *codeRepositoryRepository) ListAll(ctx context.Context, user3rdPartyID string) ([]*models.CodeRepository, error) {
 	return s.tx.CodeRepository.WithContext(ctx).Where(s.tx.CodeRepository.User3rdPartyID.Eq(user3rdPartyID)).Find()
@@ -209,10 +185,11 @@ func (s *codeRepositoryRepository) ListWithPagination(ctx context.Context, userI
 		case enums.SortMethodAsc:
 			query = query.Order(field)
 		default:
-			query = query.Order(s.tx.CodeRepository.UpdatedAt.Desc())
+			// Most recently pushed first: the row's own updated_at only tracks our sync.
+			query = query.Order(s.tx.CodeRepository.PushedAt.Desc())
 		}
 	} else {
-		query = query.Order(s.tx.CodeRepository.UpdatedAt.Desc())
+		query = query.Order(s.tx.CodeRepository.PushedAt.Desc())
 	}
 	return query.FindByPage(ptr.To(pagination.Limit)*(ptr.To(pagination.Page)-1), ptr.To(pagination.Limit))
 }
@@ -230,16 +207,6 @@ func (s *codeRepositoryRepository) ListOwnerWithoutPagination(ctx context.Contex
 	}
 
 	return query.FindByPage(-1, -1)
-}
-
-// ListBranchesWithoutPagination lists branches for a code repository without pagination
-func (s *codeRepositoryRepository) ListBranchesWithoutPagination(ctx context.Context, codeRepositoryID string) ([]*models.CodeRepositoryBranch, int64, error) {
-	return s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.CodeRepositoryID.Eq(codeRepositoryID)).FindByPage(-1, -1)
-}
-
-// GetBranchByName gets a branch by code repository ID and branch name
-func (s *codeRepositoryRepository) GetBranchByName(ctx context.Context, codeRepositoryID string, branch string) (*models.CodeRepositoryBranch, error) {
-	return s.tx.CodeRepositoryBranch.WithContext(ctx).Where(s.tx.CodeRepositoryBranch.CodeRepositoryID.Eq(codeRepositoryID), s.tx.CodeRepositoryBranch.Name.Eq(branch)).First()
 }
 
 // GetCloneCredential gets clone credentials for a third-party user

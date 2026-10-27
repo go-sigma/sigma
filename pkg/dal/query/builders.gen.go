@@ -78,9 +78,6 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}
 		}{
 			RelationField: field.NewRelation("Repository.Builder", "models.Builder"),
@@ -97,9 +94,6 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 						field.RelationField
 					}
 				}
-				Branches struct {
-					field.RelationField
-				}
 			}{
 				RelationField: field.NewRelation("Repository.Builder.CodeRepository", "models.CodeRepository"),
 				User3rdParty: struct {
@@ -114,11 +108,6 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 					}{
 						RelationField: field.NewRelation("Repository.Builder.CodeRepository.User3rdParty.User", "models.User"),
 					},
-				},
-				Branches: struct {
-					field.RelationField
-				}{
-					RelationField: field.NewRelation("Repository.Builder.CodeRepository.Branches", "models.CodeRepositoryBranch"),
 				},
 			},
 		},
@@ -140,11 +129,6 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 			}{
 				RelationField: field.NewRelation("CodeRepository.User3rdParty.User", "models.User"),
 			},
-		},
-		Branches: struct {
-			field.RelationField
-		}{
-			RelationField: field.NewRelation("CodeRepository.Branches", "models.CodeRepositoryBranch"),
 		},
 	}
 
@@ -328,9 +312,6 @@ type builderBelongsToRepository struct {
 					field.RelationField
 				}
 			}
-			Branches struct {
-				field.RelationField
-			}
 		}
 	}
 }
@@ -420,9 +401,6 @@ type builderBelongsToCodeRepository struct {
 		User struct {
 			field.RelationField
 		}
-	}
-	Branches struct {
-		field.RelationField
 	}
 }
 

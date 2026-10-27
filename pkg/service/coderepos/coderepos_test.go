@@ -25,27 +25,44 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	repocoderepomocks "github.com/go-sigma/sigma/pkg/dal/repository/coderepo/mocks"
 	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
 func TestCodeRepositoryQueries(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	codeRepository := repocoderepomocks.NewMockCodeRepositoryRepository(ctrl)
-	service := &service{RepoCode: codeRepository}
+	userRepository := repousermocks.NewMockUserRepository(ctrl)
+	svc := &service{Config: scmConfig(), RepoCode: codeRepository, RepoUser: userRepository}
 
+	// A repository id is user input: a repository of another binding must not be reachable.
+	userRepository.EXPECT().
+		GetUser3rdPartyByProvider(gomock.Any(), "user-1", enums.ProviderGithub).
+		Return(&models.User3rdParty{ID: "3rdparty-1"}, nil)
 	codeRepository.EXPECT().
-		ListBranchesWithoutPagination(gomock.Any(), "repository-1").
-		Return([]*models.CodeRepositoryBranch{{ID: "branch-1"}}, int64(1), nil)
-	branches, total, err := service.ListCodeRepositoryBranches(t.Context(), "repository-1")
-	require.NoError(t, err)
-	require.Len(t, branches, 1)
-	require.Equal(t, int64(1), total)
+		Get(gomock.Any(), "repository-1").
+		Return(&models.CodeRepository{ID: "repository-1", User3rdPartyID: "3rdparty-other"}, nil)
 
+	_, err := svc.ListCodeRepositoryBranches(t.Context(), "user-1", enums.ProviderGithub, "repository-1")
+	require.Error(t, err)
+	require.ErrorIs(t, err, errcode.HTTPErrCodeNotFound)
+
+	// Branches are not synced, so a repository without a credential cannot list them either.
+	userRepository.EXPECT().
+		GetUser3rdPartyByProvider(gomock.Any(), "user-1", enums.ProviderGithub).
+		Return(&models.User3rdParty{ID: "3rdparty-1"}, nil)
 	codeRepository.EXPECT().
-		GetBranchByName(gomock.Any(), "repository-1", "main").
-		Return(&models.CodeRepositoryBranch{ID: "branch-1", Name: "main"}, nil)
-	branch, err := service.GetCodeRepositoryBranch(t.Context(), "repository-1", "main")
-	require.NoError(t, err)
-	require.Equal(t, "branch-1", branch.ID)
+		Get(gomock.Any(), "repository-1").
+		Return(&models.CodeRepository{ID: "repository-1", User3rdPartyID: "3rdparty-1"}, nil)
+	codeRepository.EXPECT().
+		GetCloneCredential(gomock.Any(), "3rdparty-1").
+		Return(&models.CodeRepositoryCloneCredential{Type: enums.ScmCredentialTypeSsh}, nil)
+
+	_, err = svc.ListCodeRepositoryBranches(t.Context(), "user-1", enums.ProviderGithub, "repository-1")
+	require.Error(t, err)
+
+	// An unknown provider is rejected before any database access.
+	_, err = svc.ListCodeRepositoryBranches(t.Context(), "user-1", enums.ProviderGitlab, "repository-1")
+	require.Error(t, err)
 }
 
 func TestGetCodeRepositoryProviderError(t *testing.T) {
