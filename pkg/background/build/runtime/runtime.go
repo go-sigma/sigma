@@ -123,13 +123,33 @@ func BuildEnv(builderConfig Config) ([]string, error) {
 		return nil, err
 	}
 
+	builderKey := fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID)
+	// seal encrypts one secret with AES-256-GCM, so the builder process can prove
+	// the value was produced by this instance and was not tampered with.
+	seal := func(name, value string) (string, error) {
+		sealed, err := crypt.Seal(builderKey, value)
+		if err != nil {
+			return "", fmt.Errorf("seal %s failed: %w", name, err)
+		}
+		return sealed, nil
+	}
+
+	sealedAuthorization, err := seal("authorization", authorization)
+	if err != nil {
+		return nil, err
+	}
+	sealedSigningPrivateKey, err := seal("signing private key", string(privateKey.Val))
+	if err != nil {
+		return nil, err
+	}
+
 	buildConfigEnvs := []string{
 		fmt.Sprintf("BUILDER_ID=%s", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%s", builderConfig.RunnerID),
 
 		fmt.Sprintf("ENDPOINT=%s", config.HTTP.InternalEndpoint),
 		fmt.Sprintf("ENDPOINT_TLS_VERIFY=%t", config.Daemon.Builder.TLSVerifyEnabled()),
-		fmt.Sprintf("AUTHORIZATION=%s", crypt.MustEncrypt(fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), authorization)),
+		fmt.Sprintf("AUTHORIZATION=%s", sealedAuthorization),
 		fmt.Sprintf("REPOSITORY=%s", builderConfig.Repository),
 		fmt.Sprintf("TAG=%s", builderConfig.Tag),
 
@@ -147,7 +167,7 @@ func BuildEnv(builderConfig Config) ([]string, error) {
 		fmt.Sprintf("BUILDKIT_PLATFORMS=%s", utils.StringsJoin(builderConfig.BuildkitPlatforms, ",")),
 		fmt.Sprintf("BUILDKIT_BUILD_ARGS=%s", strings.Join(builderConfig.BuildkitBuildArgs, ",")),
 
-		fmt.Sprintf("SIGNING_PRIVATE_KEY=%s", crypt.MustEncrypt(fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), string(privateKey.Val))),
+		fmt.Sprintf("SIGNING_PRIVATE_KEY=%s", sealedSigningPrivateKey),
 	}
 	if builderConfig.Dockerfile != nil {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("DOCKERFILE=%s", ptr.To(builderConfig.Dockerfile)))
@@ -174,23 +194,40 @@ func BuildEnv(builderConfig Config) ([]string, error) {
 		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_USERNAME=%s", ptr.To(builderConfig.ScmUsername)))
 	}
 	if builderConfig.ScmPassword != nil {
-		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_PASSWORD=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), ptr.To(builderConfig.ScmPassword))))
+		var sealedPassword string
+		sealedPassword, err = seal("scm password", ptr.To(builderConfig.ScmPassword))
+		if err != nil {
+			return nil, err
+		}
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_PASSWORD=%s", sealedPassword))
 	}
 	if builderConfig.ScmSshKey != nil {
-		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_SSH_KEY=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), ptr.To(builderConfig.ScmSshKey))))
+		var sealedSshKey string
+		sealedSshKey, err = seal("scm ssh key", ptr.To(builderConfig.ScmSshKey))
+		if err != nil {
+			return nil, err
+		}
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_SSH_KEY=%s", sealedSshKey))
 	}
 	if builderConfig.ScmToken != nil {
-		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_TOKEN=%s", crypt.MustEncrypt(
-			fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), ptr.To(builderConfig.ScmToken))))
+		var sealedToken string
+		sealedToken, err = seal("scm token", ptr.To(builderConfig.ScmToken))
+		if err != nil {
+			return nil, err
+		}
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("SCM_TOKEN=%s", sealedToken))
 	}
 	if len(builderConfig.OciRegistryPassword) != 0 {
-		var passwords []string
-		for _, p := range builderConfig.OciRegistryPassword {
-			passwords = append(passwords, crypt.MustEncrypt(fmt.Sprintf("%s-%s", builderConfig.BuilderID, builderConfig.RunnerID), p))
+		sealedPasswords := make([]string, 0, len(builderConfig.OciRegistryPassword))
+		for _, password := range builderConfig.OciRegistryPassword {
+			var sealedPassword string
+			sealedPassword, err = seal("oci registry password", password)
+			if err != nil {
+				return nil, err
+			}
+			sealedPasswords = append(sealedPasswords, sealedPassword)
 		}
-		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("OCI_REGISTRY_PASSWORD=%s", strings.Join(passwords, ",")))
+		buildConfigEnvs = append(buildConfigEnvs, fmt.Sprintf("OCI_REGISTRY_PASSWORD=%s", strings.Join(sealedPasswords, ",")))
 	}
 	if len(builderConfig.ExtraHosts) > 0 {
 		buildConfigEnvs = append(buildConfigEnvs,

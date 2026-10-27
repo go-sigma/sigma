@@ -28,7 +28,7 @@ func (f *BuildFlow) checker() error {
 	var err error
 
 	if f.Authorization != "" {
-		authorization, err := crypt.Decrypt(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), f.Authorization)
+		authorization, err := crypt.Open(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), f.Authorization)
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func (f *BuildFlow) checker() error {
 		return fmt.Errorf("SCM_SSH_KEY should be set, if SCM_CREDENTIAL_TYPE is 'ssh'")
 	}
 	if ptr.To(f.ScmSshKey) != "" {
-		scmSshKey, err := crypt.Decrypt(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), ptr.To(f.ScmSshKey))
+		scmSshKey, err := crypt.Open(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), ptr.To(f.ScmSshKey))
 		if err != nil {
 			return fmt.Errorf("decrypt ssh key failed: %v", err)
 		}
@@ -54,7 +54,7 @@ func (f *BuildFlow) checker() error {
 		return fmt.Errorf("env SCM_TOKEN should be set, if SCM_CREDENTIAL_TYPE is 'token'")
 	}
 	if ptr.To(f.ScmToken) != "" {
-		scmToken, err := crypt.Decrypt(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), ptr.To(f.ScmToken))
+		scmToken, err := crypt.Open(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), ptr.To(f.ScmToken))
 		if err != nil {
 			return fmt.Errorf("decrypt scm token failed: %v", err)
 		}
@@ -69,7 +69,7 @@ func (f *BuildFlow) checker() error {
 		return fmt.Errorf("env SCM_USERNAME and SCM_PASSWORD should be set, if SCM_CREDENTIAL_TYPE is 'username'")
 	}
 	if ptr.To(f.ScmPassword) != "" {
-		scmPassword, err := crypt.Decrypt(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), ptr.To(f.ScmPassword))
+		scmPassword, err := crypt.Open(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), ptr.To(f.ScmPassword))
 		if err != nil {
 			return fmt.Errorf("decrypt scm password failed: %v", err)
 		}
@@ -90,13 +90,13 @@ func (f *BuildFlow) checker() error {
 	}
 
 	for index, password := range f.OciRegistryPassword {
-		f.OciRegistryPassword[index], err = crypt.Decrypt(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), password)
+		f.OciRegistryPassword[index], err = crypt.Open(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), password)
 		if err != nil {
 			return fmt.Errorf("decrypt oci registry password failed: %v", err)
 		}
 	}
 
-	signingPrivateKey, err := crypt.Decrypt(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), f.SigningPrivateKey)
+	signingPrivateKey, err := crypt.Open(fmt.Sprintf("%s-%s", f.BuilderID, f.RunnerID), f.SigningPrivateKey)
 	if err != nil {
 		return fmt.Errorf("decrypt signing private key failed: %v", err)
 	}
