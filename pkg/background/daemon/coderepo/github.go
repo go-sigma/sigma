@@ -42,7 +42,8 @@ func (cr codeRepository) github(ctx context.Context, user3rdPartyObj *models.Use
 
 	page := 1
 	for {
-		rs, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{Page: page, PerPage: perPage}) // nolint: staticcheck
+		rs, _, err := client.Repositories.ListByAuthenticatedUser(ctx,
+			&github.RepositoryListByAuthenticatedUserOptions{Page: page, PerPage: perPage})
 		if err != nil {
 			slog.Error("list repositories failed", "err", err)
 			return fmt.Errorf("list repositories failed: %v", err)
