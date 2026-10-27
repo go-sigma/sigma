@@ -147,10 +147,10 @@ export default function ({
                 if (v) setType(v);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="min-w-0">
+              <SelectContent>
                 {credentialTypes.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {t(item.labelKey)}
