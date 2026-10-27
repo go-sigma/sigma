@@ -21,6 +21,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/service/artifacts"
 	"github.com/go-sigma/sigma/pkg/service/builders"
 	"github.com/go-sigma/sigma/pkg/service/coderepos"
+	"github.com/go-sigma/sigma/pkg/service/credential"
 	"github.com/go-sigma/sigma/pkg/service/daemons"
 	"github.com/go-sigma/sigma/pkg/service/distribution/blob"
 	"github.com/go-sigma/sigma/pkg/service/distribution/manifest"
@@ -46,6 +47,7 @@ func InitDigContainer(digCon *dig.Container) error {
 		digCon.Provide(webhooks.NewService),
 		digCon.Provide(builders.NewService),
 		digCon.Provide(coderepos.NewService),
+		digCon.Provide(credential.New),
 		digCon.Provide(daemons.NewService),
 		digCon.Provide(systems.NewService),
 		digCon.Provide(oauth2.NewService),
