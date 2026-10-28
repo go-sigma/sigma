@@ -1399,15 +1399,22 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                 {
                   cronBuild ? (
                     <div className="sm:col-span-1">
-                      <label htmlFor="mergeEventBranch" className="block text-sm font-medium leading-6 text-gray-900">
-                        Expression
-                      </label>
-                      <div className="mt-2 flex flex-row items-center h-9">
-                        <input
+                      <div className="flex items-center gap-1.5">
+                        <label htmlFor="mergeEventBranch" className="block text-sm font-medium leading-6 text-gray-900">
+                          Expression
+                        </label>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                          </TooltipTrigger>
+                          <TooltipContent>{t("builder.cronExpressionHint")}</TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="mt-2">
+                        <Input
                           type="text"
                           name="mergeEventBranch"
                           id="mergeEventBranch"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={cronExpr}
                           onChange={e => {
                             setSearchParams({
@@ -1464,7 +1471,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                   ) : (
                     builderSource === 'SelfCodeRepository' ? (
                       <div className="sm:col-span-1">
-                        <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
+                        <label htmlFor="cronBranch" className="block text-sm font-medium leading-6 text-gray-900">
                           Branch
                         </label>
                         <div className="mt-2">
@@ -1484,15 +1491,22 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                 {
                   cronBuild ? (
                     <div className="sm:col-span-2">
-                      <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
-                        OCI tag template
-                      </label>
-                      <div className="mt-2 flex flex-row items-center h-9">
-                        <input
+                      <div className="flex items-center gap-1.5">
+                        <label htmlFor="mergeEventTagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
+                          OCI tag template
+                        </label>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                          </TooltipTrigger>
+                          <TooltipContent>{t("builder.cronTagTemplateHint")}</TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="mt-2">
+                        <Input
                           type="text"
                           name="mergeEventTagTemplate"
                           id="mergeEventTagTemplate"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                           value={cronTagTemplate}
                           onChange={e => setCronTagTemplate(e.target.value)}
                         />

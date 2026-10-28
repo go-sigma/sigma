@@ -188,6 +188,8 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "builder.buildOptionsDescription": "镜像构建选项",
   "builder.cronBuild": "Cron 构建",
   "builder.cronBuildDescription": "按 Cron 规则构建镜像",
+  "builder.cronExpressionHint": "5 段式 Cron 表达式：分 时 日 月 周，按服务端本地时区计算。例如 0 2 * * * 表示每天 02:00 触发构建。",
+  "builder.cronTagTemplateHint": "每次 Cron 触发时按 Go template 渲染。可用变量：{{ .ScmBranch }}（上边选择的分支），并支持 sprig 函数，如 {{ now | date \"20060102\" }}、{{ now | unixEpoch }}。例如 nightly-{{ .ScmBranch }}。",
   "builder.webhookDescription": "通过 Webhook 事件触发镜像构建",
   "builder.configureFirst": "请先配置构建器",
   "builder.tagTemplate": "标签模板",
