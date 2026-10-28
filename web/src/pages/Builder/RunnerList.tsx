@@ -30,6 +30,9 @@ import BuildDurationChart from "@/components/BuildDurationChart";
 import RepositoryTabs from "@/components/RepositoryTabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   IBuilderItem,
   IBuilderRunnerItem,
@@ -329,123 +332,66 @@ export default function ({ localServer }: { localServer: string }) {
 
       <Dialog open={createRunnerModal} onOpenChange={setCreateRunnerModal}>
         <DialogContent className="sm:max-w-lg" aria-label="Create runner">
-          <label htmlFor="tagTemplate" className="block text-sm font-medium leading-6 text-gray-900">
-            <span className="text-red-600">*</span>Tag
-          </label>
-          <div className="relative mt-2 rounded-md shadow-sm">
-            <input
-              type="text"
-              id="tagTemplate"
-              name="tagTemplate"
-              placeholder="tag template"
-              className={(tagTemplateTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-              value={tagTemplateText}
-              onChange={e => {
-                setTagTemplateText(e.target.value);
-              }}
-            />
-            {
-              tagTemplateTextValid ? (
-                <div></div>
-              ) : (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                  </svg>
-                </div>
-              )
-            }
-          </div>
-          <p className="mt-1 text-xs text-red-600">
-            {
-              tagTemplateTextValid ? (
-                <span></span>
-              ) : (
-                <span>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="tagTemplate">
+                <span className="text-destructive">*</span>Tag
+              </Label>
+              <Input
+                type="text"
+                id="tagTemplate"
+                name="tagTemplate"
+                placeholder="tag template"
+                value={tagTemplateText}
+                aria-invalid={!tagTemplateTextValid}
+                onChange={e => setTagTemplateText(e.target.value)}
+              />
+              {tagTemplateTextValid ? null : (
+                <p className="text-xs text-destructive">
                   Not a valid tag template, you can try 'main', '&#123;&#123;.ScmRef&#125;&#125;', '&#123;&#123;.ScmBrach&#125;&#125;'.
-                </span>
-              )
-            }
-          </p>
-          {
-            builderObj?.source !== "Dockerfile" ? (
-              <>
-                <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
-                  <span className="text-red-600">*</span>Branch
-                </label>
-                <div className="relative mt-2 rounded-md shadow-sm">
-                  <input
-                    type="text"
-                    name="namespace"
-                    placeholder="1-64 characters"
-                    className={(branchTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-                    value={branchText}
-                    onChange={e => {
-                      setBranchText(e.target.value);
-                    }}
-                  />
-                  {
-                    branchTextValid ? (
-                      <div></div>
-                    ) : (
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                      </div>
-                    )
-                  }
-                </div>
-                <p className="mt-1 text-xs text-red-600">
-                  {
-                    branchTextValid ? (
-                      <span></span>
-                    ) : (
-                      <span>
-                        Not a valid branch, you can try 'main', 'master', 'dev'.
-                      </span>
-                    )
-                  }
                 </p>
-              </>
-            ) : null
-          }
-
-          <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
-            Description
-          </label>
-          <div className="relative mt-2 rounded-md shadow-sm">
-            <textarea
-              name="description"
-              placeholder="30 characters"
-              className={(descriptionTextValid ? "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6" : "block w-full rounded-md border-0 py-1.5 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:text-sm sm:leading-6")}
-              value={descriptionText}
-              onChange={e => setDescriptionText(e.target.value)}
-            />
+              )}
+            </div>
             {
-              descriptionTextValid ? (
-                <div></div>
-              ) : (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-red-500">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                  </svg>
+              builderObj?.source !== "Dockerfile" ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="branch">
+                    <span className="text-destructive">*</span>Branch
+                  </Label>
+                  <Input
+                    type="text"
+                    id="branch"
+                    name="branch"
+                    placeholder="1-64 characters"
+                    value={branchText}
+                    aria-invalid={!branchTextValid}
+                    onChange={e => setBranchText(e.target.value)}
+                  />
+                  {branchTextValid ? null : (
+                    <p className="text-xs text-destructive">
+                      Not a valid branch, you can try 'main', 'master', 'dev'.
+                    </p>
+                  )}
                 </div>
-              )
+              ) : null
             }
-          </div>
-          <p className="mt-1 text-xs text-red-600">
-            {
-              descriptionTextValid ? (
-                <span></span>
-              ) : (
-                <span>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                placeholder="30 characters"
+                value={descriptionText}
+                aria-invalid={!descriptionTextValid}
+                onChange={e => setDescriptionText(e.target.value)}
+              />
+              {descriptionTextValid ? null : (
+                <p className="text-xs text-destructive">
                   Not a valid description, max 50 characters.
-                </span>
-              )
-            }
-          </p>
-
+                </p>
+              )}
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateRunnerModal(false)}>
               Cancel
