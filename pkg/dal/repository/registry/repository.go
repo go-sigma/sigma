@@ -125,6 +125,9 @@ func (s *repositoryRepository) FindRecentlyUpdated(ctx context.Context, limit in
 	return s.tx.Repository.WithContext(ctx).
 		Order(s.tx.Repository.UpdatedAt.Desc()).
 		Limit(limit).
+		Preload(s.tx.Repository.Builder.CodeRepository).
+		Preload(s.tx.Repository.Builder.CodeRepository.User3rdParty).
+		Preload(s.tx.Repository.Builder).
 		Find()
 }
 
@@ -137,9 +140,15 @@ func (s *repositoryRepository) Get(ctx context.Context, repositoryID string) (*m
 		Preload(s.tx.Repository.Builder).First()
 }
 
-// GetByName gets the repository with the specified repository name
+// GetByName gets the repository with the specified repository name. It loads the same relations as
+// Get, because the cached decorator seeds the cache from the returned object and a repository
+// cached without its builder makes the builder pages believe the repository has no builder.
 func (s *repositoryRepository) GetByName(ctx context.Context, name string) (*models.Repository, error) {
-	return s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.Name.Eq(name)).First()
+	return s.tx.Repository.WithContext(ctx).
+		Where(s.tx.Repository.Name.Eq(name)).
+		Preload(s.tx.Repository.Builder.CodeRepository).
+		Preload(s.tx.Repository.Builder.CodeRepository.User3rdParty).
+		Preload(s.tx.Repository.Builder).First()
 }
 
 // ListByDtPagination lists repositories with cursor pagination

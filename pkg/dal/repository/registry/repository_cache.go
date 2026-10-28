@@ -99,7 +99,6 @@ func (r *cachedRepositoryRepository) FindAll(ctx context.Context, namespaceID st
 	if err != nil {
 		return nil, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, nil
 }
 
@@ -108,7 +107,6 @@ func (r *cachedRepositoryRepository) FindDeletableWithCursor(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, nil
 }
 
@@ -117,6 +115,8 @@ func (r *cachedRepositoryRepository) FindRecentlyUpdated(ctx context.Context, li
 	if err != nil {
 		return nil, err
 	}
+	// FindRecentlyUpdated preloads the builder relations, so these objects are complete enough to
+	// seed the cache with; the other list queries are not and must not seed it.
 	r.seedRepositories(ctx, repositories)
 	return repositories, nil
 }
@@ -154,7 +154,6 @@ func (r *cachedRepositoryRepository) ListByDtPagination(ctx context.Context, lim
 	if err != nil {
 		return nil, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, nil
 }
 
@@ -163,7 +162,6 @@ func (r *cachedRepositoryRepository) ListWithScrollable(ctx context.Context, nam
 	if err != nil {
 		return nil, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, nil
 }
 
@@ -172,7 +170,6 @@ func (r *cachedRepositoryRepository) ListRepository(ctx context.Context, namespa
 	if err != nil {
 		return nil, 0, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, total, nil
 }
 
@@ -181,7 +178,6 @@ func (r *cachedRepositoryRepository) ListRepositoryWithAuth(ctx context.Context,
 	if err != nil {
 		return nil, 0, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, total, nil
 }
 
@@ -243,7 +239,6 @@ func (r *cachedRepositoryRepository) FindWithCursorDirty(ctx context.Context, li
 	if err != nil {
 		return nil, err
 	}
-	r.seedRepositories(ctx, repositories)
 	return repositories, nil
 }
 
