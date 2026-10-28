@@ -16,6 +16,7 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
+import { EllipsisVertical, FileText, RotateCw, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -30,6 +31,12 @@ import BuildDurationChart from "@/components/BuildDurationChart";
 import RepositoryTabs from "@/components/RepositoryTabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -150,8 +157,10 @@ export default function ({ localServer }: { localServer: string }) {
     }
     axios.post(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${builderObj.id}/runners/run`, data).then(response => {
       if (response?.status === 201) {
-        let result = response.data as IRunOrRerunRunnerResponse;
-        navigate(`/namespaces/${namespace}/repository/runner-logs/${result.runner_id}?repository_id=${repositoryObj?.id}&namespace_id=${namespaceId}`);
+        // The new run shows up in the list below, so close the dialog instead of following its log.
+        setCreateRunnerModal(false);
+        setDescriptionText("");
+        setRefreshState({});
       } else {
         const errorcode = response.data as IHTTPError;
         Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -408,6 +417,10 @@ export default function ({ localServer }: { localServer: string }) {
 function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { localServer: string, namespace: string, repositoryObj: IRepositoryItem | undefined, runnerObj: IBuilderRunnerItem }) {
   const navigate = useNavigate();
 
+  const viewLogAction = () => {
+    navigate(`/namespaces/${namespace}/repository/runner-logs/${runnerObj.id}?repository_id=${repositoryObj?.id}&namespace_id=${repositoryObj?.namespace_id}`);
+  }
+
   let rerunAction = () => {
     axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repositoryObj?.id}/builders/${runnerObj.builder_id}/runners/${runnerObj.id}/rerun`).then(response => {
       if (response?.status === 200) {
@@ -438,9 +451,7 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
-        onClick={() => {
-          navigate(`/namespaces/${namespace}/repository/runner-logs/${runnerObj.id}?repository_id=${repositoryObj?.id}&namespace_id=${repositoryObj?.namespace_id}`);
-        }}
+        onClick={viewLogAction}
       >
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
@@ -473,26 +484,36 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
         {dayjs.utc(runnerObj.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
       </td>
-      {
-        runnerObj?.status === "Success" || runnerObj?.status === "Failed" || runnerObj?.status === "Stopped" ? (
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700"
-            onClick={() => { rerunAction() }}
-          >
-            Rerun
-          </td>
-        ) : (
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer hover:text-gray-700"
-            onClick={() => {
-              if (runnerObj?.status === "Stopping") {
-                return;
-              }
-              stopAction()
-            }}
-          >
-            Stop
-          </td>
-        )
-      }
+      <td className="px-6 py-4 whitespace-nowrap text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm" aria-label="Open actions">
+                <EllipsisVertical className="size-4" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="w-40!">
+            <DropdownMenuItem onClick={viewLogAction}>
+              <FileText />
+              <span>View log</span>
+            </DropdownMenuItem>
+            {
+              runnerObj?.status === "Success" || runnerObj?.status === "Failed" || runnerObj?.status === "Stopped" ? (
+                <DropdownMenuItem onClick={rerunAction}>
+                  <RotateCw />
+                  <span>Rerun</span>
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem disabled={runnerObj?.status === "Stopping"} onClick={stopAction}>
+                  <Square />
+                  <span>Stop</span>
+                </DropdownMenuItem>
+              )
+            }
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </td>
     </tr>
   )
 }
