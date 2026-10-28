@@ -463,7 +463,7 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+        <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="fixed z-10 invisible inline-block max-w-md px-3 py-2 text-left text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip whitespace-pre-wrap break-words dark:bg-gray-700">
           {runnerObj.status_message}
         </div>
         <div className={runnerObj.status === "Failed" ? "text-red-600" : ""}
