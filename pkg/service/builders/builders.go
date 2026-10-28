@@ -175,7 +175,7 @@ func (s *service) CreateBuilder(ctx context.Context, userID string, req api.Crea
 		return err
 	}
 
-	_, err := s.RepoRegistry.Get(ctx, req.RepositoryID)
+	repositoryObj, err := s.RepoRegistry.Get(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("repository not found", "err", err, "id", req.RepositoryID)
@@ -257,7 +257,7 @@ func (s *service) CreateBuilder(ctx context.Context, userID string, req api.Crea
 		builderObj.ScmSshKey = credentialObj.SshKey
 		builderObj.ScmToken = credentialObj.Token
 	}
-	return query.Q.Transaction(func(tx *query.Query) error {
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		repoBuilder := repobuilder.NewBuilderRepository(tx)
 		err = repoBuilder.Create(ctx, builderObj)
 		if err != nil {
@@ -266,6 +266,13 @@ func (s *service) CreateBuilder(ctx context.Context, userID string, req api.Crea
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	// The repository payload embeds its builder, so the cached copy must be dropped for the
+	// repository reads that follow this call to see the new builder.
+	s.invalidateRepositoryCache(ctx, repositoryObj)
+	return nil
 }
 
 func (s *service) UpdateBuilder(ctx context.Context, userID string, builderID string, req api.UpdateBuilderRequest) error {
@@ -320,7 +327,7 @@ func (s *service) UpdateBuilder(ctx context.Context, userID string, builderID st
 		updates[query.Builder.ScmPassword.ColumnName().String()] = credentialObj.Password
 		updates[query.Builder.ScmSshKey.ColumnName().String()] = credentialObj.SshKey
 	}
-	return query.Q.Transaction(func(tx *query.Query) error {
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		builderRepository := repobuilder.NewBuilderRepository(tx)
 		err = builderRepository.Update(ctx, builderID, updates)
 		if err != nil {
@@ -333,6 +340,34 @@ func (s *service) UpdateBuilder(ctx context.Context, userID string, builderID st
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	// The repository payload embeds its builder, so the cached copy must be dropped for the
+	// repository reads that follow this call to see the updated builder.
+	repositoryObj, err := s.RepoRegistry.Get(ctx, req.RepositoryID)
+	if err != nil {
+		slog.Warn("get repository for cache invalidation failed", "err", err, "repository_id", req.RepositoryID)
+		return nil
+	}
+	s.invalidateRepositoryCache(ctx, repositoryObj)
+	return nil
+}
+
+// invalidateRepositoryCache drops the cached repository metadata so the next read reloads it
+// from the database. A builder change makes the cached copy stale because the repository
+// payload embeds the builder it belongs to.
+func (s *service) invalidateRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
+	if repositoryObj == nil {
+		return
+	}
+	invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator)
+	if !ok {
+		return
+	}
+	if err := invalidator.InvalidateRepository(ctx, repositoryObj); err != nil {
+		slog.Warn("invalidate repository cache failed", "err", err, "repository_id", repositoryObj.ID)
+	}
 }
 
 func (s *service) GetBuilderByRepositoryID(ctx context.Context, repositoryID string) (*models.Builder, error) {

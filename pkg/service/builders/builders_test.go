@@ -15,6 +15,7 @@
 package builders
 
 import (
+	"context"
 	"encoding/base64"
 	"io"
 	"testing"
@@ -23,6 +24,8 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/utils/compress"
 )
 
@@ -54,6 +57,38 @@ func TestCompressDockerfile(t *testing.T) {
 	compressed, err = compressDockerfile(nil)
 	require.NoError(t, err)
 	require.Nil(t, compressed)
+}
+
+// cachedRepositoryRepository is a repository implementation that records the cache invalidations so
+// the builder service can be tested without a cache backend.
+type cachedRepositoryRepository struct {
+	reporegistry.RepositoryRepository
+	invalidated []*models.Repository
+}
+
+func (c *cachedRepositoryRepository) InvalidateRepository(_ context.Context, repositoryObj *models.Repository) error {
+	c.invalidated = append(c.invalidated, repositoryObj)
+	return nil
+}
+
+func (c *cachedRepositoryRepository) InvalidateRepositoryID(_ context.Context, _ string) error {
+	return nil
+}
+
+func TestInvalidateRepositoryCache(t *testing.T) {
+	repositoryObj := &models.Repository{ID: "repository-1", Name: "library/test"}
+	cached := &cachedRepositoryRepository{}
+
+	(&service{RepoRegistry: cached}).invalidateRepositoryCache(t.Context(), repositoryObj)
+	require.Equal(t, []*models.Repository{repositoryObj}, cached.invalidated)
+
+	// A repository implementation without cache support is skipped instead of panicking.
+	(&service{RepoRegistry: struct {
+		reporegistry.RepositoryRepository
+	}{}}).invalidateRepositoryCache(t.Context(), repositoryObj)
+
+	// A nil repository cannot be invalidated and is ignored.
+	(&service{}).invalidateRepositoryCache(t.Context(), nil)
 }
 
 func TestRunnerLogReaderForInactiveRunner(t *testing.T) {
