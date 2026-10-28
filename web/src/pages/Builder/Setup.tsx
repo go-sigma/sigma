@@ -87,10 +87,6 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
 
   const [selectedPlatforms, setSelectedPlatforms] = useState([supportPlatforms[0]])
 
-  useEffect(() => {
-    navigate(`?${searchParams.toString()}`);
-  }, [searchParams, navigate]);
-
   // openPicker is the branch picker that is currently open; the branch pickers refresh their
   // list when they open, and select controls close themselves after a value is picked.
   const [openPicker, setOpenPicker] = useState<string | null>(null);
@@ -112,17 +108,9 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
     setNamespaceSelected(previous => ({ ...previous, id: resolvedNamespaceId }));
   }, [namespaceSelected.id, resolvedNamespaceId]);
 
-  let backTo = searchParams.get('back_to') || "";
-
-  useEffect(() => {
-    const back = () => {
-      navigate(backTo);
-    }
-    window.addEventListener('popstate', back);
-    return () => {
-      window.removeEventListener('popstate', back);
-    }
-  }, [backTo, navigate]);
+  // `back_to` is only used by the Cancel button below; the browser back button is left alone so
+  // it undoes the navigation that opened this page instead of rewriting the current entry.
+  const backTo = searchParams.get('back_to') || "";
 
   // The repository of the embedded page is fixed by the route; the standalone page picks it in the
   // form below.
