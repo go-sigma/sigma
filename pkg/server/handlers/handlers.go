@@ -75,9 +75,14 @@ func Initialize(digCon *dig.Container) error {
 
 // InitializeDistribution mounts the OCI distribution endpoints on /v2/*path, dispatching every HTTP method through distribution.All, and returns an error if route registration fails.
 func InitializeDistribution(digCon *dig.Container) error {
+	// Resolve the distribution handlers here, at startup. dig is not safe for concurrent use and
+	// invoking it from the request goroutine made concurrent pulls and pushes crash the process.
+	if err := distribution.Prepare(digCon); err != nil {
+		return fmt.Errorf("failed to prepare distribution handlers: %v", err)
+	}
 	if err := digCon.Invoke(func(e *gin.Engine) error {
 		e.Any("/v2/*path", func(c *gin.Context) {
-			if err := distribution.All(c, digCon); err != nil {
+			if err := distribution.All(c); err != nil {
 				slog.Error("handle distribution request failed", "err", err, "method", c.Request.Method, "path", c.Request.URL.Path)
 			}
 		})

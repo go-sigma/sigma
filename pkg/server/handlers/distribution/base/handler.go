@@ -50,28 +50,33 @@ type handler struct {
 	Authorizer authz.Authorizer
 }
 
-type factory struct{}
+type factory struct {
+	handler handler
+}
 
-// Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c *gin.Context, digCon *dig.Container) error {
+// Prepare resolves the handler once, so requests never touch the dig container.
+func (f *factory) Prepare(digCon *dig.Container) error {
+	return digCon.Invoke(func(h handler) { f.handler = h })
+}
+
+// Initialize initializes the distribution base handlers
+func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
 	uri := c.Request.RequestURI
-	return digCon.Invoke(func(h handler) error {
-		if method == http.MethodGet {
-			switch {
-			case uri == "/v2/":
-				h.GetHealthy(c)
-				return nil
-			case uri == "/v2/_catalog":
-				h.ListRepositories(c)
-				return nil
-			case strings.HasSuffix(uri, "/tags/list") && strings.HasPrefix(uri, "/v2/"):
-				h.ListTags(c)
-				return nil
-			}
+	if method == http.MethodGet {
+		switch {
+		case uri == "/v2/":
+			f.handler.GetHealthy(c)
+			return nil
+		case uri == "/v2/_catalog":
+			f.handler.ListRepositories(c)
+			return nil
+		case strings.HasSuffix(uri, "/tags/list") && strings.HasPrefix(uri, "/v2/"):
+			f.handler.ListTags(c)
+			return nil
 		}
-		return distribution.ErrNext
-	})
+	}
+	return distribution.ErrNext
 }
 
 func init() {

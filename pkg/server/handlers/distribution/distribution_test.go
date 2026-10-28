@@ -27,7 +27,11 @@ import (
 
 type factoryOk struct{}
 
-func (f *factoryOk) Initialize(_ *gin.Context, _ *dig.Container) error {
+func (f *factoryOk) Prepare(_ *dig.Container) error {
+	return nil
+}
+
+func (f *factoryOk) Initialize(_ *gin.Context) error {
 	return nil
 }
 
@@ -39,13 +43,17 @@ func TestInitializeOK(t *testing.T) {
 	c, _ := gin.CreateTestContext(rec)
 	c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
 	c.Request.Header.Set("Content-Type", "application/json")
-	err = All(c, dig.New())
+	err = All(c)
 	assert.NoError(t, err)
 }
 
 type factoryErr struct{}
 
-func (f *factoryErr) Initialize(_ *gin.Context, _ *dig.Container) error {
+func (f *factoryErr) Prepare(_ *dig.Container) error {
+	return nil
+}
+
+func (f *factoryErr) Initialize(_ *gin.Context) error {
 	return errors.New("error")
 }
 
@@ -57,7 +65,7 @@ func TestInitializeErr(t *testing.T) {
 	c, _ := gin.CreateTestContext(rec)
 	c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
 	c.Request.Header.Set("Content-Type", "application/json")
-	err = All(c, dig.New())
+	err = All(c)
 	assert.Error(t, err)
 }
 
@@ -71,13 +79,21 @@ func TestInitializeDup(t *testing.T) {
 
 type factoryContinue1 struct{}
 
-func (f *factoryContinue1) Initialize(_ *gin.Context, _ *dig.Container) error {
+func (f *factoryContinue1) Prepare(_ *dig.Container) error {
+	return nil
+}
+
+func (f *factoryContinue1) Initialize(_ *gin.Context) error {
 	return ErrNext
 }
 
 type factoryContinue2 struct{}
 
-func (f *factoryContinue2) Initialize(_ *gin.Context, _ *dig.Container) error {
+func (f *factoryContinue2) Prepare(_ *dig.Container) error {
+	return nil
+}
+
+func (f *factoryContinue2) Initialize(_ *gin.Context) error {
 	return ErrNext
 }
 
@@ -92,7 +108,7 @@ func TestInitializeContinue(t *testing.T) {
 	c, _ := gin.CreateTestContext(rec)
 	c.Request = httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)
 	c.Request.Header.Set("Content-Type", "application/json")
-	err = All(c, dig.New())
+	err = All(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
 }

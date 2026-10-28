@@ -33,12 +33,13 @@ var (
 	ErrNext = fmt.Errorf("continue next router")
 )
 
-// All handles the all request
-func All(c *gin.Context, digCon *dig.Container) error {
+// All handles the all request. The factories must have been prepared with Prepare first, so no
+// dig container is touched while serving a request.
+func All(c *gin.Context) error {
 	c.Writer.Header().Set(consts.APIVersionKey, consts.APIVersionValue)
 
 	for index, factory := range routerFactories {
-		err := factory.Value.Initialize(c, digCon)
+		err := factory.Value.Initialize(c)
 		if err != nil {
 			if errors.Is(err, ErrNext) {
 				continue
@@ -53,9 +54,26 @@ func All(c *gin.Context, digCon *dig.Container) error {
 	return nil
 }
 
+// Prepare resolves every registered factory from the container. It runs once during startup:
+// dig containers are not safe for concurrent use, so request handling must not invoke them.
+func Prepare(digCon *dig.Container) error {
+	for index, factory := range routerFactories {
+		if err := factory.Value.Prepare(digCon); err != nil {
+			return fmt.Errorf("failed to prepare router factory index(%d): %v", index, err)
+		}
+	}
+	return nil
+}
+
 // Factory is the interface for the storage router factory
+//
+// Prepare resolves the handler dependencies once at startup and Initialize dispatches a request
+// to that prepared handler, so the dig container is never touched from a request goroutine.
 type Factory interface {
-	Initialize(*gin.Context, *dig.Container) error
+	// Prepare resolves the factory handler from the container.
+	Prepare(digCon *dig.Container) error
+	// Initialize dispatches the request to the prepared handler.
+	Initialize(c *gin.Context) error
 }
 
 type Item struct {

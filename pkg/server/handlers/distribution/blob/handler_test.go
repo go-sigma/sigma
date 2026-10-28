@@ -45,5 +45,7 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, digCon.Provide(func() storage.StorageDriver { return nil }))
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = httptest.NewRequest(http.MethodGet, "/v2/test-none-exist", nil)
-	require.Equal(t, distribution.ErrNext, factory{}.Initialize(c, digCon))
+	f := &factory{}
+	require.NoError(t, f.Prepare(digCon))
+	require.Equal(t, distribution.ErrNext, f.Initialize(c))
 }

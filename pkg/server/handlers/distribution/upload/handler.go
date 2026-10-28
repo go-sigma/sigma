@@ -50,41 +50,46 @@ type handler struct {
 	Authorizer authz.Authorizer
 }
 
-type factory struct{}
+type factory struct {
+	handler handler
+}
 
-// Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c *gin.Context, digCon *dig.Container) error {
+// Prepare resolves the handler once, so requests never touch the dig container.
+func (f *factory) Prepare(digCon *dig.Container) error {
+	return digCon.Invoke(func(h handler) { f.handler = h })
+}
+
+// Initialize initializes the distribution upload handlers
+func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
 	uri := c.Request.RequestURI
 
-	return digCon.Invoke(func(h handler) error {
-		if method == http.MethodPost && strings.HasSuffix(uri, "blobs/uploads/") {
-			h.PostUpload(c)
+	if method == http.MethodPost && strings.HasSuffix(uri, "blobs/uploads/") {
+		f.handler.PostUpload(c)
+		return nil
+	}
+
+	urix := uri[:strings.LastIndex(uri, "/")]
+	if strings.HasSuffix(urix, "/blobs/uploads") {
+		switch method {
+		case http.MethodGet:
+			f.handler.GetUpload(c)
+			return nil
+		case http.MethodPatch:
+			f.handler.PatchUpload(c)
+			return nil
+		case http.MethodPut:
+			f.handler.PutUpload(c)
+			return nil
+		case http.MethodDelete:
+			f.handler.DeleteUpload(c)
+			return nil
+		default:
+			c.String(http.StatusMethodNotAllowed, "method Not Allowed")
 			return nil
 		}
-
-		urix := uri[:strings.LastIndex(uri, "/")]
-		if strings.HasSuffix(urix, "/blobs/uploads") {
-			switch method {
-			case http.MethodGet:
-				h.GetUpload(c)
-				return nil
-			case http.MethodPatch:
-				h.PatchUpload(c)
-				return nil
-			case http.MethodPut:
-				h.PutUpload(c)
-				return nil
-			case http.MethodDelete:
-				h.DeleteUpload(c)
-				return nil
-			default:
-				c.String(http.StatusMethodNotAllowed, "method Not Allowed")
-				return nil
-			}
-		}
-		return distribution.ErrNext
-	})
+	}
+	return distribution.ErrNext
 }
 
 func init() {

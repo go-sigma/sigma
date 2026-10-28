@@ -52,38 +52,43 @@ type handler struct {
 	Authorizer  authz.Authorizer
 }
 
-type factory struct{}
+type factory struct {
+	handler handler
+}
+
+// Prepare resolves the handler once, so requests never touch the dig container.
+func (f *factory) Prepare(digCon *dig.Container) error {
+	return digCon.Invoke(func(h handler) { f.handler = h })
+}
 
 // Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c *gin.Context, digCon *dig.Container) error {
+func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
 	uri := c.Request.RequestURI
 	urix := uri[:strings.LastIndex(uri, "/")]
-	return digCon.Invoke(func(h handler) error {
-		if strings.HasSuffix(urix, "/manifests") {
-			switch method {
-			case http.MethodGet:
-				h.GetManifest(c)
-				return nil
-			case http.MethodHead:
-				h.HeadManifest(c)
-				return nil
-			case http.MethodPut:
-				h.PutManifest(c)
-				return nil
-			case http.MethodDelete:
-				h.DeleteManifest(c)
-				return nil
-			default:
-				c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
-				return nil
-			}
-		} else if strings.HasSuffix(urix, "/referrers") && method == http.MethodGet {
-			h.GetReferrer(c)
+	if strings.HasSuffix(urix, "/manifests") {
+		switch method {
+		case http.MethodGet:
+			f.handler.GetManifest(c)
+			return nil
+		case http.MethodHead:
+			f.handler.HeadManifest(c)
+			return nil
+		case http.MethodPut:
+			f.handler.PutManifest(c)
+			return nil
+		case http.MethodDelete:
+			f.handler.DeleteManifest(c)
+			return nil
+		default:
+			c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
 			return nil
 		}
-		return distribution.ErrNext
-	})
+	} else if strings.HasSuffix(urix, "/referrers") && method == http.MethodGet {
+		f.handler.GetReferrer(c)
+		return nil
+	}
+	return distribution.ErrNext
 }
 
 func init() {

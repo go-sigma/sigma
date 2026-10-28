@@ -49,29 +49,34 @@ type handler struct {
 	Authorizer authz.Authorizer
 }
 
-type factory struct{}
+type factory struct {
+	handler handler
+}
 
-// Initialize initializes the distribution manifest handlers
-func (f factory) Initialize(c *gin.Context, digCon *dig.Container) error {
+// Prepare resolves the handler once, so requests never touch the dig container.
+func (f *factory) Prepare(digCon *dig.Container) error {
+	return digCon.Invoke(func(h handler) { f.handler = h })
+}
+
+// Initialize initializes the distribution blob handlers
+func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
 	uri := c.Request.RequestURI
 	urix := uri[:strings.LastIndex(uri, "/")]
-	return digCon.Invoke(func(h handler) error {
-		if strings.HasSuffix(urix, "/blobs") {
-			switch method {
-			case http.MethodGet:
-				h.GetBlob(c)
-				return nil
-			case http.MethodHead:
-				h.HeadBlob(c)
-				return nil
-			default:
-				c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
-				return nil
-			}
+	if strings.HasSuffix(urix, "/blobs") {
+		switch method {
+		case http.MethodGet:
+			f.handler.GetBlob(c)
+			return nil
+		case http.MethodHead:
+			f.handler.HeadBlob(c)
+			return nil
+		default:
+			c.String(http.StatusMethodNotAllowed, "Method Not Allowed")
+			return nil
 		}
-		return distribution.ErrNext
-	})
+	}
+	return distribution.ErrNext
 }
 
 func init() {
