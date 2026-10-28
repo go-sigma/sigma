@@ -15,7 +15,6 @@
  */
 
 import axios from "axios";
-import _ from 'lodash';
 import {
   ChevronRight,
   ChevronUp,
@@ -604,7 +603,7 @@ function UpdateProfileModal({ open, onOpenChange, localServer, username: initial
     const data: { [key: string]: any } = {};
     if (usernameInput.length > 0) data.username = usernameInput;
     if (emailInput.length > 0) data.email = emailInput;
-    if (_.size(data) > 0) {
+    if (Object.keys(data).length > 0) {
       axios.put(`${localServer}/api/v1/users/self`, data).then(response => {
         if (response?.status === 204) {
           Toast({ level: "success", title: t("common.success"), message: t("menu.profileUpdated") });

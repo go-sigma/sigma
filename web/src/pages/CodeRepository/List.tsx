@@ -16,7 +16,7 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
-import _ from "lodash";
+import { orderBy } from "lodash-es";
 import { CornerDownLeft, RefreshCw } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
@@ -91,7 +91,7 @@ export default function ({ localServer }: { localServer: string }) {
       .then((response) => {
         if (response.status == 200) {
           const data = response.data as ICodeRepositoryOwnerList;
-          setCodeRepositoryOwners(_.orderBy(data.items, ["is_org"]));
+          setCodeRepositoryOwners(orderBy(data.items, ["is_org"]));
           for (let i = 0; i < data.items.length; i++) {
             if (!data.items[i].is_org) {
               setOrganization(data.items[i].owner);

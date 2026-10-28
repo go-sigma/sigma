@@ -17,7 +17,7 @@
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Info } from 'lucide-react';
 import axios from "axios";
-import _ from 'lodash';
+import { orderBy } from "lodash-es";
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -128,7 +128,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(url).then(response => {
       if (response?.status === 200) {
         const namespaceListData = response.data as INamespaceList;
-        setNamespaceList(_.orderBy(namespaceListData.items, ['name']));
+        setNamespaceList(orderBy(namespaceListData.items, ['name']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -160,7 +160,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(url).then(response => {
       if (response?.status === 200) {
         const repositoryListData = response.data as IRepositoryList;
-        setRepositoryList(_.orderBy(repositoryListData.items, ['name']));
+        setRepositoryList(orderBy(repositoryListData.items, ['name']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -228,7 +228,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(`${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/owners`).then(response => {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryOwnerList;
-        setCodeRepositoryOwnerList(_.orderBy(data.items, ['is_org']));
+        setCodeRepositoryOwnerList(orderBy(data.items, ['is_org']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -261,7 +261,7 @@ export default function ({ localServer }: { localServer: string }) {
     axios.get(url).then(response => {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryList;
-        setCodeRepositoryList(_.orderBy(data.items, ['name']));
+        setCodeRepositoryList(orderBy(data.items, ['name']));
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
