@@ -328,8 +328,8 @@ export interface IBuilderRunnerList {
 }
 
 export interface IBuilderRunnerItem {
-  id: number;
-  builder_id: number;
+  id: string;
+  builder_id: string;
   status: string;
   status_message?: string;
   tag?: string;
@@ -347,7 +347,7 @@ export interface IBuilderRunnerItem {
 }
 
 export interface IRunOrRerunRunnerResponse {
-  runner_id: number;
+  runner_id: string;
 }
 
 export interface IVersion {

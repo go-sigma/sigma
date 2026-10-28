@@ -38,7 +38,7 @@ const tooltipHeight = 54;
 const tooltipHalfWidth = 72;
 
 type BuildSample = {
-  id: number;
+  id: string;
   label: string;
   duration: number;
   createdAt: string;
