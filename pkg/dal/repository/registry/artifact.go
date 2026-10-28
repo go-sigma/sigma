@@ -29,6 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
@@ -357,7 +358,10 @@ func (s *artifactRepository) GetSbom(ctx context.Context) (*models.ArtifactSbom,
 }
 
 // ClaimVulnerability claims the next pending or stale artifact vulnerability task.
+// It is polled periodically by the vulnerability daemon, so the database trace
+// log is downgraded to the trace level.
 func (s *artifactRepository) ClaimVulnerability(ctx context.Context, staleBefore int64) (*models.ArtifactVulnerability, error) {
+	ctx = logger.WithQuietDatabaseTrace(ctx)
 	var vulnerabilityID string
 	err := s.tx.Transaction(func(tx *query.Query) error {
 		now := time.Now().UnixMilli()

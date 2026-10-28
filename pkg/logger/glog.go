@@ -28,6 +28,27 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 )
 
+// LevelTrace is the log level below Debug. It is used for high frequency
+// polling queries and is only enabled when the configured log level is trace.
+const LevelTrace = slog.LevelDebug - 4
+
+// databaseTraceQuietKey is the context key marking a context whose database
+// queries are logged at LevelTrace instead of Debug.
+type databaseTraceQuietKey struct{}
+
+// WithQuietDatabaseTrace returns a context that downgrades the database trace
+// logs of the queries executed with it from debug to trace level. Long running
+// pollers use it to keep the debug log readable.
+func WithQuietDatabaseTrace(ctx context.Context) context.Context {
+	return context.WithValue(ctx, databaseTraceQuietKey{}, true)
+}
+
+// databaseTraceQuiet reports whether ctx was marked by WithQuietDatabaseTrace.
+func databaseTraceQuiet(ctx context.Context) bool {
+	quiet, ok := ctx.Value(databaseTraceQuietKey{}).(bool)
+	return ok && quiet
+}
+
 // ZLogger is the logger for gorm
 type ZLogger struct{}
 
@@ -53,7 +74,10 @@ func (l ZLogger) Info(ctx context.Context, msg string, opts ...any) {
 
 // Trace is the trace log
 func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, int64), err error) {
-	args := []any{"call", databaseTraceCall(), "elapsed", time.Since(begin).String()}
+	if !slog.Default().Enabled(ctx, databaseTraceLevel(ctx)) {
+		return
+	}
+	args := []any{"call", databaseTraceCall(ctx), "elapsed", time.Since(begin).String()}
 
 	sql, rows := f()
 	if sql != "" {
@@ -65,9 +89,13 @@ func (l ZLogger) Trace(ctx context.Context, begin time.Time, f func() (string, i
 	logDatabaseTrace(ctx, args...)
 }
 
-// databaseTraceCall reports the caller site used for gorm trace logs. When the
-// configured log level is not debug/trace it returns "database".
-func databaseTraceCall() string {
+// databaseTraceCall reports the caller site used for gorm trace logs. When ctx
+// is marked quiet, or the configured log level is not debug/trace, it returns
+// "database" without walking the stack.
+func databaseTraceCall(ctx context.Context) string {
+	if databaseTraceQuiet(ctx) {
+		return "database"
+	}
 	return databaseTraceCallFrom(runtime.Caller)
 }
 
@@ -101,11 +129,22 @@ func databaseTraceCallFrom(caller func(skip int) (uintptr, string, int, bool)) s
 	return "database"
 }
 
+// databaseTraceLevel returns the level used for database trace logs. Queries
+// issued by pollers are downgraded one level below debug so that they only show
+// up when trace logging is enabled.
+func databaseTraceLevel(ctx context.Context) slog.Level {
+	if databaseTraceQuiet(ctx) {
+		return LevelTrace
+	}
+	return slog.LevelDebug
+}
+
 func logDatabaseTrace(ctx context.Context, args ...any) {
-	if !slog.Default().Enabled(ctx, slog.LevelDebug) {
+	level := databaseTraceLevel(ctx)
+	if !slog.Default().Enabled(ctx, level) {
 		return
 	}
-	record := slog.NewRecord(time.Now(), slog.LevelDebug, "call database", 0)
+	record := slog.NewRecord(time.Now(), level, "call database", 0)
 	record.Add(args...)
 	_ = slog.Default().Handler().Handle(ctx, record)
 }

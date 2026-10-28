@@ -157,16 +157,38 @@ func TestLogDatabaseTraceDisabled(t *testing.T) {
 	logDatabaseTrace(t.Context(), "sql", "select 1")
 }
 
+func TestLogDatabaseTraceQuiet(t *testing.T) {
+	writer := NewMockWriter()
+	previous := slog.Default()
+	t.Cleanup(func() { slog.SetDefault(previous) })
+
+	ctx := WithQuietDatabaseTrace(t.Context())
+
+	// Quiet database traces are below the debug level, so a debug handler drops them.
+	slog.SetDefault(slog.New(slog.NewJSONHandler(writer, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	logDatabaseTrace(ctx, "sql", "select 1")
+	require.Empty(t, writer.Entries)
+
+	// They show up again when trace logging is enabled.
+	slog.SetDefault(slog.New(slog.NewJSONHandler(writer, &slog.HandlerOptions{Level: LevelTrace})))
+	logDatabaseTrace(ctx, "sql", "select 1")
+	require.Len(t, writer.Entries, 1)
+	require.Equal(t, "call database", writer.Entries[0]["msg"])
+}
+
 func TestDatabaseTraceCallDebug(t *testing.T) {
 	cfg := config.GetConfig()
 	previous := cfg.Log.Level
 	t.Cleanup(func() { cfg.Log.Level = previous })
 
 	cfg.Log.Level = enums.LogLevelDebug
-	require.NotEmpty(t, databaseTraceCall())
+	require.NotEmpty(t, databaseTraceCall(t.Context()))
+
+	// A quiet context never walks the stack.
+	require.Equal(t, "database", databaseTraceCall(WithQuietDatabaseTrace(t.Context())))
 
 	cfg.Log.Level = enums.LogLevelTrace
-	require.NotEmpty(t, databaseTraceCall())
+	require.NotEmpty(t, databaseTraceCall(t.Context()))
 }
 
 func TestDatabaseTraceCallFrom(t *testing.T) {

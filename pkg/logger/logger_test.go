@@ -44,6 +44,13 @@ func TestReplaceLogAttrPreservesTime(t *testing.T) {
 	require.Equal(t, ts, attr.Value.Time())
 }
 
+func TestReplaceLogAttrTraceLevel(t *testing.T) {
+	attr := replaceLogAttr(nil, slog.Any(slog.LevelKey, LevelTrace))
+
+	require.Equal(t, slog.LevelKey, attr.Key)
+	require.Equal(t, "TRACE", attr.Value.String())
+}
+
 func TestReplaceLogAttrTrimsSourceFile(t *testing.T) {
 	attr := replaceLogAttr(nil, slog.Any(slog.SourceKey, &slog.Source{
 		File: "github.com/go-sigma/sigma/pkg/app/helper.go",

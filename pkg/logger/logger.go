@@ -34,7 +34,11 @@ const logTimeFormat = "2006-01-02T15:04:05"
 func SetLevel(levelStr string) {
 	var level slog.Level
 	switch enums.LogLevel(levelStr) {
-	case enums.LogLevelTrace, enums.LogLevelDebug:
+	case enums.LogLevelTrace:
+		// Trace enables the high frequency polling database logs downgraded by
+		// logger.WithQuietDatabaseTrace.
+		level = LevelTrace
+	case enums.LogLevelDebug:
 		level = slog.LevelDebug
 	case enums.LogLevelInfo:
 		level = slog.LevelInfo
@@ -55,6 +59,11 @@ func SetLevel(levelStr string) {
 }
 
 func replaceLogAttr(_ []string, attr slog.Attr) slog.Attr {
+	if attr.Key == slog.LevelKey {
+		if level, ok := attr.Value.Any().(slog.Level); ok && level == LevelTrace {
+			return slog.String(slog.LevelKey, "TRACE")
+		}
+	}
 	if attr.Key == slog.SourceKey {
 		if source, ok := attr.Value.Any().(*slog.Source); ok && source != nil {
 			shortSource := *source
