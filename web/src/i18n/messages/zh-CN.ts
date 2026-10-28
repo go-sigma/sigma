@@ -196,6 +196,10 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "builder.webhookDescription": "通过 Webhook 事件触发镜像构建",
   "builder.configureFirst": "请先配置构建器",
   "builder.tagTemplate": "标签模板",
+  "builder.buildDuration": "构建耗时",
+  "builder.buildDurationDescription": "最近 {count} 次构建的耗时",
+  "builder.buildDurationLatest": "最近一次 {duration}",
+  "builder.buildDurationEmpty": "还没有已完成的构建",
 
   "daemon.task": "守护任务",
   "daemon.lastTrigger": "上次触发",

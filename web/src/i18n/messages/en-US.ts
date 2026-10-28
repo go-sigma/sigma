@@ -194,6 +194,10 @@ const enUS = {
   "builder.webhookDescription": "Webhook event trigger image build",
   "builder.configureFirst": "Please configure the builder first",
   "builder.tagTemplate": "tag template",
+  "builder.buildDuration": "Build duration",
+  "builder.buildDurationDescription": "Duration of the last {count} builds",
+  "builder.buildDurationLatest": "Latest {duration}",
+  "builder.buildDurationEmpty": "No build has finished yet",
 
   "daemon.task": "Daemon Task",
   "daemon.lastTrigger": "Last trigger",

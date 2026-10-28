@@ -26,6 +26,7 @@ import Menu from "@/components/Menu";
 import Notification from "@/components/Notification";
 import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
+import BuildDurationChart from "@/components/BuildDurationChart";
 import RepositoryTabs from "@/components/RepositoryTabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
@@ -260,7 +261,16 @@ export default function ({ localServer }: { localServer: string }) {
                     Please <Link to={`/namespaces/${namespace}/repository/builder?namespace=${namespace}&namespace_id=${repositoryObj?.namespace_id}&repository=${repositoryObj?.name}&repository_id=${repositoryObj?.id}&namespace_stick=true&repository_stick=true`} className="hover:underline-offset-1">configure</Link> the builder first.
                   </div>
                 ) : (
-                  <table className="min-w-full flex-1">
+                  <>
+                    <div className="px-4 pt-4 pb-4">
+                      <BuildDurationChart
+                        localServer={localServer}
+                        namespaceId={repositoryObj?.namespace_id || namespaceId}
+                        repositoryId={repository_id}
+                        builderId={builderObj.id}
+                      />
+                    </div>
+                    <table className="min-w-full flex-1">
                     <thead>
                       <tr>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
@@ -302,6 +312,7 @@ export default function ({ localServer }: { localServer: string }) {
                       }
                     </tbody>
                   </table>
+                  </>
                 )
               }
             </div>
