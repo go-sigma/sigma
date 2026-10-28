@@ -28,25 +28,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useTranslation } from "@/i18n/useTranslation";
 import {
   ICodeRepositoryProviderItem,
   IHTTPError,
   IOauth2ClientID,
 } from "@/interfaces";
-
-const credentialTypes = [
-  { value: "token", labelKey: "codeRepository.credentialToken" },
-  { value: "ssh", labelKey: "codeRepository.credentialSsh" },
-  { value: "username", labelKey: "codeRepository.credentialUsername" },
-] as const;
 
 function notifyError(error: any) {
   const errorcode = error?.response?.data as IHTTPError;
@@ -72,31 +59,18 @@ export default function ({
 }) {
   const { t } = useTranslation();
 
-  const [type, setType] = useState("token");
   const [token, setToken] = useState("");
-  const [sshKey, setSshKey] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [clientID, setClientID] = useState("");
-
-  const payload = () => {
-    switch (type) {
-      case "token":
-        return { type, token };
-      case "ssh":
-        return { type, ssh_key: sshKey };
-      default:
-        return { type, username, password };
-    }
-  };
 
   const submit = () => {
     setSaving(true);
     axios
       .put(
         `${localServer}/api/v1/coderepos/${provider.provider}/credential`,
-        payload(),
+        // Listing repositories goes through the provider API, and only a token credential
+        // can authenticate those calls, so this dialog only stores tokens.
+        { type: "token", token },
       )
       .then((response) => {
         if (response.status === 200) {
@@ -140,87 +114,20 @@ export default function ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>{t("codeRepository.credentialType")}</Label>
-            <Select
-              value={type}
-              onValueChange={(v) => {
-                if (v) setType(v);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {credentialTypes.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {t(item.labelKey)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>
+              <span className="text-destructive">*</span>
+              {t("codeRepository.credentialToken")}
+            </Label>
+            <Input
+              type="password"
+              placeholder={t("codeRepository.tokenPlaceholder")}
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("codeRepository.tokenHint")}
+            </p>
           </div>
-
-          {type === "token" && (
-            <div className="grid gap-2">
-              <Label>
-                <span className="text-destructive">*</span>
-                {t("codeRepository.credentialToken")}
-              </Label>
-              <Input
-                type="password"
-                placeholder={t("codeRepository.tokenPlaceholder")}
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t("codeRepository.tokenHint")}
-              </p>
-            </div>
-          )}
-
-          {type === "ssh" && (
-            <div className="grid gap-2">
-              <Label>
-                <span className="text-destructive">*</span>
-                {t("codeRepository.credentialSsh")}
-              </Label>
-              <textarea
-                className="min-h-32 rounded-md border bg-transparent px-3 py-2 text-sm"
-                placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
-                value={sshKey}
-                onChange={(e) => setSshKey(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t("codeRepository.sshHint")}
-              </p>
-            </div>
-          )}
-
-          {type === "username" && (
-            <>
-              <div className="grid gap-2">
-                <Label>
-                  <span className="text-destructive">*</span>
-                  {t("codeRepository.credentialUsernameField")}
-                </Label>
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>
-                  <span className="text-destructive">*</span>
-                  {t("codeRepository.credentialPassword")}
-                </Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </>
-          )}
 
           {provider.oauth_enabled && !provider.linked && (
             <div className="rounded-md border p-3 text-xs flex flex-col gap-2">
