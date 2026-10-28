@@ -20,17 +20,16 @@ import axios from "axios";
 import "bytemd/dist/index.css";
 import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import "./index.css";
 import Header from "@/components/Header";
 import Menu from "@/components/Menu";
 import Toast from "@/components/Notification";
-import { useTranslation } from "@/i18n/useTranslation";
+import RepositoryTabs from "@/components/RepositoryTabs";
 import { IHTTPError, IRepositoryItem, ISystemConfig } from "@/interfaces";
 
 export default function ({ localServer }: { localServer: string }) {
-  const { t } = useTranslation();
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
   const repository_id = searchParams.get("repository_id") || "";
@@ -118,39 +117,14 @@ export default function ({ localServer }: { localServer: string }) {
             <Header title="Repository"
               props={
                 gotConfig && (
-                  <div className="flex space-x-8">
-                    <span
-                      className="z-10 inline-flex items-center border-b border-primary px-1 pt-1 text-sm font-medium text-foreground capitalize cursor-pointer"
-                    >
-                      Summary
-                    </span>
-                    {
-                      config.daemon.builder && (
-                        <Link
-                          to={`/namespaces/${namespace}/repository/builder?namespace=${namespace}&namespace_id=${namespaceId}&repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_stick=true&repository_stick=true`}
-                          className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                        >
-                          {t("common.builder")}
-                        </Link>
-                      )
-                    }
-                    {
-                      config.daemon.builder && (
-                        <Link
-                          to={`/namespaces/${namespace}/repository/runners?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
-                          className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                        >
-                          {t("common.runs")}
-                        </Link>
-                      )
-                    }
-                    <Link
-                      to={`/namespaces/${namespace}/repository/tags?repository=${repositoryObj.name}&repository_id=${repository_id}&namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      Tag list
-                    </Link>
-                  </div>
+                  <RepositoryTabs
+                    namespace={namespace || ""}
+                    namespaceId={namespaceId}
+                    repository={repositoryObj.name}
+                    repositoryId={repository_id}
+                    active="summary"
+                    showBuilder={config.daemon.builder}
+                  />
                 )
               } />
           </main>

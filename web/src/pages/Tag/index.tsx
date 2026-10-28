@@ -24,7 +24,7 @@ import humanFormat from "human-format";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { CornerDownLeft } from "lucide-react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
 import Header from "@/components/Header";
@@ -32,6 +32,7 @@ import IMenu from "@/components/Menu";
 import Notification from "@/components/Notification";
 import Toast from "@/components/Notification";
 import Pagination from "@/components/Pagination";
+import RepositoryTabs from "@/components/RepositoryTabs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -305,33 +306,14 @@ export default function Tag({ localServer }: { localServer: string }) {
               title={t("common.tags")}
               props={
                 gotConfig && (
-                  <div className="flex space-x-8">
-                    <Link
-                      to={`/namespaces/${namespace}/repository/summary?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
-                      className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                    >
-                      {t("common.summary")}
-                    </Link>
-                    {config.daemon.builder && (
-                      <Link
-                        to={`/namespaces/${namespace}/repository/builder?namespace=${namespace}&namespace_id=${namespaceId}&repository=${repository}&repository_id=${repositoryId}&namespace_stick=true&repository_stick=true`}
-                        className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                      >
-                        {t("common.builder")}
-                      </Link>
-                    )}
-                    {config.daemon.builder && (
-                      <Link
-                        to={`/namespaces/${namespace}/repository/runners?repository=${repository}&repository_id=${repositoryId}&namespace_id=${namespaceId}`}
-                        className="inline-flex items-center border-b border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 capitalize"
-                      >
-                        {t("common.runs")}
-                      </Link>
-                    )}
-                    <span className="z-10 inline-flex items-center border-b border-primary px-1 pt-1 text-sm font-medium text-foreground capitalize cursor-pointer">
-                      {t("common.tagList")}
-                    </span>
-                  </div>
+                  <RepositoryTabs
+                    namespace={namespace || ""}
+                    namespaceId={namespaceId || ""}
+                    repository={repository || ""}
+                    repositoryId={repositoryId || ""}
+                    active="tags"
+                    showBuilder={config.daemon.builder}
+                  />
                 )
               }
             />

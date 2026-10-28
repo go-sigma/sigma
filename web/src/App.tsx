@@ -19,7 +19,7 @@ import { Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-do
 
 import { apiBaseURL } from './app/config';
 import Menu, { AppLayoutMenuContext } from './components/Menu';
-import BuilderRunnerList from './pages/Builder/RunnerList';
+import RepositoryBuilder from './pages/Builder';
 import CodeRepositoryHome from './pages/CodeRepository';
 import CodeRepositoryList from './pages/CodeRepository/List';
 import DaemonTaskRecords from "./pages/DaemonTask/Records";
@@ -155,9 +155,8 @@ export default function App() {
             <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={apiBaseURL} />} />
-            <Route path="/namespaces/:namespace/repository/builder" element={<BuildersSetup localServer={apiBaseURL} />} />
-
-            <Route path="/namespaces/:namespace/repository/runners" element={<BuilderRunnerList localServer={apiBaseURL} />} />
+            <Route path="/namespaces/:namespace/repository/builder" element={<RepositoryBuilder localServer={apiBaseURL} />} />
+            <Route path="/namespaces/:namespace/repository/runners" element={<RepositoryBuilder localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/runner-logs/:runner_id" element={<BuilderRunnerLog localServer={apiBaseURL} />} />
 
             <Route path="/coderepos" element={<CodeRepositoryHome localServer={apiBaseURL} />} />

@@ -28,6 +28,7 @@ import { useNamespaceId } from '@/hooks/useNamespaceId';
 import Header from '@/components/Header';
 import HeaderMenu from '@/components/Menu';
 import Toast from "@/components/Notification";
+import RepositoryTabs from "@/components/RepositoryTabs";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
@@ -77,12 +78,12 @@ const supportBuilderSource = [
   { id: 3, name: 'Dockerfile' },
 ];
 
-export default function ({ localServer }: { localServer: string }) {
+export default function ({ localServer, embedded = false, onConfigured }: { localServer: string; embedded?: boolean; onConfigured?: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { id } = useParams<{ id?: string }>();
+  const { id, namespace: routeNamespace } = useParams<{ id?: string; namespace?: string }>();
 
   const [selectedPlatforms, setSelectedPlatforms] = useState([supportPlatforms[0]])
 
@@ -122,6 +123,12 @@ export default function ({ localServer }: { localServer: string }) {
       window.removeEventListener('popstate', back);
     }
   }, [backTo, navigate]);
+
+  // The repository of the embedded page is fixed by the route; the standalone page picks it in the
+  // form below.
+  const embeddedRepository = searchParams.get('repository') || "";
+  const embeddedRepositoryId = searchParams.get('repository_id') || "";
+  const embeddedNamespaceId = searchParams.get('namespace_id') || "";
 
   useEffect(() => {
     const url = `${localServer}/api/v1/namespaces/?limit=${pickerLimit}`;
@@ -443,7 +450,12 @@ export default function ({ localServer }: { localServer: string }) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${repositorySelected.id}/builders/`;
       axios.post(url, data as IBuilderItem).then(response => {
         if (response?.status === 201) {
-          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}&repository=${repositorySelected.name}&namespace_id=${namespaceSelected.id}`, { replace: true });
+          if (embedded) {
+            // The repository tab swaps the form for the run list once the builder exists.
+            onConfigured?.();
+            return;
+          }
+          navigate(`/namespaces/${namespaceSelected.name}/repository/builder?repository_id=${repositorySelected.id}&repository=${repositorySelected.name}&namespace_id=${namespaceSelected.id}`, { replace: true });
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -456,7 +468,7 @@ export default function ({ localServer }: { localServer: string }) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${searchParams.get('repository_id')}/builders/${id}`;
       axios.put(url, data as IBuilderItem).then(response => {
         if (response?.status === 204) {
-          navigate(`/namespaces/${namespaceSelected.name}/repository/runners?repository_id=${repositorySelected.id}&repository=${repositorySelected.name}&namespace_id=${namespaceSelected.id}`, { replace: true });
+          navigate(`/namespaces/${namespaceSelected.name}/repository/builder?repository_id=${repositorySelected.id}&repository=${repositorySelected.name}&namespace_id=${namespaceSelected.id}`, { replace: true });
         } else {
           const errorcode = response.data as IHTTPError;
           Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -584,11 +596,30 @@ export default function ({ localServer }: { localServer: string }) {
         </Helmet>
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
-        <HeaderMenu localServer={localServer} item="coderepos" />
+        {embedded ? (
+          <HeaderMenu localServer={localServer} item="repositories" namespace={routeNamespace} repository={embeddedRepository} />
+        ) : (
+          <HeaderMenu localServer={localServer} item="coderepos" />
+        )}
         <div className="flex flex-col flex-1 max-h-screen">
           {/* part 1 begin */}
           <main className="relative focus:outline-none" tabIndex={0}>
-            <Header title={t("header.setupBuilder")} />
+            {embedded ? (
+              <Header
+                title={t("common.builder")}
+                props={
+                  <RepositoryTabs
+                    namespace={routeNamespace || ""}
+                    namespaceId={embeddedNamespaceId}
+                    repository={embeddedRepository}
+                    repositoryId={embeddedRepositoryId}
+                    active="builder"
+                  />
+                }
+              />
+            ) : (
+              <Header title={t("header.setupBuilder")} />
+            )}
           </main>
           {/* part 1 end */}
           {/* part 2 begin */}
