@@ -562,23 +562,38 @@ export default function Tag({ localServer }: { localServer: string }) {
   );
 }
 
-function skipManifest(raw: string) {
-  let artifactObj = JSON.parse(raw);
-  if (
-    artifactObj["config"]["mediaType"] ===
-    "application/vnd.oci.image.config.v1+json"
-  ) {
-    if (
-      artifactObj["layers"].length === 1 &&
-      artifactObj["layers"][0]["mediaType"] ===
-      "application/vnd.in-toto+json" &&
-      artifactObj["layers"][0]["annotations"]["in-toto.io/predicate-type"] !==
-      ""
-    ) {
-      return true;
-    }
+// ManifestJSON is the subset of an image manifest or index the tag list reads.
+type ManifestJSON = {
+  mediaType?: string;
+  config?: { mediaType?: string };
+  layers?: { mediaType?: string; annotations?: Record<string, string> }[];
+};
+
+// parseArtifactJSON parses one of the JSON encoded artifact fields and returns the fallback when
+// the field is empty or not valid JSON. Artifacts do not always carry a config, sbom or
+// vulnerability report (raw blobs, for example) and the API answers with an empty string for
+// those, which JSON.parse rejects.
+function parseArtifactJSON<T>(text: string | undefined | null, fallback: T): T {
+  if (!text) {
+    return fallback;
   }
-  return false;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function skipManifest(raw: string) {
+  const artifactObj = parseArtifactJSON<ManifestJSON>(raw, {});
+  if (artifactObj.config?.mediaType !== "application/vnd.oci.image.config.v1+json") {
+    return false;
+  }
+  const layers = artifactObj.layers;
+  if (layers?.length !== 1 || layers[0].mediaType !== "application/vnd.in-toto+json") {
+    return false;
+  }
+  return (layers[0].annotations?.["in-toto.io/predicate-type"] ?? "") !== "";
 }
 
 function TableItem({
@@ -588,7 +603,7 @@ function TableItem({
   artifact: IArtifact;
   artifacts: IArtifact[];
 }) {
-  const artifactObj = JSON.parse(artifact.raw);
+  const artifactObj = parseArtifactJSON<ManifestJSON>(artifact.raw, {});
 
   return (
     <tbody>
@@ -601,7 +616,7 @@ function TableItem({
       ) : artifactObj.mediaType ===
         "application/vnd.docker.distribution.manifest.list.v2+json" ||
         artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
-        artifacts.map((item: IArtifact) => {
+        (artifacts ?? []).map((item: IArtifact) => {
           return (
             !skipManifest(item.raw) && (
               <DetailItem key={item.digest} artifact={item} />
@@ -626,13 +641,15 @@ function cutDigest(digest: string) {
 }
 
 function DetailItem({ artifact }: { artifact: IArtifact }) {
-  let sbomObj = JSON.parse(
-    artifact.sbom === "" ? "{}" : artifact.sbom,
-  ) as ISbom;
-  let vulnerabilityObj = JSON.parse(
-    artifact.vulnerability === "" ? "{}" : artifact.vulnerability,
-  ) as IVuln;
-  let imageConfigObj = JSON.parse(artifact.config_raw) as IImageConfig;
+  const sbomObj = parseArtifactJSON<ISbom>(artifact.sbom, {} as ISbom);
+  const vulnerabilityObj = parseArtifactJSON<IVuln>(
+    artifact.vulnerability,
+    {} as IVuln,
+  );
+  const imageConfigObj = parseArtifactJSON<IImageConfig>(
+    artifact.config_raw,
+    {} as IImageConfig,
+  );
   return (
     <tr className="hover:bg-gray-50 cursor-pointer">
       <td className="text-left w-45">

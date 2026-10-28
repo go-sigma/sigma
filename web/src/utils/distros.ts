@@ -108,7 +108,10 @@ const distroDisplayNames: Record<string, string> = {
   zorin: "Zorin OS",
 };
 
-function normalizeDistroName(name: string) {
+function normalizeDistroName(name: string | undefined) {
+  if (!name) {
+    return "";
+  }
   const normalized = name.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
   const compact = normalized.replace(/\s+/g, "");
   return distroAliases[normalized] ?? distroAliases[compact] ?? compact;
