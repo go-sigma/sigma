@@ -52,29 +52,55 @@ func (factory) New(http, multiArch bool) (signing.Signing, error) {
 	}, nil
 }
 
-// Sign signs the image identified by ref with the PEM private key priKey, resolving ref to a digest-pinned reference and shelling out to the cosign executable with signature transparency logging disabled. The key is written to a temporary file that is removed afterwards, and the command's exit error is returned.
+// signingConfig is a Sigstore signing config without transparency log services. Signatures sigma
+// produces are stored as OCI artifacts in its own registry, so nothing may be uploaded to a public
+// log, and cosign v3 rejects the deprecated --tlog-upload flag whenever a signing config is used.
+const signingConfig = `{"mediaType":"application/vnd.dev.sigstore.signingconfig.v0.2+json","rekorTlogUrls":[]}`
+
+// writeTempFile writes content to a new temporary file and returns its path with a cleanup
+// function that removes it.
+func writeTempFile(pattern, content string) (string, func(), error) {
+	f, err := os.CreateTemp("", pattern)
+	if err != nil {
+		return "", nil, err
+	}
+	cleanup := func() {
+		if e := os.Remove(f.Name()); e != nil {
+			slog.Error("remove temp file failed", "err", e)
+		}
+	}
+	if _, err = f.WriteString(content); err != nil {
+		_ = f.Close()
+		cleanup()
+		return "", nil, err
+	}
+	if err = f.Close(); err != nil {
+		cleanup()
+		return "", nil, err
+	}
+	return f.Name(), cleanup, nil
+}
+
+// Sign signs the image identified by ref with the PEM private key priKey, resolving ref to a digest-pinned reference and shelling out to the cosign executable with a signing config that disables transparency logging. The key and the signing config are written to temporary files that are removed afterwards, and the command's exit error is returned.
 func (s *client) Sign(ctx context.Context, token, priKey, ref string) error {
 	imageRef, err := s.GetImageRef(ctx, token, ref)
 	if err != nil {
 		return err
 	}
-	temp, err := os.CreateTemp("", consts.AppName)
+	keyFile, cleanupKey, err := writeTempFile(consts.AppName, priKey)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		e := os.Remove(temp.Name())
-		if e != nil {
-			slog.Error("remove temp file failed", "err", e)
-		}
-	}()
-	_, err = temp.WriteString(priKey)
+	defer cleanupKey()
+
+	configFile, cleanupConfig, err := writeTempFile(consts.AppName+"-signing-config", signingConfig)
 	if err != nil {
 		return err
 	}
+	defer cleanupConfig()
 
 	cmd := exec.Command("cosign", "sign")
-	cmd.Args = append(cmd.Args, "--tlog-upload=false")
+	cmd.Args = append(cmd.Args, "--signing-config", configFile)
 	if s.Http {
 		cmd.Args = append(cmd.Args, "--allow-http-registry")
 	} else {
@@ -83,7 +109,7 @@ func (s *client) Sign(ctx context.Context, token, priKey, ref string) error {
 	if s.MultiArch {
 		cmd.Args = append(cmd.Args, "--recursive")
 	}
-	cmd.Args = append(cmd.Args, "--key", temp.Name())
+	cmd.Args = append(cmd.Args, "--key", keyFile)
 	cmd.Args = append(cmd.Args, "--registry-token", token)
 	cmd.Args = append(cmd.Args, "--registry-referrers-mode", "oci-1-1")
 	cmd.Args = append(cmd.Args, imageRef)
