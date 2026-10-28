@@ -33,11 +33,24 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -46,7 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "@/i18n/useTranslation";
-import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IEndpoint, IHTTPError, INamespaceItem, INamespaceList, IRepositoryItem, IRepositoryList } from '@/interfaces';
+import { IBuilderItem, ICodeRepositoryBranchItem, ICodeRepositoryBranchList, ICodeRepositoryItem, ICodeRepositoryList, ICodeRepositoryOwnerItem, ICodeRepositoryOwnerList, ICodeRepositoryProviderItem, ICodeRepositoryProviderList, IEndpoint, IHTTPError, INamespaceItem, INamespaceList, IOrder, IRepositoryItem, IRepositoryList } from '@/interfaces';
 
 const supportPlatforms = [
   { id: 1, name: 'linux/amd64' },
@@ -69,7 +82,7 @@ const supportCredential = [
 ];
 
 // pickerLimit is the page size of every picker on this page. The API caps a page at 100
-// entries and the pickers have no search box, so ask for as much as it allows.
+// entries, so ask for as much as it allows.
 const pickerLimit = 100;
 
 const supportBuilderSource = [
@@ -239,6 +252,14 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
     name: searchParams.get('code_repository_name') || '',
     id: searchParams.get('code_repository_id') || "",
   } as ICodeRepositoryItem);
+  // The repository picker searches on the server, so the name is part of the list query below.
+  const [codeRepositorySearch, setCodeRepositorySearch] = useState('');
+  const [codeRepositoryPickerOpen, setCodeRepositoryPickerOpen] = useState(false);
+  // Closing the picker also drops the search term so it reopens with the full list.
+  const closeCodeRepositoryPicker = () => {
+    setCodeRepositoryPickerOpen(false);
+    setCodeRepositorySearch('');
+  };
 
   useEffect(() => {
     if (codeRepositoryProviderSelected.provider == undefined || codeRepositoryProviderSelected.provider == "") {
@@ -251,12 +272,23 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
       setCodeRepositoryList(undefined);
       return;
     }
-    // The picker has no search box, so request a full page instead of the five autocomplete entries.
-    let url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}?owner=${codeRepositoryOwnerSelected.owner}&limit=${pickerLimit}`;
+    // The picker searches on the server so repositories past the first page stay reachable, and
+    // lists the most recently updated repository first. pushed_at is the provider side update
+    // time, updated_at only tracks the sync of the local row.
+    const params = new URLSearchParams({
+      owner: codeRepositoryOwnerSelected.owner,
+      limit: String(pickerLimit),
+      sort: 'pushed_at',
+      method: IOrder.Desc,
+    });
+    if (codeRepositorySearch !== '') {
+      params.set('name', codeRepositorySearch);
+    }
+    const url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}?${params.toString()}`;
     axios.get(url).then(response => {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryList;
-        setCodeRepositoryList(orderBy(data.items, ['name']));
+        setCodeRepositoryList(data.items);
       } else {
         const errorcode = response.data as IHTTPError;
         Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
@@ -265,7 +297,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositoryOwnerSelected, codeRepositoryProviderSelected, providerCredentialMissing, localServer]);
+  }, [codeRepositoryOwnerSelected, codeRepositoryProviderSelected, providerCredentialMissing, codeRepositorySearch, localServer]);
 
   const [codeRepositoryBranchList, setCodeRepositoryBranchList] = useState<ICodeRepositoryBranchItem[]>();
   const [codeRepositoryBranchSelected, setCodeRepositoryBranchSelected] = useState<ICodeRepositoryBranchItem>({
@@ -755,7 +787,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                   <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-2">
+                        <div className="sm:col-span-3">
                           <label htmlFor="codeProviders" className="block text-sm font-medium leading-6 text-gray-900">
                             Provider
                           </label>
@@ -779,6 +811,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                                 setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
                                 setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
                                 setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositorySearch('');
                                 setCodeRepositoryProviderSelected(provider);
                               }}
                             >
@@ -826,7 +859,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                     }
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-2">
+                        <div className="sm:col-span-3">
                           <label htmlFor="codeOwners" className="block text-sm font-medium leading-6 text-gray-900">
                             Organization
                           </label>
@@ -850,6 +883,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                                 setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
                                 setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
                                 setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                setCodeRepositorySearch('');
                                 setCodeRepositoryOwnerSelected(owner);
                               }}
                             >
@@ -872,52 +906,76 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                     }
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-2">
+                        <div className="sm:col-span-3">
                           <label htmlFor="coderepos" className="block text-sm font-medium leading-6 text-gray-900">
                             Repository
                           </label>
                           <div className="mt-2">
-                            <Select
-                              value={codeRepositorySelected?.name || ""}
-                              onValueChange={(value) => {
-                                if (!value) {
-                                  return;
+                            <Popover
+                              open={codeRepositoryPickerOpen}
+                              onOpenChange={(open) => {
+                                if (open) {
+                                  setCodeRepositoryPickerOpen(true);
+                                } else {
+                                  closeCodeRepositoryPicker();
                                 }
-                                const cr = codeRepositoryList?.find(item => item.name === value);
-                                if (!cr) {
-                                  return;
-                                }
-                                setSearchParams({
-                                  ...Object.fromEntries(searchParams.entries()),
-                                  code_repository_name: cr.name,
-                                  code_repository_id: cr.id.toString(),
-                                });
-                                setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
-                                setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCronBranchSelected({} as ICodeRepositoryBranchItem);
-                                setCodeRepositorySelected(cr);
                               }}
                             >
-                              <SelectTrigger className="w-full" disabled={providerCredentialMissing || (searchParams.get('code_repository_stick') || '') === 'true'}>
-                                <SelectValue placeholder="Select" />
-                              </SelectTrigger>
-                              {codeRepositoryList?.length ? (
-                                <SelectContent align="start">
-                                  {codeRepositoryList.map(item => (
-                                    <SelectItem key={item.id} value={item.name}>
-                                      {item.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              ) : null}
-                            </Select>
+                              <PopoverTrigger
+                                render={
+                                  <Button
+                                    id="coderepos"
+                                    variant="outline"
+                                    className="w-full justify-between font-normal"
+                                    disabled={providerCredentialMissing || (searchParams.get('code_repository_stick') || '') === 'true'}
+                                  >
+                                    <span className="truncate">{codeRepositorySelected?.name || "Select"}</span>
+                                    <ChevronUpDownIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                  </Button>
+                                }
+                              />
+                              <PopoverContent align="start" className="w-(--anchor-width) p-0">
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder={t("codeRepository.searchPlaceholder")}
+                                    value={codeRepositorySearch}
+                                    onValueChange={setCodeRepositorySearch}
+                                  />
+                                  <CommandList>
+                                    <CommandEmpty>{t("common.noResult")}</CommandEmpty>
+                                    <CommandGroup>
+                                      {codeRepositoryList?.map(item => (
+                                        <CommandItem
+                                          key={item.id}
+                                          value={item.name}
+                                          onSelect={() => {
+                                            setSearchParams({
+                                              ...Object.fromEntries(searchParams.entries()),
+                                              code_repository_name: item.name,
+                                              code_repository_id: item.id.toString(),
+                                            });
+                                            setCodeRepositoryBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setMergeEventBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCronBranchSelected({} as ICodeRepositoryBranchItem);
+                                            setCodeRepositorySelected(item);
+                                            closeCodeRepositoryPicker();
+                                          }}
+                                        >
+                                          {item.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       ) : null
                     }
                     {
                       builderSource === 'CodeRepository' ? (
-                        <div className="sm:col-span-2">
+                        <div className="sm:col-span-3">
                           <label htmlFor="branch" className="block text-sm font-medium leading-6 text-gray-900">
                             Branch
                           </label>

@@ -96,6 +96,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "common.copied": "已复制",
   "common.openOptions": "打开操作菜单",
   "common.notAvailable": "不可用",
+  "common.noResult": "未找到结果",
 
   "preferences.language": "语言",
   "preferences.locale.english": "English",

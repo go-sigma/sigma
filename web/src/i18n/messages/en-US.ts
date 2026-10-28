@@ -94,6 +94,7 @@ const enUS = {
   "common.copied": "Copied",
   "common.openOptions": "Open options",
   "common.notAvailable": "N/A",
+  "common.noResult": "Nothing found.",
 
   "preferences.language": "Language",
   "preferences.locale.english": "English",
