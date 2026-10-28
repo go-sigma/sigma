@@ -83,10 +83,6 @@ function getAppMenuProps(pathname: string, search: string): Omit<AppMenuProps, "
     };
 
     if (detail === "repository" && resource) {
-      // Opened from the namespace navigation, with no repository chosen yet.
-      if (resource === "builder" && !params.get("repository")) {
-        return { ...base, section: "builder" };
-      }
       // The repository sections are tabs on the repository pages, so the menu only needs the
       // namespace level: "Repository list" stays active while browsing into a repository.
       return { ...base, section: "repositories" };

@@ -37,7 +37,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { Fragment, type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
 import Toast from "@/components/Notification";
@@ -95,7 +95,7 @@ import { setupAutoRefreshToken, teardownAutoRefreshToken } from "@/utils/request
 
 export const AppLayoutMenuContext = createContext(false);
 
-type MenuSection = "summary" | "repositories" | "members" | "builder" | "daemon-tasks" | "webhooks";
+type MenuSection = "summary" | "repositories" | "members" | "daemon-tasks" | "webhooks";
 
 type MenuProps = {
   localServer: string;
@@ -114,7 +114,6 @@ const namespaceSections: { key: MenuSection; path: string; labelKey: MessageKey 
   { key: "summary", path: "namespace-summary", labelKey: "common.summary" },
   { key: "repositories", path: "repositories", labelKey: "common.repositoryList" },
   { key: "members", path: "members", labelKey: "common.members" },
-  { key: "builder", path: "repository/builder", labelKey: "common.builder" },
   { key: "daemon-tasks", path: "daemon-tasks", labelKey: "common.daemonTask" },
   { key: "webhooks", path: "webhooks", labelKey: "common.webhook" },
 ];
@@ -363,22 +362,14 @@ function MenuContent({ localServer, item, namespace, namespace_id, section }: Me
                           </CollapsibleTrigger>
                           <CollapsiblePanel>
                             <SidebarMenuSub>
-                              {namespaceSections
-                                .filter((sectionItem) => sectionItem.key !== "builder" || config.daemon?.builder)
-                                .map((sectionItem) => (
-                                <Fragment key={sectionItem.key}>
-                                  <SidebarSubLink
-                                    to={
-                                      sectionItem.key === "builder"
-                                        // Only the namespace is locked here: the builder form picks the repository.
-                                        ? `/namespaces/${namespace}/repository/builder?namespace=${namespace}${namespace_id ? `&namespace_id=${namespace_id}` : ""}&namespace_stick=true`
-                                        : `/namespaces/${namespace}/${sectionItem.path}${namespace_id ? `?namespace_id=${namespace_id}` : ""}`
-                                    }
-                                    active={section === sectionItem.key}
-                                  >
-                                    <span>{t(sectionItem.labelKey)}</span>
-                                  </SidebarSubLink>
-                                </Fragment>
+                              {namespaceSections.map((sectionItem) => (
+                                <SidebarSubLink
+                                  key={sectionItem.key}
+                                  to={`/namespaces/${namespace}/${sectionItem.path}${namespace_id ? `?namespace_id=${namespace_id}` : ""}`}
+                                  active={section === sectionItem.key}
+                                >
+                                  <span>{t(sectionItem.labelKey)}</span>
+                                </SidebarSubLink>
                               ))}
                             </SidebarMenuSub>
                           </CollapsiblePanel>
