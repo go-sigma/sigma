@@ -86,7 +86,11 @@ http:
   # in docker-compose, it will be set to the registry service which is used to pull image from registry, eg: http://registry:3000
   # if http.tls.enabled is true, internalEndpoint should start with https://
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
-  internalEndpoint: http://127.0.0.1:3000
+  #
+  # The dev server runs on the host and the docker builder runs in a container, so the builder
+  # must reach the host through host.docker.internal instead of 127.0.0.1 (which is the builder
+  # container itself). BuildEnv marks this plain HTTP endpoint as an insecure registry for buildkit.
+  internalEndpoint: http://host.docker.internal:3000
   # eg: http://sigma-distribution:3000
   internalDistributionEndpoint:
   timeout:
@@ -146,12 +150,18 @@ proxy:
 daemon:
   builder:
     enabled: true
-    image: docker.io/tosone/sigma-builder:latest
+    image: ghcr.io/go-sigma/sigma-builder:nightly-alpine
     type: docker
     tlsVerify: true
     docker:
-      sock:
-      network: sigma
+      # Docker daemon socket. A bare path is treated as a unix socket, so
+      # /var/run/docker.sock and unix:///var/run/docker.sock are equivalent;
+      # tcp://host:2375 is accepted too. Leave it empty to use DOCKER_HOST.
+      sock: /var/run/docker.sock
+      # The builder runs as a container while the server runs on the host, so it joins the
+      # default bridge network and reaches the server through host.docker.internal (see
+      # http.internalEndpoint below).
+      network: bridge
     kubernetes:
       kubeconfig:
       namespace: sigma-builder

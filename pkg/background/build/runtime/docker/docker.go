@@ -33,6 +33,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/background/build/runtime"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 func init() {
@@ -45,7 +46,13 @@ var _ runtime.Factory = factory{}
 
 // New returns a new docker runtime.
 func (f factory) New(config *config.Configuration, coordinator build.Coordinator) (runtime.Builder, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	opts := []client.Opt{client.FromEnv}
+	// An explicit socket wins over DOCKER_HOST so the daemon can be pointed at another
+	// engine (docker, OrbStack, Colima, a remote host) without changing the environment.
+	if sock := ptr.To(config.Daemon.Builder.Docker.Sock); sock != "" {
+		opts = append(opts, client.WithHost(dockerHost(sock)))
+	}
+	cli, err := client.NewClientWithOpts(opts...)
 	if err != nil {
 		return nil, fmt.Errorf("create docker client failed: %v", err)
 	}
@@ -73,6 +80,15 @@ type instance struct {
 }
 
 var _ runtime.Builder = instance{}
+
+// dockerHost turns the configured socket into a docker host URL. A bare path is treated as a
+// unix socket, so both /var/run/docker.sock and unix:///var/run/docker.sock work.
+func dockerHost(sock string) string {
+	if strings.Contains(sock, "://") {
+		return sock
+	}
+	return "unix://" + sock
+}
 
 // Start start a container to build oci image and push to registry
 func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error {

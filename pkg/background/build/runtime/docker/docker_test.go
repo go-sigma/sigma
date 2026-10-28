@@ -14,24 +14,16 @@
 
 package docker
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"testing"
-// 	"time"
+import (
+	"testing"
 
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/stretchr/testify/require"
+)
 
-// func TestStart(t *testing.T) {
-// 	var f = factory{}
-// 	i, err := f.New()
-// 	assert.NoError(t, err)
-
-// 	ctx := context.Background()
-// 	err = i.Start(ctx, "test")
-// 	assert.NoError(t, err)
-// 	time.Sleep(time.Second * 5)
-// 	fmt.Println(i.Stop(ctx, "test"))
-// 	time.Sleep(time.Hour)
-// }
+func TestDockerHost(t *testing.T) {
+	require.Equal(t, "unix:///var/run/docker.sock", dockerHost("/var/run/docker.sock"))
+	require.Equal(t, "unix:///var/run/docker.sock", dockerHost("unix:///var/run/docker.sock"))
+	require.Equal(t, "unix:///Users/sigma/.orbstack/run/docker.sock", dockerHost("/Users/sigma/.orbstack/run/docker.sock"))
+	require.Equal(t, "tcp://127.0.0.1:2375", dockerHost("tcp://127.0.0.1:2375"))
+	require.Equal(t, "npipe:////./pipe/docker_engine", dockerHost("npipe:////./pipe/docker_engine"))
+}
