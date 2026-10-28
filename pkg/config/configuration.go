@@ -496,6 +496,16 @@ func (c *ConfigurationHTTP) WithDefaults() {
 	c.Timeout.WithDefaults()
 }
 
+// BuilderEndpoint returns the endpoint the builder container must use to push the image and call
+// the sigma API. The distribution endpoint wins when it is configured, because the builder talks to
+// the registry there, and it falls back to the internal endpoint otherwise.
+func (c ConfigurationHTTP) BuilderEndpoint() string {
+	if c.InternalDistributionEndpoint != "" {
+		return c.InternalDistributionEndpoint
+	}
+	return c.InternalEndpoint
+}
+
 func valueOrZero(v *int64) int64 {
 	if v == nil {
 		return 0

@@ -111,7 +111,10 @@ http:
   # if http.tls.enabled is true, internalEndpoint should start with https://
   # eg: http://sigma.test.io, http://sigma.test.io:3000, https://sigma.test.io:30080
   internalEndpoint:
-  # eg: http://sigma-distribution:3000
+  # the endpoint the builder container uses to push the image and call the sigma API; it defaults
+  # to internalEndpoint. Set it when the builder resolves the server differently from the daemons
+  # on the host, eg. http://sigma-distribution:3000 in docker-compose or
+  # http://host.docker.internal:3000 when the server runs on the host and the builder in docker.
   internalDistributionEndpoint:
   timeout:
     readHeader: 30s

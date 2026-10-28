@@ -111,9 +111,9 @@ func BuildEnv(builderConfig Config) ([]string, error) {
 		return nil, err
 	}
 
-	if after, ok := strings.CutPrefix(config.HTTP.InternalEndpoint, "https://"); ok {
+	if after, ok := strings.CutPrefix(config.HTTP.BuilderEndpoint(), "https://"); ok {
 		builderConfig.BuildkitInsecureRegistries = append(builderConfig.BuildkitInsecureRegistries, after)
-	} else if after, ok := strings.CutPrefix(config.HTTP.InternalEndpoint, "http://"); ok {
+	} else if after, ok := strings.CutPrefix(config.HTTP.BuilderEndpoint(), "http://"); ok {
 		builderConfig.BuildkitInsecureRegistries = append(builderConfig.BuildkitInsecureRegistries, fmt.Sprintf("%s@http", after))
 	}
 
@@ -147,7 +147,7 @@ func BuildEnv(builderConfig Config) ([]string, error) {
 		fmt.Sprintf("BUILDER_ID=%s", builderConfig.BuilderID),
 		fmt.Sprintf("RUNNER_ID=%s", builderConfig.RunnerID),
 
-		fmt.Sprintf("ENDPOINT=%s", config.HTTP.InternalEndpoint),
+		fmt.Sprintf("ENDPOINT=%s", config.HTTP.BuilderEndpoint()),
 		fmt.Sprintf("ENDPOINT_TLS_VERIFY=%t", config.Daemon.Builder.TLSVerifyEnabled()),
 		fmt.Sprintf("AUTHORIZATION=%s", sealedAuthorization),
 		fmt.Sprintf("REPOSITORY=%s", builderConfig.Repository),

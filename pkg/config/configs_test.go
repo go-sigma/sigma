@@ -113,6 +113,25 @@ func TestConfigurationHTTPBodyLimitWithDefaults(t *testing.T) {
 	require.Zero(t, httpConfig.Timeout.ReadTimeout())
 }
 
+func TestConfigurationHTTPBuilderEndpoint(t *testing.T) {
+	var httpConfig ConfigurationHTTP
+	httpConfig.WithDefaults()
+	require.Equal(t, "http://127.0.0.1:3000", httpConfig.BuilderEndpoint())
+
+	// Without a distribution endpoint the builder follows the internal endpoint.
+	httpConfig = ConfigurationHTTP{InternalEndpoint: "http://registry:3000"}
+	httpConfig.WithDefaults()
+	require.Equal(t, "http://registry:3000", httpConfig.BuilderEndpoint())
+
+	// The distribution endpoint wins, so the builder container can use a different address.
+	httpConfig = ConfigurationHTTP{
+		InternalEndpoint:             "http://127.0.0.1:3000",
+		InternalDistributionEndpoint: "http://host.docker.internal:3000",
+	}
+	httpConfig.WithDefaults()
+	require.Equal(t, "http://host.docker.internal:3000", httpConfig.BuilderEndpoint())
+}
+
 func TestConfigurationHTTPTimeoutUnmarshal(t *testing.T) {
 	var cfg Configuration
 	err := yaml.Unmarshal([]byte(`
