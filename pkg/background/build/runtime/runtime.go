@@ -273,6 +273,13 @@ const (
 	ContainerPrefix = "sigma-builder-"
 )
 
+// BuilderCommand returns the command that starts the one-shot builder inside the builder image.
+// The builder image ships the sigma binary (and its builder subcommand) only, so this is how the
+// runtime containers enter the build flow.
+func BuilderCommand() []string {
+	return []string{"sigma", "builder"}
+}
+
 // GenContainerID returns the runtime container name for a builder runtime.
 func GenContainerID(builderID, runnerID string) string {
 	return fmt.Sprintf("%s%s_%s", ContainerPrefix, builderID, runnerID)

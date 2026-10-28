@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/go-sigma/sigma/pkg/api/enums"
 	builderpkg "github.com/go-sigma/sigma/pkg/builder"
 	"github.com/go-sigma/sigma/pkg/logger"
 )
@@ -28,6 +29,12 @@ func NewCmdBuilder() *cobra.Command {
 	return &cobra.Command{
 		Use:   "builder",
 		Short: "Start the sigma builder",
+		// The builder runs as a one-shot CLI inside the builder image: every input comes from the
+		// environment and the image ships no sigma config file. Override the root command's
+		// persistent pre-run hook so it does not try to read /etc/sigma/config.yaml.
+		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+			logger.SetLevel(enums.LogLevelInfo.String())
+		},
 		Run: func(_ *cobra.Command, _ []string) {
 			flow := &builderpkg.BuildFlow{}
 			checkErr(flow.Run())

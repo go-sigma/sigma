@@ -100,7 +100,7 @@ func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error
 	containerConfig := &container.Config{
 		Image:      i.config.Daemon.Builder.Image,
 		Entrypoint: []string{},
-		Cmd:        []string{"sigma-builder"},
+		Cmd:        runtime.BuilderCommand(),
 		Env:        envs,
 		Labels: map[string]string{
 			"oci-image-builder": consts.AppName,

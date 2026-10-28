@@ -76,7 +76,7 @@ func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error
 	s.Name = runtime.GenContainerID(builderConfig.BuilderID, builderConfig.RunnerID)
 	s.Env = envs
 	s.Entrypoint = []string{}
-	s.Command = []string{"sigma-builder"}
+	s.Command = runtime.BuilderCommand()
 	s.Labels = map[string]string{
 		"oci-image-builder": consts.AppName,
 		"builder-id":        builderConfig.BuilderID,

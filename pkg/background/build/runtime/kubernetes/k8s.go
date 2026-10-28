@@ -103,8 +103,8 @@ func (i instance) Start(ctx context.Context, builderConfig runtime.Config) error
 			HostAliases: buildHostAliases(builderConfig.ExtraHosts),
 			Containers: []corev1.Container{
 				{
-					Image:   "docker.io/library/builder:dev",
-					Command: []string{"sigma-builder"},
+					Image:   i.config.Daemon.Builder.Image,
+					Command: runtime.BuilderCommand(),
 					Env:     envs,
 				},
 			},
