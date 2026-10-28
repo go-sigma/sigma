@@ -29,8 +29,9 @@ import OrderHeader from "@/components/OrderHeader";
 import Pagination from "@/components/Pagination";
 import BuildDurationChart from "@/components/BuildDurationChart";
 import RepositoryTabs from "@/components/RepositoryTabs";
+import RunnerLogView from "@/components/RunnerLogView";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +48,6 @@ import {
   IHTTPError,
   IOrder,
   IRepositoryItem,
-  IRunOrRerunRunnerResponse
 } from "@/interfaces";
 import Settings from "@/Settings";
 import { Tooltip } from '@/utils';
@@ -172,6 +172,39 @@ export default function ({ localServer }: { localServer: string }) {
   }
 
   const [refreshState, setRefreshState] = useState({});
+
+  // logRunner is the run shown in the log dialog; undefined keeps the dialog closed.
+  const [logRunner, setLogRunner] = useState<IBuilderRunnerItem>();
+
+  const rerunRunner = (runner: IBuilderRunnerItem) => {
+    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${runner.builder_id}/runners/${runner.id}/rerun`).then(response => {
+      if (response?.status === 200) {
+        // The new run shows up in the list below.
+        setRefreshState({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
+
+  const stopRunner = (runner: IBuilderRunnerItem) => {
+    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repository_id}/builders/${runner.builder_id}/runners/${runner.id}/stop`).then(response => {
+      if (response?.status === 204) {
+        setLogRunner(previous => (previous !== undefined && previous.id === runner.id ? { ...previous, status: "Stopping" } : previous));
+        setRefreshState({});
+      } else {
+        const errorcode = response.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+      }
+    }).catch(error => {
+      const errorcode = error.response.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
+    });
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -318,7 +351,7 @@ export default function ({ localServer }: { localServer: string }) {
                       {
                         runnerObjs?.map(runnerObj => {
                           return (
-                            <TableItem key={runnerObj.id} localServer={localServer} namespace={namespace || ""} repositoryObj={repositoryObj} runnerObj={runnerObj} />
+                            <TableItem key={runnerObj.id} runnerObj={runnerObj} onViewLog={setLogRunner} onRerun={rerunRunner} onStop={stopRunner} />
                           );
                         })
                       }
@@ -410,48 +443,51 @@ export default function ({ localServer }: { localServer: string }) {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={logRunner !== undefined} onOpenChange={(open) => { if (!open) setLogRunner(undefined); }}>
+        <DialogContent className="sm:max-w-5xl" aria-label="Build log">
+          <DialogHeader>
+            <DialogTitle>
+              Build log · {logRunner?.tag ?? logRunner?.raw_tag}
+            </DialogTitle>
+          </DialogHeader>
+          {logRunner === undefined ? null : (
+            <RunnerLogView
+              localServer={localServer}
+              namespaceId={repositoryObj?.namespace_id || namespaceId}
+              repositoryId={repository_id}
+              builderId={logRunner.builder_id}
+              runnerId={logRunner.id}
+              status={logRunner.status}
+              className="h-[60vh] w-full rounded-md bg-black p-2"
+            />
+          )}
+          <DialogFooter>
+            {logRunner !== undefined && logRunner.status !== "Success" && logRunner.status !== "Failed" && logRunner.status !== "Stopped" ? (
+              <Button variant="destructive" disabled={logRunner.status === "Stopping"} onClick={() => stopRunner(logRunner)}>
+                Stop
+              </Button>
+            ) : null}
+            <Button variant="outline" onClick={() => setLogRunner(undefined)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </>
   )
 }
 
-function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { localServer: string, namespace: string, repositoryObj: IRepositoryItem | undefined, runnerObj: IBuilderRunnerItem }) {
-  const navigate = useNavigate();
-
-  const viewLogAction = () => {
-    navigate(`/namespaces/${namespace}/repository/runner-logs/${runnerObj.id}?repository_id=${repositoryObj?.id}&namespace_id=${repositoryObj?.namespace_id}`);
-  }
-
-  let rerunAction = () => {
-    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repositoryObj?.id}/builders/${runnerObj.builder_id}/runners/${runnerObj.id}/rerun`).then(response => {
-      if (response?.status === 200) {
-        let data = response.data as IRunOrRerunRunnerResponse;
-        navigate(`/namespaces/${namespace}/repository/runner-logs/${data.runner_id}?repository_id=${repositoryObj?.id}&namespace_id=${repositoryObj?.namespace_id}`, { replace: true });
-      } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }
-
-  let stopAction = () => {
-    axios.get(localServer + `/api/v1/namespaces/${repositoryObj?.namespace_id}/repositories/${repositoryObj?.id}/builders/${runnerObj.builder_id}/runners/${runnerObj.id}/stop`).then(response => {
-      if (response?.status === 204) { } else {
-        const errorcode = response.data as IHTTPError;
-        Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-      }
-    }).catch(error => {
-      const errorcode = error.response.data as IHTTPError;
-      Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
-    });
-  }
-
+function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
+  runnerObj: IBuilderRunnerItem;
+  onViewLog: (runner: IBuilderRunnerItem) => void;
+  onRerun: (runner: IBuilderRunnerItem) => void;
+  onStop: (runner: IBuilderRunnerItem) => void;
+}) {
   return (
     <tr className="align-middle">
       <td className="px-6 py-4 w-5/6 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
-        onClick={viewLogAction}
+        onClick={() => onViewLog(runnerObj)}
       >
         <div className="items-center space-x-3 lg:pl-2">
           <div className="truncate hover:text-gray-600">
@@ -494,18 +530,18 @@ function TableItem({ localServer, namespace, repositoryObj, runnerObj }: { local
             }
           />
           <DropdownMenuContent align="end" className="w-40!">
-            <DropdownMenuItem onClick={viewLogAction}>
+            <DropdownMenuItem onClick={() => onViewLog(runnerObj)}>
               <FileText />
               <span>View log</span>
             </DropdownMenuItem>
             {
               runnerObj?.status === "Success" || runnerObj?.status === "Failed" || runnerObj?.status === "Stopped" ? (
-                <DropdownMenuItem onClick={rerunAction}>
+                <DropdownMenuItem onClick={() => onRerun(runnerObj)}>
                   <RotateCw />
                   <span>Rerun</span>
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem disabled={runnerObj?.status === "Stopping"} onClick={stopAction}>
+                <DropdownMenuItem disabled={runnerObj?.status === "Stopping"} onClick={() => onStop(runnerObj)}>
                   <Square />
                   <span>Stop</span>
                 </DropdownMenuItem>
