@@ -82,7 +82,7 @@ func (h *handler) GetRunnerLog(c *gin.Context, req *api.GetRunnerLog) {
 			}
 		}()
 		switch runnerObj.Status {
-		case enums.BuildStatusFailed, enums.BuildStatusSuccess: // already built
+		case enums.BuildStatusFailed, enums.BuildStatusSuccess, enums.BuildStatusStopped: // already finished
 			reader, compressed, err := builderSvc.RunnerLogReader(ctx, req.BuilderID, runnerObj.ID, runnerObj.Status)
 			if err != nil {
 				slog.Error("read log failed", "err", err)

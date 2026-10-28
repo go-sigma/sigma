@@ -129,7 +129,7 @@ func createBuilderValidator(req api.CreateBuilderRequest) error {
 }
 
 func (s *service) RunnerLogReader(ctx context.Context, builderID string, runnerID string, status enums.BuildStatus) (io.Reader, bool, error) {
-	if status == enums.BuildStatusFailed || status == enums.BuildStatusSuccess {
+	if status == enums.BuildStatusFailed || status == enums.BuildStatusSuccess || status == enums.BuildStatusStopped {
 		if buildlogger.LogStoreDriver == nil {
 			return strings.NewReader(""), true, nil
 		}
