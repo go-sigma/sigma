@@ -21,9 +21,9 @@ import {
 import axios from "axios";
 import dayjs from "dayjs";
 import humanFormat from "human-format";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { CornerDownLeft } from "lucide-react";
+import { CheckIcon, CornerDownLeft } from "lucide-react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
@@ -64,7 +64,7 @@ import {
   IVuln,
 } from "@/interfaces";
 import Settings from "@/Settings";
-import { Tooltip, trimHTTP } from "@/utils";
+import { trimHTTP } from "@/utils";
 import distros, { distroName } from "@/utils/distros";
 
 export default function Tag({ localServer }: { localServer: string }) {
@@ -82,6 +82,32 @@ export default function Tag({ localServer }: { localServer: string }) {
   const namespaceId = searchParams.get("namespace_id");
 
   const [, copyToClipboard] = useCopyToClipboard();
+
+  // copiedKey marks the element whose copy just happened, so the copy confirmation is shown next
+  // to what was copied instead of in a floating tooltip.
+  const [copiedKey, setCopiedKey] = useState("");
+  const copiedTimer = useRef<number | undefined>(undefined);
+
+  const flashCopied = useCallback((key: string) => {
+    setCopiedKey(key);
+    window.clearTimeout(copiedTimer.current);
+    copiedTimer.current = window.setTimeout(() => setCopiedKey(""), 1600);
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
+
+  // pullText is the image reference shown in the tag card. The pull verb is left out so the whole
+  // reference fits the card, and copying it yields exactly what is displayed.
+  const pullText = (tag: ITagItem) => {
+    const image = `${trimHTTP(endpoint)}/${repository}`;
+    if (
+      tag.artifact.config_media_type ===
+      "application/vnd.cncf.helm.config.v1+json"
+    ) {
+      return `${image} --version ${tag.name}`;
+    }
+    return `${image}:${tag.name}`;
+  };
 
   const [endpoint, setEndpoint] = useState("");
 
@@ -284,13 +310,6 @@ export default function Tag({ localServer }: { localServer: string }) {
           <title>{t("common.tags")}</title>
         </Helmet>
       </HelmetProvider>
-      <div
-        id={"tooltip-top-content"}
-        role="tooltip"
-        className="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-      >
-        {t("common.copied")}
-      </div>
       <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950">
         <IMenu
           localServer={localServer}
@@ -392,7 +411,7 @@ export default function Tag({ localServer }: { localServer: string }) {
               </DialogContent>
             </Dialog>
             <div className="flex flex-col border-b border-gray-200">
-              {tagList.items?.map((tag, index) => {
+              {tagList.items?.map((tag) => {
                 return tag.artifact.type === "cosign" ? null : (
                   <div
                     key={tag.id}
@@ -400,60 +419,38 @@ export default function Tag({ localServer }: { localServer: string }) {
                   >
                     {/* first row begin */}
                     <div className="flex">
-                      <div className="flex-1 flex gap-1">
+                      <div className="flex-1 flex items-center gap-2">
                         <span
                           className="font-semibold text-gray-600 cursor-pointer"
-                          id={"tooltip-tag-name-" + index}
                           onClick={() => {
                             copyToClipboard(`${tag.name}`);
-                            let tooltip = new Tooltip(
-                              document.getElementById("tooltip-top-content"),
-                              document.getElementById(
-                                "tooltip-tag-name-" + index.toString(),
-                              ),
-                              { triggerType: "click" },
-                            );
-                            tooltip.show();
+                            flashCopied(`tag-${tag.id}`);
                           }}
                         >
                           {tag.name}
                         </span>
+                        {copiedKey === `tag-${tag.id}` ? (
+                          <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-500">
+                            <CheckIcon className="size-3.5" />
+                            {t("common.copied")}
+                          </span>
+                        ) : null}
                       </div>
                       <div>
                         <code
-                          className="block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-96 text-ellipsis whitespace-nowrap overflow-hidden"
-                          id={"tooltip-top-btn-" + index}
+                          className="relative block text-xs bg-gray-700 p-2 text-gray-50 cursor-pointer rounded-md w-70 text-ellipsis whitespace-nowrap overflow-hidden"
                           onClick={() => {
-                            let copyText = `docker pull ${trimHTTP(endpoint)}/${repository}:${tag.name}`;
-                            if (
-                              tag.artifact.config_media_type ===
-                              "application/vnd.cncf.helm.config.v1+json"
-                            ) {
-                              copyText = `helm pull ${trimHTTP(endpoint)}/${repository} --version ${tag.name}`;
-                            }
-                            copyToClipboard(copyText);
-                            let tooltip = new Tooltip(
-                              document.getElementById("tooltip-top-content"),
-                              document.getElementById(
-                                "tooltip-top-btn-" + index.toString(),
-                              ),
-                              { triggerType: "click" },
-                            );
-                            tooltip.show();
+                            copyToClipboard(pullText(tag));
+                            flashCopied(`pull-${tag.id}`);
                           }}
                         >
-                          {tag.artifact.config_media_type ===
-                            "application/vnd.cncf.helm.config.v1+json" ? (
-                            <>
-                              helm pull {trimHTTP(endpoint)}/{repository}{" "}
-                              --version {tag.name}
-                            </>
-                          ) : (
-                            <>
-                              docker pull {trimHTTP(endpoint)}/{repository}:
-                              {tag.name}
-                            </>
-                          )}
+                          {pullText(tag)}
+                          {copiedKey === `pull-${tag.id}` ? (
+                            <span className="absolute inset-y-0 right-0 flex items-center gap-1 bg-gray-700 px-2 text-green-400">
+                              <CheckIcon className="size-3.5" />
+                              {t("common.copied")}
+                            </span>
+                          ) : null}
                         </code>
                       </div>
                       <div className="flex flex-col justify-center">
