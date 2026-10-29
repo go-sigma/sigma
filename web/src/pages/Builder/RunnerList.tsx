@@ -229,12 +229,10 @@ export default function ({ localServer }: { localServer: string }) {
   }
 
   const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
-  const [costOrder, setCostOrder] = useState(IOrder.None);
   const [sortOrder, setSortOrder] = useState(IOrder.None);
   const [sortName, setSortName] = useState("");
 
   const resetOrder = () => {
-    setCostOrder(IOrder.None);
     setCreatedAtOrder(IOrder.None);
   }
 
@@ -336,13 +334,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <span>Status</span>
                         </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                          <OrderHeader text={"Elapsed"}
-                            orderStatus={costOrder} setOrder={e => {
-                              resetOrder();
-                              setCostOrder(e);
-                              setSortOrder(e);
-                              setSortName("duration");
-                            }} />
+                          <span>Elapsed</span>
                         </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                           <OrderHeader text={"Created at"}

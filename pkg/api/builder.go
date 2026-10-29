@@ -183,10 +183,9 @@ type BuilderRunnerItem struct {
 	Description *string `json:"description" example:"description"`
 	ScmBranch   *string `json:"scm_branch" example:"main"`
 
-	StartedAt   *int64  `json:"started_at" example:"1702128050507"`
-	EndedAt     *int64  `json:"ended_at" example:"1702128050507"`
-	RawDuration *int64  `json:"raw_duration" example:"1000"`
-	Duration    *string `json:"duration" example:"1h"`
+	// The duration of a run is not stored, the client derives it from the start and the end.
+	StartedAt *int64 `json:"started_at" example:"1702128050507"`
+	EndedAt   *int64 `json:"ended_at" example:"1702128050507"`
 
 	CreatedAt string `json:"created_at" example:"2006-01-02 15:04:05"`
 	UpdatedAt string `json:"updated_at" example:"2006-01-02 15:04:05"`

@@ -41,7 +41,6 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 	_builderRunner.ScmBranch = field.NewString(tableName, "scm_branch")
 	_builderRunner.StartedAt = field.NewInt64(tableName, "started_at")
 	_builderRunner.EndedAt = field.NewInt64(tableName, "ended_at")
-	_builderRunner.Duration = field.NewInt64(tableName, "duration")
 	_builderRunner.Builder = builderRunnerBelongsToBuilder{
 		db: db.Session(&gorm.Session{}),
 
@@ -116,7 +115,6 @@ type builderRunner struct {
 	ScmBranch     field.String
 	StartedAt     field.Int64
 	EndedAt       field.Int64
-	Duration      field.Int64
 	Builder       builderRunnerBelongsToBuilder
 
 	fieldMap map[string]field.Expr
@@ -148,7 +146,6 @@ func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.ScmBranch = field.NewString(table, "scm_branch")
 	b.StartedAt = field.NewInt64(table, "started_at")
 	b.EndedAt = field.NewInt64(table, "ended_at")
-	b.Duration = field.NewInt64(table, "duration")
 
 	b.fillFieldMap()
 
@@ -177,7 +174,7 @@ func (b *builderRunner) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (b *builderRunner) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 16)
+	b.fieldMap = make(map[string]field.Expr, 15)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
@@ -192,7 +189,6 @@ func (b *builderRunner) fillFieldMap() {
 	b.fieldMap["scm_branch"] = b.ScmBranch
 	b.fieldMap["started_at"] = b.StartedAt
 	b.fieldMap["ended_at"] = b.EndedAt
-	b.fieldMap["duration"] = b.Duration
 
 }
 

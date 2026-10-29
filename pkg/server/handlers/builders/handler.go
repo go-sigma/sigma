@@ -41,7 +41,7 @@ type Handler interface {
 	GetRunnerStop(c *gin.Context, req *api.GetRunnerStop)
 	// GetRunnerLog upgrades the request to a websocket and streams the runner's log, repeating while the build is still running.
 	GetRunnerLog(c *gin.Context, req *api.GetRunnerLog)
-	// GetRunner returns the builder runner identified by the request, including its status, tag, and duration.
+	// GetRunner returns the builder runner identified by the request, including its status, tag and timestamps.
 	GetRunner(c *gin.Context, req *api.GetRunner)
 }
 

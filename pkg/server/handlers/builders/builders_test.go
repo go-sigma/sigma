@@ -124,7 +124,6 @@ func TestListRunners(t *testing.T) {
 				ScmBranch:     new("main"),
 				StartedAt:     new(int64(1)),
 				EndedAt:       new(int64(2)),
-				Duration:      new(int64(1000)),
 				CreatedAt:     1,
 				UpdatedAt:     1,
 			}}, 1, nil
@@ -137,7 +136,8 @@ func TestListRunners(t *testing.T) {
 	require.Equal(t, http.StatusOK, recorder.Code)
 	require.Contains(t, recorder.Body.String(), `"total":1`)
 	require.Contains(t, recorder.Body.String(), `"id":"2"`)
-	require.Contains(t, recorder.Body.String(), `"duration":"1 second"`)
+	// The duration of a run is derived by the client from the start and the end.
+	require.NotContains(t, recorder.Body.String(), `"duration"`)
 	// Runner logs can be megabytes long, so the list only returns their metadata.
 	require.NotContains(t, recorder.Body.String(), `"log"`)
 }
@@ -173,7 +173,6 @@ func TestGetRunner(t *testing.T) {
 			ScmBranch:     nil,
 			StartedAt:     nil,
 			EndedAt:       nil,
-			Duration:      nil,
 			CreatedAt:     1,
 			UpdatedAt:     1,
 		}, nil)

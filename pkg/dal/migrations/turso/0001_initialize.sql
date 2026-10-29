@@ -466,7 +466,6 @@ CREATE TABLE IF NOT EXISTS `builder_runners` (
   `scm_branch` varchar(255),
   `started_at` integer,
   `ended_at` integer,
-  `duration` integer,
   -- other fields
   `created_at` integer NOT NULL,
   `updated_at` integer NOT NULL,

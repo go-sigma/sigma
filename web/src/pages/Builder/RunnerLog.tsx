@@ -40,6 +40,17 @@ let term = new Terminal({
 });
 
 
+// runnerElapsedSeconds returns the elapsed time of a run in seconds: a run that is still in flight
+// counts up to now, a finished one uses the span the api recorded.
+function runnerElapsedSeconds(runner?: IBuilderRunnerItem) {
+  const startedAt = runner?.started_at;
+  if (startedAt == null) {
+    return 0;
+  }
+  const endedAt = runner?.ended_at ?? Date.now();
+  return Math.max(0, Math.floor((endedAt - startedAt) / 1000));
+}
+
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
 
@@ -239,7 +250,7 @@ export default function ({ localServer }: { localServer: string }) {
               </div>
               <div className='px-4 flex gap-1'>
                 <div className='text-gray-600 px-2 py-2 h-10'>
-                  Elapsed: {runnerObj?.status != "Failed" && runnerObj?.status != "Success" && runnerObj?.status != "Stopped" ? Math.floor((Date.now() - (runnerObj?.started_at || Date.now())) / 1000) : Math.floor((runnerObj.raw_duration || 0) / 1000)}s
+                  Elapsed: {runnerElapsedSeconds(runnerObj)}s
                 </div>
               </div>
             </div>

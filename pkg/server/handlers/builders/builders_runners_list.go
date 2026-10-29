@@ -20,13 +20,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hako/durafmt"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/utils"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // ListRunners handles the list builder runners request
@@ -59,11 +57,6 @@ func (h *handler) ListRunners(c *gin.Context, req *api.ListBuilderRunnersRequest
 	}
 	var resp = make([]any, 0, len(runnerObjs))
 	for _, runnerObj := range runnerObjs {
-		var duration *string
-		if runnerObj.Duration != nil {
-			duration = new(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
-		}
-
 		resp = append(resp, api.BuilderRunnerItem{
 			ID:        runnerObj.ID,
 			BuilderID: runnerObj.BuilderID,
@@ -75,11 +68,8 @@ func (h *handler) ListRunners(c *gin.Context, req *api.ListBuilderRunnersRequest
 			Description:   runnerObj.Description,
 			ScmBranch:     runnerObj.ScmBranch,
 
-			StartedAt:   runnerObj.StartedAt,
-			EndedAt:     runnerObj.EndedAt,
-			RawDuration: runnerObj.Duration,
-			Duration:    duration,
-
+			StartedAt: runnerObj.StartedAt,
+			EndedAt:   runnerObj.EndedAt,
 			CreatedAt: time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 			UpdatedAt: time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		})

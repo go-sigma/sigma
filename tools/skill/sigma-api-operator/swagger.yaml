@@ -326,18 +326,12 @@ definitions:
       description:
         example: description
         type: string
-      duration:
-        example: 1h
-        type: string
       ended_at:
         example: 1702128050507
         type: integer
       id:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
-      raw_duration:
-        example: 1000
-        type: integer
       raw_tag:
         example: v1.0
         type: string
@@ -345,6 +339,8 @@ definitions:
         example: main
         type: string
       started_at:
+        description: The duration of a run is not stored, the client derives it from
+          the start and the end.
         example: 1702128050507
         type: integer
       status:

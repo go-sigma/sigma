@@ -21,12 +21,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hako/durafmt"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
-	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
 
 // GetRunner handles the get builder runner request
@@ -62,11 +60,6 @@ func (h *handler) GetRunner(c *gin.Context, req *api.GetRunner) {
 		return
 	}
 
-	var duration *string
-	if runnerObj.Duration != nil {
-		duration = new(durafmt.ParseShort(time.Millisecond * time.Duration(ptr.To(runnerObj.Duration))).String())
-	}
-
 	c.JSON(http.StatusOK, api.BuilderRunnerItem{
 		ID:        runnerObj.ID,
 		BuilderID: runnerObj.BuilderID,
@@ -78,11 +71,8 @@ func (h *handler) GetRunner(c *gin.Context, req *api.GetRunner) {
 		Description:   runnerObj.Description,
 		ScmBranch:     runnerObj.ScmBranch,
 
-		StartedAt:   runnerObj.StartedAt,
-		EndedAt:     runnerObj.EndedAt,
-		RawDuration: runnerObj.Duration,
-		Duration:    duration,
-
+		StartedAt: runnerObj.StartedAt,
+		EndedAt:   runnerObj.EndedAt,
 		CreatedAt: time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 		UpdatedAt: time.Unix(0, int64(time.Millisecond)*runnerObj.CreatedAt).UTC().Format(consts.DefaultTimePattern),
 	})

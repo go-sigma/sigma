@@ -30,16 +30,12 @@ export function formatDuration(ms: number) {
   return `${minutes}m ${Math.round(seconds % 60)}s`;
 }
 
-// runnerDurationMs returns the duration of a build run in milliseconds. The API records a
-// duration for some runs only, so fall back to the span between the start and end timestamps.
+// runnerDurationMs returns the duration of a build run in milliseconds. The api does not store a
+// duration, so it comes from the span between the start and the end of the run.
 export function runnerDurationMs(runner: {
-  raw_duration?: number;
   started_at?: number;
   ended_at?: number;
 }) {
-  if (runner.raw_duration != null && runner.raw_duration > 0) {
-    return runner.raw_duration;
-  }
   if (runner.started_at == null || runner.ended_at == null) {
     return undefined;
   }

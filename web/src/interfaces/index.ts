@@ -406,8 +406,6 @@ export interface IBuilderRunnerItem {
 
   started_at?: number;
   ended_at?: number;
-  raw_duration?: number;
-  duration?: string;
 
   created_at: string;
   updated_at: string;
