@@ -27,3 +27,8 @@ func TestDockerHost(t *testing.T) {
 	require.Equal(t, "tcp://127.0.0.1:2375", dockerHost("tcp://127.0.0.1:2375"))
 	require.Equal(t, "npipe:////./pipe/docker_engine", dockerHost("npipe:////./pipe/docker_engine"))
 }
+
+func TestExitCodeStatusMessage(t *testing.T) {
+	require.Equal(t, "builder container exited with code 1", exitCodeStatusMessage(1))
+	require.Equal(t, "builder container exited with code 137", exitCodeStatusMessage(137))
+}

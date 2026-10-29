@@ -30,7 +30,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 )
 
-func (i *instance) informer(ctx context.Context) {
+func (i instance) informer(ctx context.Context) {
 	go func(ctx context.Context) {
 		eventsOpt := events.ListOptions{
 			Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
@@ -112,15 +112,18 @@ func (i *instance) informer(ctx context.Context) {
 						i.controlled.Remove(evt.Actor.ID)
 
 						if container.ContainerJSONBase != nil && container.State != nil {
+							var message string
 							if container.State.ExitCode == 0 {
 								slog.Info("builder container succeed", "id", evt.Actor.ID, "name", container.Name)
 							} else {
+								message = exitCodeStatusMessage(container.State.ExitCode)
 								slog.Error("builder container exited",
 									"ExitCode", container.State.ExitCode,
 									"Error", container.State.Error,
-									"OOMKilled", container.State.OOMKilled)
+									"OOMKilled", container.State.OOMKilled,
+									"message", message)
 							}
-							err = i.coordinator.MarkCompleted(ctx, builderID, runnerID, container.State.ExitCode)
+							err = i.coordinator.MarkCompleted(ctx, builderID, runnerID, container.State.ExitCode, message)
 						} else {
 							err = i.coordinator.MarkFailed(ctx, builderID, runnerID)
 						}
@@ -138,7 +141,7 @@ func (i *instance) informer(ctx context.Context) {
 	}(ctx)
 }
 
-func (i *instance) logStore(ctx context.Context, containerID, builderID, runnerID string) error {
+func (i instance) logStore(ctx context.Context, containerID, builderID, runnerID string) error {
 	ok := i.controlled.Add(containerID)
 	if !ok {
 		slog.Error("add container id to controlled array failed", "container", containerID, "builder", builderID, "runner", runnerID)
@@ -172,7 +175,13 @@ func (i *instance) logStore(ctx context.Context, containerID, builderID, runnerI
 	return nil
 }
 
-func (i *instance) cacheList(ctx context.Context) error {
+// exitCodeStatusMessage is the reason stored on a failed runner: the runs list shows it instead
+// of leaving the status message empty.
+func exitCodeStatusMessage(exitCode int) string {
+	return fmt.Sprintf("builder container exited with code %d", exitCode)
+}
+
+func (i instance) cacheList(ctx context.Context) error {
 	containers, err := i.client.ContainerList(ctx, container.ListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("oci-image-builder=%s", consts.AppName)}),
@@ -204,15 +213,18 @@ func (i *instance) cacheList(ctx context.Context) error {
 				slog.Error("get container log failed", "err", err, "id", id)
 			}
 			if con.ContainerJSONBase != nil && con.State != nil {
+				var message string
 				if con.State.ExitCode == 0 {
 					slog.Info("builder container succeed", "id", id, "name", con.Name)
 				} else {
+					message = exitCodeStatusMessage(con.State.ExitCode)
 					slog.Error("builder container exited",
 						"ExitCode", con.State.ExitCode,
 						"Error", con.State.Error,
-						"OOMKilled", con.State.OOMKilled)
+						"OOMKilled", con.State.OOMKilled,
+						"message", message)
 				}
-				err = i.coordinator.MarkCompleted(ctx, bID, rID, con.State.ExitCode)
+				err = i.coordinator.MarkCompleted(ctx, bID, rID, con.State.ExitCode, message)
 			} else {
 				err = i.coordinator.MarkFailed(ctx, bID, rID)
 			}

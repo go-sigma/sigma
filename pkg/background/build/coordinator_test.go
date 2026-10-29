@@ -32,12 +32,18 @@ func TestCoordinatorMarkCompleted(t *testing.T) {
 	repo := &testRunnerRepository{}
 	coordinator := NewCoordinator(repo, nil)
 
-	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 0))
+	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 0, "ignored"))
 	require.Equal(t, enums.BuildStatusSuccess, repo.lastUpdate(builderRunnerStatusColumn))
 	require.NotZero(t, repo.lastUpdate(builderRunnerEndedAtColumn))
+	require.Nil(t, repo.lastUpdate(builderRunnerStatusMessageColumn))
 
-	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 1))
+	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 1, "builder container exited with code 1: boom"))
 	require.Equal(t, enums.BuildStatusFailed, repo.lastUpdate(builderRunnerStatusColumn))
+	require.Equal(t, "builder container exited with code 1: boom", repo.lastUpdate(builderRunnerStatusMessageColumn))
+
+	// A failure without a rendered message keeps the previous status message untouched.
+	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 1, ""))
+	require.Nil(t, repo.lastUpdate(builderRunnerStatusMessageColumn))
 }
 
 func TestCoordinatorMarkStopped(t *testing.T) {

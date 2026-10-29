@@ -25,9 +25,10 @@ import (
 )
 
 const (
-	builderRunnerStatusColumn    = "status"
-	builderRunnerStartedAtColumn = "started_at"
-	builderRunnerEndedAtColumn   = "ended_at"
+	builderRunnerStatusColumn        = "status"
+	builderRunnerStatusMessageColumn = "status_message"
+	builderRunnerStartedAtColumn     = "started_at"
+	builderRunnerEndedAtColumn       = "ended_at"
 )
 
 // RunnerRepository persists build runner state transitions.
@@ -70,16 +71,20 @@ func (c Coordinator) MarkStopped(ctx context.Context, builderID, runnerID string
 	})
 }
 
-// MarkCompleted marks a runner as successful when the runtime exits with code zero.
-func (c Coordinator) MarkCompleted(ctx context.Context, builderID, runnerID string, exitCode int) error {
-	status := enums.BuildStatusSuccess
-	if exitCode != 0 {
-		status = enums.BuildStatusFailed
-	}
-	return c.builderRepository.UpdateRunner(ctx, builderID, runnerID, map[string]any{
-		builderRunnerStatusColumn:  status,
+// MarkCompleted marks a runner as successful when the runtime exits with code zero. A failing
+// exit is marked as failed and stores message as the reason shown in the runner list.
+func (c Coordinator) MarkCompleted(ctx context.Context, builderID, runnerID string, exitCode int, message string) error {
+	updates := map[string]any{
+		builderRunnerStatusColumn:  enums.BuildStatusSuccess,
 		builderRunnerEndedAtColumn: time.Now().UnixMilli(),
-	})
+	}
+	if exitCode != 0 {
+		updates[builderRunnerStatusColumn] = enums.BuildStatusFailed
+		if message != "" {
+			updates[builderRunnerStatusMessageColumn] = message
+		}
+	}
+	return c.builderRepository.UpdateRunner(ctx, builderID, runnerID, updates)
 }
 
 // MarkFailed marks a runner as failed without changing its end time.
