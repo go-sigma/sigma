@@ -82,9 +82,9 @@ require (
 	gorm.io/plugin/dbresolver v1.6.2
 	gorm.io/plugin/opentelemetry v0.1.16
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/api v0.37.1
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
+	k8s.io/api v0.37.2
+	k8s.io/apimachinery v0.37.2
+	k8s.io/client-go v0.37.2
 	resty.dev/v3 v3.0.0-rc.4
 	turso.tech/database/tursogo v0.8.3
 )
