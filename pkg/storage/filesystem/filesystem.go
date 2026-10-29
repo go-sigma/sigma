@@ -78,12 +78,6 @@ func (f factory) New(config *config.Configuration) (storage.StorageDriver, error
 			return nil, err
 		}
 	}
-	if !utils.IsExist(path.Join(driver.rootDirectory, consts.DirCache)) {
-		err := os.MkdirAll(path.Join(driver.rootDirectory, consts.DirCache), 0755)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return driver, nil
 }
 

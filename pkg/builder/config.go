@@ -54,6 +54,7 @@ type Config struct {
 	BuildkitDockerfile         string              `env:"BUILDKIT_DOCKERFILE" envDefault:"Dockerfile"`
 	BuildkitPlatforms          []enums.OciPlatform `env:"BUILDKIT_PLATFORMS" envSeparator:","`
 	BuildkitBuildArgs          []string            `env:"BUILDKIT_BUILD_ARGS" envSeparator:","`
+	BuildkitCacheEnabled       bool                `env:"BUILDKIT_CACHE_ENABLED"`
 
 	SigningPrivateKey string `env:"SIGNING_PRIVATE_KEY,notEmpty"`
 

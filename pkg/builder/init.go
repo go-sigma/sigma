@@ -185,7 +185,7 @@ func (f *BuildFlow) initToken() error {
 
 // appendExtraHosts 将 ExtraHosts 条目追加到 /etc/hosts
 func (f *BuildFlow) appendExtraHosts() error {
-	hostsFile, err := osOpenFile("/etc/hosts", os.O_APPEND|os.O_WRONLY, 0644)
+	hostsFile, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("open /etc/hosts failed: %v", err)
 	}

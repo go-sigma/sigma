@@ -39,6 +39,10 @@ type buildTagOption struct {
 
 const workspace = "/code"
 
+// cacheTag is the tag buildkit pushes its registry cache manifest to and imports it from on the
+// next build of the same repository.
+const cacheTag = "buildcache"
+
 // buildTag 使用 Go template 渲染镜像 tag
 func buildTag(tmpl string, option buildTagOption) (string, error) {
 	t, err := template.New("tag").Funcs(sprig.FuncMap()).Parse(tmpl)
@@ -113,4 +117,15 @@ func (f *BuildFlow) genTag() (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s/%s:%s", utils.TrimHTTP(f.Endpoint), string(repositoryBytes), tag), nil
+}
+
+// cacheRef 返回该仓库 buildkit registry cache 的引用（registry/repository:buildcache）。
+// The cache lives next to the image tag, so the builder only needs the push permission it
+// already has for the repository.
+func (f *BuildFlow) cacheRef() (string, error) {
+	repositoryBytes, err := base64.StdEncoding.DecodeString(f.Repository)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/%s:%s", utils.TrimHTTP(f.Endpoint), string(repositoryBytes), cacheTag), nil
 }

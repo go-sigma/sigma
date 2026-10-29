@@ -34,7 +34,6 @@ import (
 // BuildFlow 构建流程编排器，管理镜像构建的完整生命周期
 type BuildFlow struct {
 	Config
-	api apiClient
 }
 
 // Run 执行完整的构建流程
@@ -46,10 +45,6 @@ func (f *BuildFlow) Run() error {
 		return err
 	}
 	if err := f.checker(); err != nil {
-		return err
-	}
-	f.api = newAPIClient(f.Authorization, f.Endpoint, f.EndpointTLSVerify)
-	if err := f.initCache(); err != nil {
 		return err
 	}
 	if err := f.initToken(); err != nil {
@@ -86,15 +81,12 @@ func (f *BuildFlow) Run() error {
 	if err := f.build(imageName); err != nil {
 		return err
 	}
-	if err := f.sign(imageName); err != nil {
-		return err
-	}
-	return f.exportCache()
+	return f.sign(imageName)
 }
 
 // initialize 创建必需的目录
 func (f *BuildFlow) initialize() error {
-	var dirs = []string{homeSigma, cache}
+	var dirs = []string{homeSigma}
 	for _, dir := range dirs {
 		if !utils.IsDir(dir) {
 			err := os.MkdirAll(dir, 0755)
@@ -125,8 +117,14 @@ func (f *BuildFlow) build(imageName string) error {
 		cmd.Args = append(cmd.Args, "--opt", fmt.Sprintf("platform=%s", strings.Join(platforms, ",")))
 	}
 	cmd.Args = append(cmd.Args, "--frontend", "gateway.v0", "--opt", "source=docker/dockerfile")
-	cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=local,mode=max,compression=gzip,dest=%s", cacheOut))
-	cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=local,src=%s", cacheIn))
+	if f.BuildkitCacheEnabled {
+		cacheRef, err := f.cacheRef()
+		if err != nil {
+			return err
+		}
+		cmd.Args = append(cmd.Args, "--export-cache", fmt.Sprintf("type=registry,ref=%s,mode=max", cacheRef))
+		cmd.Args = append(cmd.Args, "--import-cache", fmt.Sprintf("type=registry,ref=%s", cacheRef))
+	}
 
 	if len(f.BuildkitPlatforms) > 1 {
 		cmd.Args = append(cmd.Args, "--output",
