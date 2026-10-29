@@ -177,6 +177,24 @@ export default function ({ localServer }: { localServer: string }) {
 
   const [refreshState, setRefreshState] = useState({});
 
+  // Refreshing keeps the status of the listed runs current. Poll every 10 seconds, but only while
+  // a run is still in flight so an idle page does not keep querying the API.
+  const hasActiveRunner = runnerObjs?.some(
+    runner => runner.status === "Pending" || runner.status === "Building" || runner.status === "Stopping",
+  ) ?? false;
+
+  useEffect(() => {
+    if (!hasActiveRunner) {
+      return;
+    }
+    const timer = setInterval(() => {
+      setRefreshState({});
+    }, 10000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [hasActiveRunner]);
+
   // logRunner is the run shown in the log dialog; undefined keeps the dialog closed.
   const [logRunner, setLogRunner] = useState<IBuilderRunnerItem>();
 
@@ -305,6 +323,7 @@ export default function ({ localServer }: { localServer: string }) {
                         namespaceId={repositoryObj?.namespace_id || namespaceId}
                         repositoryId={repository_id}
                         builderId={builderObj.id}
+                        refreshKey={refreshState}
                       />
                     </div>
                     <table className="min-w-full flex-1">
