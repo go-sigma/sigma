@@ -33,10 +33,12 @@ func TestInitialize(t *testing.T) {
 	require.NoError(t, digCon.Invoke(Initialize))
 	require.NoError(t, digCon.Invoke(func(engine *gin.Engine) {
 		routes := engine.Routes()
-		require.Len(t, routes, 3)
+		require.Len(t, routes, 5)
 		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/namespaces/:namespace_id/artifacts/"))
 		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/namespaces/:namespace_id/artifacts/:digest"))
 		require.True(t, hasRoute(routes, http.MethodDelete, "/api/v1/namespaces/:namespace_id/artifacts/:digest"))
+		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/namespaces/:namespace_id/repositories/:repository_id/artifacts/:digest/layers"))
+		require.True(t, hasRoute(routes, http.MethodGet, "/api/v1/namespaces/:namespace_id/repositories/:repository_id/artifacts/:digest/vulnerabilities"))
 	}))
 }
 

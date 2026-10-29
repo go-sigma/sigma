@@ -30,6 +30,10 @@ type Handler interface {
 	ListArtifact(c *gin.Context, req *api.ListArtifactRequest)
 	// GetArtifact handles the get artifact request
 	GetArtifact(c *gin.Context, req *api.GetArtifactRequest)
+	// GetArtifactLayers handles the get artifact layers request
+	GetArtifactLayers(c *gin.Context, req *api.GetArtifactLayersRequest)
+	// ListArtifactVulnerabilities handles the list artifact vulnerabilities request
+	ListArtifactVulnerabilities(c *gin.Context, req *api.ListArtifactVulnerabilitiesRequest)
 	// DeleteArtifact handles the delete artifact request
 	DeleteArtifact(c *gin.Context, req *api.DeleteArtifactRequest)
 }
@@ -48,5 +52,11 @@ func Initialize(e *gin.Engine, h handler) error {
 	artifactGroup.GET("/", server.WrapRequest(h.ListArtifact))
 	artifactGroup.GET("/:digest", server.WrapRequest(h.GetArtifact))
 	artifactGroup.DELETE("/:digest", server.WrapRequest(h.DeleteArtifact))
+
+	// The artifact page is reached from a tag row of a repository, so its routes are grouped by
+	// repository and the namespace is only used to validate the pair.
+	repositoryArtifactGroup := e.Group(consts.APIV1 + "/namespaces/:namespace_id/repositories/:repository_id/artifacts")
+	repositoryArtifactGroup.GET("/:digest/layers", server.WrapRequest(h.GetArtifactLayers))
+	repositoryArtifactGroup.GET("/:digest/vulnerabilities", server.WrapRequest(h.ListArtifactVulnerabilities))
 	return nil
 }

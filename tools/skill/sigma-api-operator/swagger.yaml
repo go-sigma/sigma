@@ -39,6 +39,187 @@ definitions:
       updated_at:
         type: string
     type: object
+  api.ArtifactLayer:
+    properties:
+      command:
+        example: '/bin/sh -c #(nop) ADD file:1da756d12551a0e3e793e02ef87432d69d4968937bd11bed0af215db19dd94cd
+          in / '
+        type: string
+      created_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      diff_id:
+        example: sha256:78a822fe2a2d2c84f3de4a403188c45f623017d6a4521d23047c9fbb0801794c
+        type: string
+      digest:
+        example: sha256:31e352740f534f9ad170f75378a84fe453d6156e40700b882d737a8f4a6988a3
+        type: string
+      index:
+        example: 1
+        type: integer
+      media_type:
+        example: application/vnd.oci.image.layer.v1.tar+gzip
+        type: string
+      size:
+        example: 3397879
+        type: integer
+    type: object
+  api.ArtifactLayers:
+    properties:
+      architecture:
+        example: amd64
+        type: string
+      blob_size:
+        example: 100210
+        type: integer
+      digest:
+        example: sha256:87508bf3e050b975770b142e62db72eeb345a67d82d36ca166300d8b27e45744
+        type: string
+      distro:
+        example: alpine 3.18.2
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      layers:
+        items:
+          $ref: '#/definitions/api.ArtifactLayer'
+        type: array
+      media_type:
+        example: application/vnd.oci.image.manifest.v1+json
+        type: string
+      os:
+        example: linux
+        type: string
+      pull_times:
+        example: 100
+        type: integer
+      pushed_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      repository:
+        example: library/alpine
+        type: string
+      size:
+        example: 10201
+        type: integer
+    type: object
+  api.ArtifactVulnerabilities:
+    properties:
+      critical:
+        example: 1
+        type: integer
+      db_built_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      high:
+        example: 2
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/api.ArtifactVulnerability'
+        type: array
+      low:
+        example: 4
+        type: integer
+      medium:
+        example: 3
+        type: integer
+      negligible:
+        example: 0
+        type: integer
+      scanned_at:
+        example: "2006-01-02 15:04:05"
+        type: string
+      status:
+        example: Success
+        type: string
+      total:
+        example: 42
+        type: integer
+      unknown:
+        example: 0
+        type: integer
+    type: object
+  api.ArtifactVulnerability:
+    properties:
+      cvss_score:
+        example: 8.8
+        type: number
+      cvss_vector:
+        example: CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H
+        type: string
+      cvss_version:
+        example: "3.1"
+        type: string
+      cwes:
+        items:
+          type: string
+        type: array
+      data_source:
+        example: https://security-tracker.debian.org/tracker/CVE-2023-4863
+        type: string
+      description:
+        type: string
+      epss_percentile:
+        example: 0.8
+        type: number
+      epss_score:
+        example: 0.0213
+        type: number
+      fix_date:
+        example: "2023-09-12"
+        type: string
+      fix_state:
+        example: fixed
+        type: string
+      fix_versions:
+        items:
+          type: string
+        type: array
+      id:
+        example: CVE-2023-4863
+        type: string
+      known_exploited:
+        example: "2023-09-13"
+        type: string
+      layers:
+        items:
+          type: string
+        type: array
+      namespace:
+        example: debian:distro:debian:12
+        type: string
+      package:
+        example: libwebp
+        type: string
+      package_language:
+        example: go
+        type: string
+      package_type:
+        example: deb
+        type: string
+      package_version:
+        example: 1.2.4-0.1
+        type: string
+      paths:
+        items:
+          type: string
+        type: array
+      purl:
+        example: pkg:deb/debian/libwebp@1.2.4-0.1?arch=amd64
+        type: string
+      severity:
+        example: Critical
+        type: string
+      suggested_version:
+        example: 1.2.4-0.1+deb12u1
+        type: string
+      urls:
+        items:
+          type: string
+        type: array
+    type: object
   api.BuilderItem:
     properties:
       buildkit_build_args:
@@ -4846,6 +5027,94 @@ paths:
       summary: Update repository
       tags:
       - Repository
+  /namespaces/{namespace_id}/repositories/{repository_id}/artifacts/{digest}/layers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Artifact digest
+        in: path
+        name: digest
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ArtifactLayers'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: Get artifact layers
+      tags:
+      - Artifact
+  /namespaces/{namespace_id}/repositories/{repository_id}/artifacts/{digest}/vulnerabilities:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Namespace ID
+        in: path
+        name: namespace_id
+        required: true
+        type: string
+      - description: Repository ID
+        in: path
+        name: repository_id
+        required: true
+        type: string
+      - description: Artifact digest
+        in: path
+        name: digest
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ArtifactVulnerabilities'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errcode.ErrCode'
+      security:
+      - BasicAuth: []
+      summary: List artifact vulnerabilities
+      tags:
+      - Artifact
   /namespaces/{namespace_id}/repositories/{repository_id}/builders/:
     post:
       consumes:
