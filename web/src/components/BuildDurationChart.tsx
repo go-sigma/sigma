@@ -22,6 +22,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Notification from "@/components/Notification";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslation } from "@/i18n/useTranslation";
+import { formatDuration, runnerDurationMs } from "@/lib/duration";
 import { IBuilderRunnerList, IHTTPError } from "@/interfaces";
 
 // sampleLimit is the number of builds the chart plots: the most recent ones.
@@ -43,22 +44,6 @@ type BuildSample = {
   duration: number;
   createdAt: string;
 };
-
-// formatDuration renders a build duration in milliseconds the way the build tables do.
-function formatDuration(ms: number) {
-  if (ms <= 0) {
-    return "0s";
-  }
-  if (ms < 1000) {
-    return `${Math.round(ms)}ms`;
-  }
-  const seconds = ms / 1000;
-  if (seconds < 60) {
-    return `${seconds.toFixed(seconds < 10 ? 1 : 0)}s`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}m ${Math.round(seconds % 60)}s`;
-}
 
 // niceCeil rounds a maximum up to a value that divides evenly into the grid steps.
 function niceCeil(value: number) {
@@ -125,13 +110,14 @@ export default function BuildDurationChart({ localServer, namespaceId, repositor
       const items = (response.data as IBuilderRunnerList).items ?? [];
       const points: BuildSample[] = [];
       for (const item of items.toReversed()) {
-        if (item.raw_duration === undefined || item.raw_duration === null) {
+        const duration = runnerDurationMs(item);
+        if (duration === undefined) {
           continue;
         }
         points.push({
           id: item.id,
           label: item.tag ?? item.raw_tag,
-          duration: item.raw_duration,
+          duration,
           createdAt: item.created_at,
         });
       }

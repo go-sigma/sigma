@@ -51,6 +51,7 @@ import {
   IOrder,
   IRepositoryItem,
 } from "@/interfaces";
+import { formatDuration, runnerDurationMs } from "@/lib/duration";
 import Settings from "@/Settings";
 import { Tooltip } from '@/utils';
 
@@ -481,6 +482,12 @@ export default function ({ localServer }: { localServer: string }) {
   )
 }
 
+// runnerDuration renders the elapsed time of a run with the same helper the duration chart uses.
+function runnerDuration(runner: IBuilderRunnerItem) {
+  const duration = runnerDurationMs(runner);
+  return duration === undefined ? "-" : formatDuration(duration);
+}
+
 function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
   runnerObj: IBuilderRunnerItem;
   onViewLog: (runner: IBuilderRunnerItem) => void;
@@ -522,7 +529,7 @@ function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
-        {runnerObj.duration || "-"}
+        {runnerDuration(runnerObj)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
         {dayjs.utc(runnerObj.created_at).tz(dayjs.tz.guess()).format("YYYY-MM-DD HH:mm:ss")}
