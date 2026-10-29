@@ -386,6 +386,7 @@ export default function ({ localServer }: { localServer: string }) {
                 id="tagTemplate"
                 name="tagTemplate"
                 placeholder="tag template"
+                autoComplete="off"
                 value={tagTemplateText}
                 aria-invalid={!tagTemplateTextValid}
                 onChange={e => setTagTemplateText(e.target.value)}
