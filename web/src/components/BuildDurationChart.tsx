@@ -85,10 +85,13 @@ type BuildDurationChartProps = {
   namespaceId: string;
   repositoryId: string;
   builderId: string;
+  // refreshKey changes whenever the parent reloads the run list, which re-reads the samples so the
+  // chart keeps up with a running build.
+  refreshKey?: unknown;
 };
 
 // BuildDurationChart plots the duration of the most recent builds of a repository builder.
-export default function BuildDurationChart({ localServer, namespaceId, repositoryId, builderId }: BuildDurationChartProps) {
+export default function BuildDurationChart({ localServer, namespaceId, repositoryId, builderId, refreshKey }: BuildDurationChartProps) {
   const { t } = useTranslation();
   const [containerRef, width] = useElementWidth();
   const fillId = useId();
@@ -126,7 +129,10 @@ export default function BuildDurationChart({ localServer, namespaceId, repositor
       const errorcode = (error.response?.data ?? {}) as IHTTPError;
       Notification({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [localServer, namespaceId, repositoryId, builderId]);
+    // refreshKey is not read by the effect body: it is bumped by the parent so the samples are
+    // re-read whenever the run list polls.
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
+  }, [localServer, namespaceId, repositoryId, builderId, refreshKey]);
 
   const geometry = useMemo(() => {
     if (samples === undefined || samples.length === 0 || width === 0) {

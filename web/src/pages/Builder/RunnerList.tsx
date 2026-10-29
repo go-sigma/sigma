@@ -507,6 +507,18 @@ function runnerDuration(runner: IBuilderRunnerItem) {
   return duration === undefined ? "-" : formatDuration(duration);
 }
 
+// statusTextClass colours the run status: green for a successful build, red for a failed one.
+function statusTextClass(status: string) {
+  switch (status) {
+    case "Success":
+      return "text-green-600 dark:text-green-500";
+    case "Failed":
+      return "text-red-600";
+    default:
+      return "";
+  }
+}
+
 function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
   runnerObj: IBuilderRunnerItem;
   onViewLog: (runner: IBuilderRunnerItem) => void;
@@ -533,7 +545,7 @@ function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
             {runnerObj.status_message}
           </div>
         ) : null}
-        <div className={runnerObj.status === "Failed" ? "text-red-600" : ""}
+        <div className={statusTextClass(runnerObj.status)}
           id={`target-tooltip-${runnerObj.id}`}
           // The failure reason is only rendered when the run stored one, so an empty tooltip
           // cannot pop up for runs without a message.
