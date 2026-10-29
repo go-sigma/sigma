@@ -25,6 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/utils"
 )
@@ -67,7 +68,7 @@ func AuthzWithConfig(config Config) gin.HandlerFunc {
 		}
 		// admin or root can access all resources
 		if user.Role == enums.UserRoleAdmin || user.Role == enums.UserRoleRoot {
-			slog.Debug("skipping auth middleware, allowing admin and root can access all of resources")
+			slog.Log(c.Request.Context(), logger.LevelTrace, "skipping auth middleware, allowing admin and root can access all of resources")
 			c.Next()
 			return
 		}
