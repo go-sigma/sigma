@@ -143,22 +143,22 @@ export default function Vulnerabilities({ report, rows, layerIndex }: Vulnerabil
           <table className="min-w-full table-fixed">
             <thead>
               <tr className="bg-muted/40">
-                <th className="w-[110px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="w-27.5 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.severity")}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.vulnerability")}
                 </th>
-                <th className="w-[40px] px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="w-10 px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.package")}
                 </th>
-                <th className="w-[40px] px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="w-10 px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.fix")}
                 </th>
-                <th className="w-[88px] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="w-22 px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.cvss")}
                 </th>
-                <th className="w-[104px] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="w-26 px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.fixDate")}
                 </th>
               </tr>
