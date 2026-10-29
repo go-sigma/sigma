@@ -156,11 +156,12 @@ func (s builderRepository) ListRunners(ctx context.Context, id string, paginatio
 }
 
 // UpdateRunner updates a builder runner
+// UpdateRunner applies a status change to a runner. A runner that is not there yet, for example
+// because the insert of the run has not been committed, is reported as gorm.ErrRecordNotFound.
 func (s builderRepository) UpdateRunner(ctx context.Context, builderID, runnerID string, updates map[string]any) error {
 	if len(updates) == 0 {
 		return nil
 	}
-	updates[query.BuilderRunner.ID.ColumnName().String()] = runnerID
 	matched, err := s.tx.BuilderRunner.WithContext(ctx).Where(
 		s.tx.BuilderRunner.BuilderID.Eq(builderID),
 		s.tx.BuilderRunner.ID.Eq(runnerID)).Updates(updates)

@@ -21,8 +21,10 @@ import (
 	"io"
 	"maps"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 )
@@ -32,18 +34,15 @@ func TestCoordinatorMarkCompleted(t *testing.T) {
 	repo := &testRunnerRepository{}
 	coordinator := NewCoordinator(repo, nil)
 
-	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 0, "ignored"))
+	// A successful exit clears the reason of an earlier attempt.
+	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 0, ""))
 	require.Equal(t, enums.BuildStatusSuccess, repo.lastUpdate(builderRunnerStatusColumn))
 	require.NotZero(t, repo.lastUpdate(builderRunnerEndedAtColumn))
-	require.Nil(t, repo.lastUpdate(builderRunnerStatusMessageColumn))
+	require.Equal(t, "", repo.lastUpdate(builderRunnerStatusMessageColumn))
 
 	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 1, "builder container exited with code 1: boom"))
 	require.Equal(t, enums.BuildStatusFailed, repo.lastUpdate(builderRunnerStatusColumn))
 	require.Equal(t, "builder container exited with code 1: boom", repo.lastUpdate(builderRunnerStatusMessageColumn))
-
-	// A failure without a rendered message keeps the previous status message untouched.
-	require.NoError(t, coordinator.MarkCompleted(ctx, "builder", "runner", 1, ""))
-	require.Nil(t, repo.lastUpdate(builderRunnerStatusMessageColumn))
 }
 
 func TestCoordinatorMarkStopped(t *testing.T) {
@@ -56,11 +55,46 @@ func TestCoordinatorMarkStopped(t *testing.T) {
 		return err == expectedErr
 	}))
 	require.Equal(t, enums.BuildStatusStopped, repo.lastUpdate(builderRunnerStatusColumn))
+	require.Equal(t, "", repo.lastUpdate(builderRunnerStatusMessageColumn))
 
 	require.NoError(t, coordinator.MarkStopped(ctx, "builder", "runner", errors.New("kill failed"), func(error) bool {
 		return false
 	}))
 	require.Equal(t, enums.BuildStatusFailed, repo.lastUpdate(builderRunnerStatusColumn))
+	require.Equal(t, "kill failed", repo.lastUpdate(builderRunnerStatusMessageColumn))
+}
+
+func TestCoordinatorMarkBuildingRetriesUntilTheRunnerExists(t *testing.T) {
+	ctx := t.Context()
+	repo := &testRunnerRepository{notFoundTimes: 2}
+	coordinator := NewCoordinator(repo, nil)
+	shrinkMarkBuildingRetries(t)
+
+	require.NoError(t, coordinator.MarkBuilding(ctx, "builder", "runner"))
+	require.Equal(t, 3, repo.calls)
+	require.Equal(t, enums.BuildStatusBuilding, repo.lastUpdate(builderRunnerStatusColumn))
+	require.NotNil(t, repo.lastUpdate(builderRunnerStartedAtColumn))
+}
+
+func TestCoordinatorMarkBuildingGivesUpWhenTheRunnerNeverShowsUp(t *testing.T) {
+	ctx := t.Context()
+	repo := &testRunnerRepository{notFoundTimes: 100}
+	coordinator := NewCoordinator(repo, nil)
+	shrinkMarkBuildingRetries(t)
+
+	require.ErrorIs(t, coordinator.MarkBuilding(ctx, "builder", "runner"), gorm.ErrRecordNotFound)
+	require.Equal(t, markBuildingAttempts, repo.calls)
+}
+
+// shrinkMarkBuildingRetries keeps the retry loop of MarkBuilding fast in the tests.
+func shrinkMarkBuildingRetries(t *testing.T) {
+	t.Helper()
+
+	attempts, interval := markBuildingAttempts, markBuildingRetryInterval
+	markBuildingRetryInterval = time.Millisecond
+	t.Cleanup(func() {
+		markBuildingAttempts, markBuildingRetryInterval = attempts, interval
+	})
 }
 
 func TestCoordinatorStoreLogs(t *testing.T) {
@@ -83,9 +117,17 @@ func TestCoordinatorStoreLogs(t *testing.T) {
 
 type testRunnerRepository struct {
 	updates []map[string]any
+	// notFoundTimes makes the next UpdateRunner calls fail as if the runner row was not there yet.
+	notFoundTimes int
+	calls         int
 }
 
 func (r *testRunnerRepository) UpdateRunner(_ context.Context, _, _ string, updates map[string]any) error {
+	r.calls++
+	if r.notFoundTimes > 0 {
+		r.notFoundTimes--
+		return gorm.ErrRecordNotFound
+	}
 	clone := make(map[string]any, len(updates))
 	maps.Copy(clone, updates)
 	r.updates = append(r.updates, clone)
