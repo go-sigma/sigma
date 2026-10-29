@@ -501,18 +501,22 @@ function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left cursor-pointer">
-        <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="fixed z-10 invisible inline-block max-w-md px-3 py-2 text-left text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip whitespace-pre-wrap break-words dark:bg-gray-700">
-          {runnerObj.status_message}
-        </div>
+      <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left${runnerObj.status_message ? " cursor-pointer" : ""}`}>
+        {runnerObj.status_message ? (
+          <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="fixed z-10 invisible inline-block max-w-md px-3 py-2 text-left text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip whitespace-pre-wrap break-words dark:bg-gray-700">
+            {runnerObj.status_message}
+          </div>
+        ) : null}
         <div className={runnerObj.status === "Failed" ? "text-red-600" : ""}
           id={`target-tooltip-${runnerObj.id}`}
-          onClick={e => {
+          // The failure reason is only rendered when the run stored one, so an empty tooltip
+          // cannot pop up for runs without a message.
+          onClick={runnerObj.status_message ? e => {
             let tooltip = new Tooltip(document.getElementById(`tooltip-message-${runnerObj.id}`),
               document.getElementById(`target-tooltip-${runnerObj.id}`), { triggerType: "click" });
             tooltip.show();
             e.stopPropagation();
-          }}
+          } : undefined}
         >
           {runnerObj.status}
         </div>
