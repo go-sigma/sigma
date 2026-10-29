@@ -1499,7 +1499,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                           <TooltipTrigger>
                             <Info className="size-4 text-muted-foreground" aria-hidden="true" />
                           </TooltipTrigger>
-                          <TooltipContent>{t("builder.cronTagTemplateHint")}</TooltipContent>
+                          <TooltipContent>{t("builder.tagTemplateHint")}</TooltipContent>
                         </Tooltip>
                       </div>
                       <div className="mt-2">

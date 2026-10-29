@@ -187,7 +187,7 @@ const enUS = {
   "builder.cronBuild": "Cron build",
   "builder.cronBuildDescription": "Cron build image",
   "builder.cronExpressionHint": "Five-field cron expression: minute hour day-of-month month day-of-week, evaluated in the server's local time zone. For example 0 2 * * * runs the build every day at 02:00.",
-  "builder.cronTagTemplateHint": "Rendered as a Go template on every cron trigger. Available variable: {{ .ScmBranch }} (the branch selected above), plus sprig functions such as {{ now | date \"20060102\" }} and {{ now | unixEpoch }}. For example nightly-{{ .ScmBranch }}.",
+  "builder.tagTemplateHint": "Builds render the tag as a Go template. Available variable: {{ .ScmBranch }} (the branch being built), plus sprig functions such as {{ now | date \"20060102\" }} and {{ now | unixEpoch }}. For example nightly-{{ .ScmBranch }}.",
   "builder.webhookDescription": "Webhook event trigger image build",
   "builder.configureFirst": "Please configure the builder first",
   "builder.tagTemplate": "tag template",

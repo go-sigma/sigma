@@ -16,7 +16,7 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
-import { EllipsisVertical, FileText, RotateCw, Square } from "lucide-react";
+import { EllipsisVertical, FileText, Info, RotateCw, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -41,6 +41,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from "@/i18n/useTranslation";
 import {
   IBuilderItem,
   IBuilderRunnerItem,
@@ -54,6 +56,7 @@ import { Tooltip } from '@/utils';
 
 export default function ({ localServer }: { localServer: string }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { namespace } = useParams<{ namespace: string }>();
   const [searchParams] = useSearchParams();
@@ -361,12 +364,23 @@ export default function ({ localServer }: { localServer: string }) {
       </div >
 
       <Dialog open={createRunnerModal} onOpenChange={setCreateRunnerModal}>
-        <DialogContent className="sm:max-w-lg" aria-label="Create runner">
+        <DialogContent className="sm:max-w-lg" aria-label="Build">
+          <DialogHeader>
+            <DialogTitle>Build</DialogTitle>
+          </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="tagTemplate">
-                <span className="text-destructive">*</span>Tag
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="tagTemplate">
+                  <span className="text-destructive">*</span>Tag
+                </Label>
+                <UITooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                  </TooltipTrigger>
+                  <TooltipContent>{t("builder.tagTemplateHint")}</TooltipContent>
+                </UITooltip>
+              </div>
               <Input
                 type="text"
                 id="tagTemplate"
@@ -378,7 +392,7 @@ export default function ({ localServer }: { localServer: string }) {
               />
               {tagTemplateTextValid ? null : (
                 <p className="text-xs text-destructive">
-                  Not a valid tag template, you can try 'main', '&#123;&#123;.ScmRef&#125;&#125;', '&#123;&#123;.ScmBrach&#125;&#125;'.
+                  Not a valid tag template, you can try 'main', '&#123;&#123;.ScmTag&#125;&#125;', '&#123;&#123;.ScmBranch&#125;&#125;'.
                 </p>
               )}
             </div>
