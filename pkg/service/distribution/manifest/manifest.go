@@ -585,7 +585,7 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 	}
 
 	if needScan(manifest, descriptor) {
-		s.putManifestAsyncTask(ctx, artifactObj)
+		s.putManifestAsyncTask(ctx, artifactObj, isNewArtifact)
 	}
 
 	return nil
@@ -706,9 +706,31 @@ func (s *service) putManifestAsyncTaskVulnerability(ctx context.Context, artifac
 	}
 }
 
+// putManifestAsyncTaskSbom enqueues the sbom scan task for the artifact.
+func (s *service) putManifestAsyncTaskSbom(ctx context.Context, artifactObj *models.Artifact) {
+	err := s.RepoArtifact.CreateSbom(ctx, &models.ArtifactSbom{
+		ID:         uuid.NewV7String(),
+		ArtifactID: artifactObj.ID,
+		Status:     enums.TaskCommonStatusPending,
+	})
+	if err != nil {
+		slog.Error("save sbom failed", "err", err, "artifact_id", artifactObj.ID)
+		return
+	}
+	err = s.Producer.Produce(ctx, enums.DaemonSbom, api.TaskSbom{ArtifactID: artifactObj.ID})
+	if err != nil {
+		slog.Error("enqueue sbom task failed", "err", err, "artifact_id", artifactObj.ID)
+	}
+}
+
 // putManifestAsyncTask triggers the post-push async scan tasks.
-func (s *service) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact) {
+func (s *service) putManifestAsyncTask(ctx context.Context, artifactObj *models.Artifact, isNewArtifact bool) {
 	s.putManifestAsyncTaskVulnerability(ctx, artifactObj)
+	// The sbom scan is a one-shot task, so it is only queued the first time an artifact is
+	// stored: re-pushing an existing digest must not scan the same image again.
+	if isNewArtifact {
+		s.putManifestAsyncTaskSbom(ctx, artifactObj)
+	}
 }
 
 // getArtifactType determines the artifact type from the manifest descriptors.
