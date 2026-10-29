@@ -71,8 +71,6 @@ func (h *handler) GetRunner(c *gin.Context, req *api.GetRunner) {
 		ID:        runnerObj.ID,
 		BuilderID: runnerObj.BuilderID,
 
-		Log: runnerObj.Log,
-
 		Status:        runnerObj.Status,
 		StatusMessage: runnerObj.StatusMessage,
 		Tag:           runnerObj.Tag,

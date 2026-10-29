@@ -68,8 +68,6 @@ func (h *handler) ListRunners(c *gin.Context, req *api.ListBuilderRunnersRequest
 			ID:        runnerObj.ID,
 			BuilderID: runnerObj.BuilderID,
 
-			Log: runnerObj.Log,
-
 			Status:        runnerObj.Status,
 			StatusMessage: runnerObj.StatusMessage,
 			Tag:           runnerObj.Tag,

@@ -138,6 +138,8 @@ func TestListRunners(t *testing.T) {
 	require.Contains(t, recorder.Body.String(), `"total":1`)
 	require.Contains(t, recorder.Body.String(), `"id":"2"`)
 	require.Contains(t, recorder.Body.String(), `"duration":"1 second"`)
+	// Runner logs can be megabytes long, so the list only returns their metadata.
+	require.NotContains(t, recorder.Body.String(), `"log"`)
 }
 
 func TestListRunnersReturnsInternalError(t *testing.T) {
