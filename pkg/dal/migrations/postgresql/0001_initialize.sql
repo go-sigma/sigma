@@ -488,6 +488,8 @@ CREATE TABLE IF NOT EXISTS "builders" (
   "buildkit_dockerfile" varchar(256),
   "buildkit_platforms" varchar(256) NOT NULL DEFAULT 'linux/amd64',
   "buildkit_build_args" varchar(256),
+  -- build cache
+  "buildkit_cache_enabled" boolean NOT NULL DEFAULT FALSE,
   -- other fields
   "created_at" bigint NOT NULL,
   "updated_at" bigint NOT NULL,

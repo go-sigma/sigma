@@ -235,6 +235,7 @@ func (s *service) CreateBuilder(ctx context.Context, userID string, req api.Crea
 		BuildkitContext:            req.BuildkitContext,
 		BuildkitDockerfile:         req.BuildkitDockerfile,
 		BuildkitPlatforms:          utils.StringsJoin(req.BuildkitPlatforms, ","),
+		BuildkitCacheEnabled:       req.BuildkitCacheEnabled,
 	}
 	if builderObj.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
 		codeRepositoryObj, err := s.RepoCode.Get(ctx, ptr.To(req.CodeRepositoryID))
@@ -305,6 +306,7 @@ func (s *service) UpdateBuilder(ctx context.Context, userID string, builderID st
 		query.Builder.BuildkitContext.ColumnName().String():            req.BuildkitContext,
 		query.Builder.BuildkitDockerfile.ColumnName().String():         req.BuildkitDockerfile,
 		query.Builder.BuildkitPlatforms.ColumnName().String():          utils.StringsJoin(req.BuildkitPlatforms, ","),
+		query.Builder.BuildkitCacheEnabled.ColumnName().String():       req.BuildkitCacheEnabled,
 	}
 	if req.Source == enums.BuilderSourceCodeRepository && req.ScmCredentialType == nil {
 		codeRepositoryObj, err := s.RepoCode.Get(ctx, ptr.To(req.CodeRepositoryID))

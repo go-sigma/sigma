@@ -65,6 +65,9 @@ type Builder struct {
 	BuildkitDockerfile         *string
 	BuildkitPlatforms          string `gorm:"default:linux/amd64"`
 	BuildkitBuildArgs          *string
+	// BuildkitCacheEnabled exports the buildkit registry cache to the buildcache
+	// tag of the repository and imports it again on the next build.
+	BuildkitCacheEnabled bool
 
 	Repository     *Repository
 	CodeRepository *CodeRepository

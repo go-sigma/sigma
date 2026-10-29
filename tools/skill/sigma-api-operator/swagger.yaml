@@ -44,6 +44,9 @@ definitions:
       buildkit_build_args:
         example: a=b,c=d
         type: string
+      buildkit_cache_enabled:
+        example: false
+        type: boolean
       buildkit_context:
         type: string
       buildkit_dockerfile:
@@ -266,6 +269,9 @@ definitions:
         description: 'TODO: validate'
         example: a=b,c=d
         type: string
+      buildkit_cache_enabled:
+        example: false
+        type: boolean
       buildkit_context:
         maxLength: 255
         minLength: 1
@@ -1486,6 +1492,9 @@ definitions:
         description: 'TODO: validate'
         example: a=b,c=d
         type: string
+      buildkit_cache_enabled:
+        example: false
+        type: boolean
       buildkit_context:
         maxLength: 255
         minLength: 1

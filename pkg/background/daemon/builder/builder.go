@@ -173,6 +173,7 @@ func (b taskRunner) run(ctx context.Context, payload api.DaemonBuilderPayload) e
 			// OciName: "192.168.31.198:3000/library/test:dev",
 
 			BuildkitPlatforms:          platforms,
+			BuildkitCacheEnabled:       builderObj.BuildkitCacheEnabled,
 			BuildkitInsecureRegistries: strings.Split(builderObj.BuildkitInsecureRegistries, ","), //  []string{"192.168.31.198:3000@http"},
 		},
 		ExtraHosts: config.GetConfig().Daemon.Builder.ExtraHosts,

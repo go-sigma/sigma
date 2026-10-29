@@ -166,6 +166,7 @@ func BuildEnv(builderConfig Config) ([]string, error) {
 		fmt.Sprintf("BUILDKIT_DOCKERFILE=%s", builderConfig.BuildkitDockerfile),
 		fmt.Sprintf("BUILDKIT_PLATFORMS=%s", utils.StringsJoin(builderConfig.BuildkitPlatforms, ",")),
 		fmt.Sprintf("BUILDKIT_BUILD_ARGS=%s", strings.Join(builderConfig.BuildkitBuildArgs, ",")),
+		fmt.Sprintf("BUILDKIT_CACHE_ENABLED=%t", builderConfig.BuildkitCacheEnabled),
 
 		fmt.Sprintf("SIGNING_PRIVATE_KEY=%s", sealedSigningPrivateKey),
 	}

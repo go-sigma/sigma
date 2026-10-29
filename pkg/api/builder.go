@@ -53,6 +53,7 @@ type Builder struct {
 	BuildkitDockerfile         string              `env:"BUILDKIT_DOCKERFILE" envDefault:"Dockerfile"`
 	BuildkitPlatforms          []enums.OciPlatform `env:"BUILDKIT_PLATFORMS" envSeparator:","`
 	BuildkitBuildArgs          []string            `env:"BUILDKIT_BUILD_ARGS" envSeparator:","`
+	BuildkitCacheEnabled       bool                `env:"BUILDKIT_CACHE_ENABLED"`
 
 	SigningPrivateKey string `env:"SIGNING_PRIVATE_KEY,notEmpty"`
 }
@@ -102,6 +103,7 @@ type BuilderItem struct {
 	BuildkitDockerfile         *string             `json:"buildkit_dockerfile"`
 	BuildkitPlatforms          []enums.OciPlatform `json:"buildkit_platforms" example:"linux/amd64"`
 	BuildkitBuildArgs          *string             `json:"buildkit_build_args" example:"a=b,c=d"`
+	BuildkitCacheEnabled       bool                `json:"buildkit_cache_enabled" example:"false"`
 }
 
 // PostOrPutBuilderRequest is the shared request body for creating or updating a builder.
@@ -139,6 +141,7 @@ type PostOrPutBuilderRequest struct {
 	BuildkitDockerfile         *string             `json:"buildkit_dockerfile,omitempty" validate:"omitempty,min=1,max=255"`
 	BuildkitPlatforms          []enums.OciPlatform `json:"buildkit_platforms" validate:"required,min=1,is_valid_oci_platforms" example:"linux/amd64"`
 	BuildkitBuildArgs          *string             `json:"buildkit_build_args" example:"a=b,c=d"` // TODO: validate
+	BuildkitCacheEnabled       bool                `json:"buildkit_cache_enabled" example:"false"`
 }
 
 // CreateBuilderRequest is the request for creating a builder.
