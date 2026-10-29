@@ -345,7 +345,7 @@ function LayersTable({ layers }: { layers?: IArtifactLayers }) {
               <td className="whitespace-nowrap px-4 py-3 text-right text-sm">{humanFormat(layer.size || 0)}</td>
               <td className="px-4 py-3 text-xs text-muted-foreground">{layer.media_type}</td>
               <td className="px-4 py-3">
-                <code className="block max-w-144 whitespace-pre-wrap wrap-break-word font-mono text-xs">
+                <code className="block max-w-xl whitespace-pre-wrap wrap-break-word font-mono text-xs">
                   {layer.command === "" ? "-" : layer.command}
                 </code>
                 {layer.created_at === "" ? null : (
