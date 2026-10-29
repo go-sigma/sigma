@@ -322,7 +322,7 @@ export default function ({ localServer }: { localServer: string }) {
                           <span className="lg:pl-2">Tag</span>
                         </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                          <span className="lg:pl-2">Status</span>
+                          <span>Status</span>
                         </th>
                         <th className="sticky top-0 z-10 px-6 py-3 border-gray-200 bg-gray-100 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                           <OrderHeader text={"Elapsed"}
@@ -498,7 +498,7 @@ function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right cursor-pointer">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left cursor-pointer">
         <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="fixed z-10 invisible inline-block max-w-md px-3 py-2 text-left text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip whitespace-pre-wrap break-words dark:bg-gray-700">
           {runnerObj.status_message}
         </div>
