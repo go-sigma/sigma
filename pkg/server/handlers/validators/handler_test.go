@@ -77,6 +77,13 @@ func TestValidators(t *testing.T) {
 			wantStatus: http.StatusBadRequest,
 		},
 		{
+			name: "invalid tag with trailing dots",
+			invoke: func(h *handler, c *gin.Context) {
+				h.GetTag(c, &api.GetValidatorTagRequest{Tag: "v0.7..."})
+			},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
 			name: "valid password",
 			invoke: func(h *handler, c *gin.Context) {
 				h.GetPassword(c, &api.ValidatePasswordRequest{Password: "Admin@123"})

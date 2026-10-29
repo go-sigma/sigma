@@ -54,7 +54,7 @@ func (h *handler) GetTag(c *gin.Context, req *api.GetValidatorTagRequest) {
 	}
 	var tag = buffer.String()
 	if !consts.TagRegexp.MatchString(tag) {
-		errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, "Tag is invalid")
+		errcode.NewHTTPError(c, errcode.HTTPErrCodeBadRequest, fmt.Sprintf("Tag %q is invalid", tag))
 		return
 	}
 	c.Status(http.StatusNoContent)

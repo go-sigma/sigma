@@ -137,6 +137,10 @@ func TestValidateTag(t *testing.T) {
 
 	var tests = []Test{
 		{"valid.tag", true},
+		{"v0.7", true},
+		{"v0.7...", false},
+		{"v0.7..1", false},
+		{"v0.7.", false},
 	}
 
 	validator, err := newValidator()

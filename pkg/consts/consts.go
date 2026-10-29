@@ -96,10 +96,14 @@ var (
 )
 
 var (
-	// TagRegexp matches valid tag names. From [docker/docker:graph/tags.go].
+	// TagRegexp matches valid tag names: it starts with a word character, is at
+	// most 128 characters long and uses dots only as separators between word
+	// characters. A trailing separator or a repeated dot is rejected, because
+	// such tags (e.g. "v0.7...") do not round-trip through image reference
+	// parsing and tag tooling. The charset follows [docker/docker:graph/tags.go].
 	//
 	// [docker/docker:graph/tags.go]: https://github.com/moby/moby/blob/v1.6.0/graph/tags.go#L26-L28
-	TagRegexp = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
+	TagRegexp = regexp.MustCompile(`^[\w](?:[\w-]|\.(?:[\w-]+)){0,127}$`)
 )
 
 const (
