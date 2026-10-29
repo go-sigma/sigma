@@ -188,6 +188,72 @@ export interface IEndpoint {
   endpoint: string;
 }
 
+export interface IArtifactLayer {
+  index: number;
+  digest: string;
+  diff_id: string;
+  media_type: string;
+  size: number;
+  command: string;
+  created_at: string;
+}
+
+export interface IArtifactLayers {
+  id: string;
+  digest: string;
+  media_type: string;
+  repository: string;
+  size: number;
+  blob_size: number;
+  os: string;
+  architecture: string;
+  distro: string;
+  pushed_at: string;
+  pull_times: number;
+  layers: IArtifactLayer[];
+}
+
+export interface IArtifactVulnerability {
+  id: string;
+  severity: string;
+  package: string;
+  package_version: string;
+  package_type: string;
+  package_language: string;
+  purl: string;
+  fix_state: string;
+  fix_versions: string[];
+  fix_date: string;
+  suggested_version: string;
+  description: string;
+  data_source: string;
+  namespace: string;
+  urls: string[];
+  cvss_version: string;
+  cvss_vector: string;
+  cvss_score: number;
+  epss_score: number;
+  epss_percentile: number;
+  cwes: string[];
+  known_exploited: string;
+  layers: string[];
+  paths: string[];
+}
+
+export interface IArtifactVulnerabilities {
+  status: string;
+  scanned_at: string;
+  db_built_at: string;
+  total: number;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  negligible: number;
+  unknown: number;
+  items: IArtifactVulnerability[];
+}
+
 export interface ICodeRepositoryOwnerItem {
   id: string;
   owner_id: string;

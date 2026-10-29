@@ -19,6 +19,7 @@ import { Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-do
 
 import { apiBaseURL } from './app/config';
 import Menu, { AppLayoutMenuContext } from './components/Menu';
+import Artifact from './pages/Artifact';
 import RepositoryBuilder from './pages/Builder';
 import CodeRepositoryHome from './pages/CodeRepository';
 import CodeRepositoryList from './pages/CodeRepository/List';
@@ -155,6 +156,7 @@ export default function App() {
             <Route path="/namespaces/:namespace/repositories" element={<Repositories localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/summary" element={<Summary localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/tags" element={<Tag localServer={apiBaseURL} />} />
+            <Route path="/namespaces/:namespace/repository/artifact" element={<Artifact localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/builder" element={<RepositoryBuilder localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/runners" element={<RepositoryBuilder localServer={apiBaseURL} />} />
             <Route path="/namespaces/:namespace/repository/runner-logs/:runner_id" element={<BuilderRunnerLog localServer={apiBaseURL} />} />

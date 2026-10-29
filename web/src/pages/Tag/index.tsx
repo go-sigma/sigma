@@ -24,7 +24,7 @@ import humanFormat from "human-format";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { CheckIcon, CornerDownLeft } from "lucide-react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
 import Header from "@/components/Header";
@@ -69,6 +69,7 @@ import distros, { distroName } from "@/utils/distros";
 
 export default function Tag({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [tagList, setTagList] = useState<ITagList>({} as ITagList);
   const [refresh, setRefresh] = useState({});
   const [page, setPage] = useState(1);
@@ -95,6 +96,17 @@ export default function Tag({ localServer }: { localServer: string }) {
   }, []);
 
   useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
+
+  // openArtifact opens the detail page of the artifact of one row of the tag card.
+  const openArtifact = (artifact: IArtifact) => {
+    const params = new URLSearchParams({
+      namespace_id: namespaceId || "",
+      repository_id: repositoryId || "",
+      repository: repository || "",
+      digest: artifact.digest,
+    });
+    navigate(`/namespaces/${namespace}/repository/artifact?${params.toString()}`);
+  };
 
   // pullText is the image reference shown in the tag card. The pull verb is left out so the whole
   // reference fits the card, and copying it yields exactly what is displayed.
@@ -539,6 +551,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                       <TableItem
                         artifact={tag.artifact}
                         artifacts={tag.artifacts}
+                        onOpen={openArtifact}
                       />
                     </table>
                     {/* third row end */}
@@ -596,9 +609,11 @@ function skipManifest(raw: string) {
 function TableItem({
   artifact,
   artifacts,
+  onOpen,
 }: {
   artifact: IArtifact;
   artifacts: IArtifact[];
+  onOpen: (artifact: IArtifact) => void;
 }) {
   const artifactObj = parseArtifactJSON<ManifestJSON>(artifact.raw, {});
 
@@ -609,14 +624,14 @@ function TableItem({
         "application/vnd.docker.distribution.manifest.v2+json" ||
         artifact.config_media_type ==
         "application/vnd.cncf.helm.config.v1+json" ? (
-        <DetailItem artifact={artifact} />
+        <DetailItem artifact={artifact} onOpen={() => onOpen(artifact)} />
       ) : artifactObj.mediaType ===
         "application/vnd.docker.distribution.manifest.list.v2+json" ||
         artifactObj.mediaType === "application/vnd.oci.image.index.v1+json" ? (
         (artifacts ?? []).map((item: IArtifact) => {
           return (
             !skipManifest(item.raw) && (
-              <DetailItem key={item.digest} artifact={item} />
+              <DetailItem key={item.digest} artifact={item} onOpen={() => onOpen(item)} />
             )
           );
         })
@@ -637,7 +652,7 @@ function cutDigest(digest: string) {
   return digest.substring(digest.indexOf(":") + 1, digest.indexOf(":") + 13);
 }
 
-function DetailItem({ artifact }: { artifact: IArtifact }) {
+function DetailItem({ artifact, onOpen }: { artifact: IArtifact; onOpen: () => void }) {
   const sbomObj = parseArtifactJSON<ISbom>(artifact.sbom, {} as ISbom);
   const vulnerabilityObj = parseArtifactJSON<IVuln>(
     artifact.vulnerability,
@@ -648,7 +663,7 @@ function DetailItem({ artifact }: { artifact: IArtifact }) {
     {} as IImageConfig,
   );
   return (
-    <tr className="hover:bg-gray-50 cursor-pointer">
+    <tr className="hover:bg-gray-50 cursor-pointer" onClick={onOpen}>
       <td className="text-left w-45">
         <code className="text-xs underline underline-offset-1 text-primary hover:text-primary/80">
           {cutDigest(artifact.digest)}
