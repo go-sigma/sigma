@@ -38,7 +38,7 @@ import {
   Sun,
 } from "lucide-react";
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Toast from "@/components/Notification";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -119,13 +119,19 @@ const namespaceSections: { key: MenuSection; path: string; labelKey: MessageKey 
 ];
 
 function SidebarSubLink({ to, active, children }: { to: string; active?: boolean; children: ReactNode }) {
+  const location = useLocation();
+  // Only the entry of the page that is already open skips the navigation. A repository sub-page
+  // highlights "Repository list" without being that page, so the pathname decides whether a click
+  // would navigate instead of relying on the active flag.
+  const isCurrentPage = location.pathname === to.split("?")[0];
+
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton
         render={
           <Link
             to={to}
-            onClick={active
+            onClick={isCurrentPage
               ? (event) => {
                 if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) event.preventDefault();
               }
