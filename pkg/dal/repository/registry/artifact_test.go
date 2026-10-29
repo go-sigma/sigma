@@ -251,3 +251,32 @@ func TestArtifactRepositoryGetNamespaceSize(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(321), repositorySize)
 }
+
+func TestArtifactRepositoryGetByDigestWithReports(t *testing.T) {
+	fixture := newRegistryFixture(t)
+	ctx := t.Context()
+	artifactObj := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, "sha256:with-reports")
+	require.NoError(t, fixture.ArtifactRepository.Create(ctx, artifactObj))
+	require.NoError(t, fixture.ArtifactRepository.CreateSbom(ctx, &models.ArtifactSbom{
+		ID:         uuid.NewV7String(),
+		ArtifactID: artifactObj.ID,
+		Result:     []byte("sbom"),
+		Status:     enums.TaskCommonStatusSuccess,
+	}))
+	require.NoError(t, fixture.ArtifactRepository.CreateVulnerability(ctx, &models.ArtifactVulnerability{
+		ID:         uuid.NewV7String(),
+		ArtifactID: artifactObj.ID,
+		Raw:        []byte("sigma/vulnerabilities/report.json.gz"),
+		Status:     enums.TaskCommonStatusSuccess,
+	}))
+
+	got, err := fixture.ArtifactRepository.GetByDigestWithReports(ctx, fixture.Repository.ID, artifactObj.Digest)
+	require.NoError(t, err)
+	require.Equal(t, artifactObj.ID, got.ID)
+	require.Equal(t, []byte("sbom"), got.Sbom.Result)
+	require.Equal(t, []byte("sigma/vulnerabilities/report.json.gz"), got.Vulnerability.Raw)
+	require.Equal(t, enums.TaskCommonStatusSuccess, got.Vulnerability.Status)
+
+	_, err = fixture.ArtifactRepository.GetByDigestWithReports(ctx, fixture.Repository.ID, "sha256:missing")
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+}

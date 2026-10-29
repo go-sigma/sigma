@@ -24,8 +24,10 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/storage"
 )
 
 //go:generate go tool mockgen -mock_names Service=MockArtifactService -destination=mocks/artifacts_mocks.go -package=mocks github.com/go-sigma/sigma/pkg/service/artifacts Service
@@ -36,6 +38,10 @@ type Service interface {
 	ListArtifacts(ctx context.Context, req api.ListArtifactRequest) ([]*models.Artifact, int64, error)
 	// GetArtifact gets an artifact by repository name and digest.
 	GetArtifact(ctx context.Context, repository string, digest string) (*models.Artifact, error)
+	// GetArtifactLayers gets an artifact of a repository with the layers of its manifest.
+	GetArtifactLayers(ctx context.Context, namespaceID, repositoryID, digest string) (*api.ArtifactLayers, error)
+	// ListArtifactVulnerabilities gets every vulnerability grype reported for an artifact of a repository.
+	ListArtifactVulnerabilities(ctx context.Context, namespaceID, repositoryID, digest string) (*api.ArtifactVulnerabilities, error)
 	// DeleteArtifact deletes an artifact by repository name and digest (includes: cascade delete blobs and tags).
 	DeleteArtifact(ctx context.Context, repository string, digest string) error
 }
@@ -43,8 +49,10 @@ type Service interface {
 type service struct {
 	dig.In
 
+	RepoNs       reponamespace.NamespaceRepository
 	RepoRegistry reporegistry.RepositoryRepository
 	RepoArtifact reporegistry.ArtifactRepository
+	Storage      storage.StorageDriver
 }
 
 func NewService(params service) Service {

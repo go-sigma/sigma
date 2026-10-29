@@ -71,6 +71,36 @@ func (mr *MockArtifactServiceMockRecorder) GetArtifact(ctx, repository, digest a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetArtifact", reflect.TypeOf((*MockArtifactService)(nil).GetArtifact), ctx, repository, digest)
 }
 
+// GetArtifactLayers mocks base method.
+func (m *MockArtifactService) GetArtifactLayers(ctx context.Context, namespaceID, repositoryID, digest string) (*api.ArtifactLayers, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetArtifactLayers", ctx, namespaceID, repositoryID, digest)
+	ret0, _ := ret[0].(*api.ArtifactLayers)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetArtifactLayers indicates an expected call of GetArtifactLayers.
+func (mr *MockArtifactServiceMockRecorder) GetArtifactLayers(ctx, namespaceID, repositoryID, digest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetArtifactLayers", reflect.TypeOf((*MockArtifactService)(nil).GetArtifactLayers), ctx, namespaceID, repositoryID, digest)
+}
+
+// ListArtifactVulnerabilities mocks base method.
+func (m *MockArtifactService) ListArtifactVulnerabilities(ctx context.Context, namespaceID, repositoryID, digest string) (*api.ArtifactVulnerabilities, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListArtifactVulnerabilities", ctx, namespaceID, repositoryID, digest)
+	ret0, _ := ret[0].(*api.ArtifactVulnerabilities)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListArtifactVulnerabilities indicates an expected call of ListArtifactVulnerabilities.
+func (mr *MockArtifactServiceMockRecorder) ListArtifactVulnerabilities(ctx, namespaceID, repositoryID, digest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifactVulnerabilities", reflect.TypeOf((*MockArtifactService)(nil).ListArtifactVulnerabilities), ctx, namespaceID, repositoryID, digest)
+}
+
 // ListArtifacts mocks base method.
 func (m *MockArtifactService) ListArtifacts(ctx context.Context, req api.ListArtifactRequest) ([]*models.Artifact, int64, error) {
 	m.ctrl.T.Helper()

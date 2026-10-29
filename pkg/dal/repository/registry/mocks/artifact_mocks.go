@@ -289,6 +289,21 @@ func (mr *MockArtifactRepositoryMockRecorder) GetByDigest(ctx, repositoryID, dig
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigest", reflect.TypeOf((*MockArtifactRepository)(nil).GetByDigest), ctx, repositoryID, digest)
 }
 
+// GetByDigestWithReports mocks base method.
+func (m *MockArtifactRepository) GetByDigestWithReports(ctx context.Context, repositoryID, digest string) (*models.Artifact, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByDigestWithReports", ctx, repositoryID, digest)
+	ret0, _ := ret[0].(*models.Artifact)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByDigestWithReports indicates an expected call of GetByDigestWithReports.
+func (mr *MockArtifactRepositoryMockRecorder) GetByDigestWithReports(ctx, repositoryID, digest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDigestWithReports", reflect.TypeOf((*MockArtifactRepository)(nil).GetByDigestWithReports), ctx, repositoryID, digest)
+}
+
 // GetByDigests mocks base method.
 func (m *MockArtifactRepository) GetByDigests(ctx context.Context, repository string, digests []string) ([]*models.Artifact, error) {
 	m.ctrl.T.Helper()

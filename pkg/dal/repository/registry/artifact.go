@@ -49,6 +49,9 @@ type ArtifactRepository interface {
 	Get(ctx context.Context, id string) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified repository and digest
 	GetByDigest(ctx context.Context, repositoryID string, digest string) (*models.Artifact, error)
+	// GetByDigestWithReports gets the artifact with the specified repository and digest, including the
+	// vulnerability and sbom reports the artifact detail pages render
+	GetByDigestWithReports(ctx context.Context, repositoryID string, digest string) (*models.Artifact, error)
 	// GetByDigests gets artifacts in a repository with the specified digests
 	GetByDigests(ctx context.Context, repository string, digests []string) ([]*models.Artifact, error)
 	// DeleteByDigest deletes the artifact with the specified repository and digest
@@ -175,6 +178,17 @@ func (s *artifactRepository) GetByDigest(ctx context.Context, repositoryID strin
 	return s.tx.Artifact.WithContext(ctx).
 		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Where(s.tx.Artifact.Digest.Eq(digest)).
+		First()
+}
+
+// GetByDigestWithReports gets the artifact with the specified repository and digest, including the
+// vulnerability and sbom reports the artifact detail pages render
+func (s *artifactRepository) GetByDigestWithReports(ctx context.Context, repositoryID string, digest string) (*models.Artifact, error) {
+	return s.tx.Artifact.WithContext(ctx).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Where(s.tx.Artifact.Digest.Eq(digest)).
+		Preload(s.tx.Artifact.Vulnerability).
+		Preload(s.tx.Artifact.Sbom).
 		First()
 }
 
