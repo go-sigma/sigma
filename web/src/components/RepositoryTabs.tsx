@@ -55,11 +55,16 @@ export default function RepositoryTabs({ namespace, namespaceId, repository, rep
   return (
     <div className="flex space-x-8">
       {tabs.map(tab => (
-        tab.key === active ? (
-          <span key={tab.key} className={activeTabClass}>{tab.label}</span>
-        ) : (
-          <Link key={tab.key} to={tab.to} className={idleTabClass}>{tab.label}</Link>
-        )
+        // Every tab is a link, also the active one: a page can highlight a section without being
+        // that page (the artifact page highlights "Tag list"), and its tab still has to navigate.
+        <Link
+          key={tab.key}
+          to={tab.to}
+          aria-current={tab.key === active ? "page" : undefined}
+          className={tab.key === active ? activeTabClass : idleTabClass}
+        >
+          {tab.label}
+        </Link>
       ))}
     </div>
   );
