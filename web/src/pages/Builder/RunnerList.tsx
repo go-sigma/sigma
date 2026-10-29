@@ -541,7 +541,7 @@ function TableItem({ runnerObj, onViewLog, onRerun, onStop }: {
       </td>
       <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left${runnerObj.status_message ? " cursor-pointer" : ""}`}>
         {runnerObj.status_message ? (
-          <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="fixed z-10 invisible inline-block max-w-md px-3 py-2 text-left text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip whitespace-pre-wrap break-words dark:bg-gray-700">
+          <div id={`tooltip-message-${runnerObj.id}`} role="tooltip" className="fixed z-10 invisible inline-block max-w-md px-3 py-2 text-left text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip whitespace-pre-wrap wrap-break-word dark:bg-gray-700">
             {runnerObj.status_message}
           </div>
         ) : null}
