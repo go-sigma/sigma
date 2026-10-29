@@ -132,8 +132,11 @@ func (s builderRepository) GetRunner(ctx context.Context, id string) (*models.Bu
 	return s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.ID.Eq(id)).Preload(s.tx.BuilderRunner.Builder).First()
 }
 
-// ListRunners lists builder runners with pagination and sorting
+// ListRunners lists builder runners with pagination and sorting.
+// It is polled by the web UI, so the database trace log is downgraded to the
+// trace level.
 func (s builderRepository) ListRunners(ctx context.Context, id string, pagination api.Pagination, sort api.Sortable) ([]*models.BuilderRunner, int64, error) {
+	ctx = logger.WithQuietDatabaseTrace(ctx)
 	pagination = utils.NormalizePagination(pagination)
 	query := s.tx.BuilderRunner.WithContext(ctx).Where(s.tx.BuilderRunner.BuilderID.Eq(id))
 	field, ok := s.tx.BuilderRunner.GetFieldByName(ptr.To(sort.Sort))
