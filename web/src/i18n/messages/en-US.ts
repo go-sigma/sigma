@@ -184,6 +184,8 @@ const enUS = {
   "builder.codeRepositoryDescription": "Builder will clone source code from here",
   "builder.buildOptions": "Build Options",
   "builder.buildOptionsDescription": "The image build options",
+  "builder.buildCache": "Build cache",
+  "builder.buildCacheHint": "When enabled, buildkit pushes the layered build result as a registry cache to the {repository} tag of this repository and reuses it on the next build, which makes repeated builds much faster. The first build is always cold. Turning it off stops reading and writing that tag; an existing buildcache artifact has to be removed manually.",
   "builder.cronBuild": "Cron build",
   "builder.cronBuildDescription": "Cron build image",
   "builder.cronExpressionHint": "Five-field cron expression: minute hour day-of-month month day-of-week, evaluated in the server's local time zone. For example 0 2 * * * runs the build every day at 02:00.",

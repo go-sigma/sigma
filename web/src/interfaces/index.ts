@@ -320,6 +320,7 @@ export interface IBuilderItem {
   buildkit_context?: string;
   buildkit_dockerfile?: string;
   buildkit_platforms: string[];
+  buildkit_cache_enabled: boolean;
 }
 
 export interface IBuilderRunnerList {

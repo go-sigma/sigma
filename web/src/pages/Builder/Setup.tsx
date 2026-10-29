@@ -378,6 +378,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
 
   const [dockerfileContext, setDockerfileContext] = useState('.');
   const [dockerfilePath, setDockerfilePath] = useState('Dockerfile');
+  const [cacheEnabled, setCacheEnabled] = useState(false);
 
   const [tagEvent, SetTagEvent] = useState(false);
   const [tagEventTagTemplate, setTagEventTagTemplate] = useState('');
@@ -465,6 +466,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
       ps.push(selectedPlatforms[i].name);
     }
     data['buildkit_platforms'] = ps;
+    data['buildkit_cache_enabled'] = cacheEnabled;
     console.log("create builder body:", data);
     if (id === undefined) {
       let url = `${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${repositorySelected.id}/builders/`;
@@ -583,6 +585,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
           platforms: ps,
         });
         setSelectedPlatforms(platforms);
+        setCacheEnabled(builderItem.buildkit_cache_enabled === true);
         setDockerfile(atob(builderItem.dockerfile || ''));
         setCronBuild(builderItem.cron_rule !== null);
         if (builderItem.cron_rule !== null) {
@@ -1364,6 +1367,31 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <div className="flex items-center gap-1.5">
+                    <label htmlFor="cacheEnabled" className="block text-sm font-medium leading-6 text-gray-900">
+                      {t("builder.buildCache")}
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="size-4 text-muted-foreground" aria-hidden="true" />
+                      </TooltipTrigger>
+                      <TooltipContent>{t("builder.buildCacheHint", { repository: `${repositorySelected.name}:buildcache` })}</TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="mt-2 flex flex-row items-center h-9">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        id="cacheEnabled"
+                        type="checkbox"
+                        checked={cacheEnabled}
+                        className="sr-only peer"
+                        onChange={e => setCacheEnabled(e.target.checked)}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ring rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-checked:after:bg-primary-foreground"></div>
+                    </label>
                   </div>
                 </div>
               </div>

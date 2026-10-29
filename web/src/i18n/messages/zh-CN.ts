@@ -186,6 +186,8 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "builder.codeRepositoryDescription": "构建器会从这里克隆源代码",
   "builder.buildOptions": "构建选项",
   "builder.buildOptionsDescription": "镜像构建选项",
+  "builder.buildCache": "构建缓存",
+  "builder.buildCacheHint": "开启后，buildkit 会把分层的构建结果以 registry cache 的形式推送到本仓库的 {repository} 标签，下次构建自动复用，重复构建会快很多。首次构建没有缓存，必然是全量构建；关闭后不再读写该标签，已经产生的 buildcache 制品需要手动清理。",
   "builder.cronBuild": "Cron 构建",
   "builder.cronBuildDescription": "按 Cron 规则构建镜像",
   "builder.cronExpressionHint": "5 段式 Cron 表达式：分 时 日 月 周，按服务端本地时区计算。例如 0 2 * * * 表示每天 02:00 触发构建。",
