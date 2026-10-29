@@ -206,18 +206,6 @@ export default function ({ localServer }: { localServer: string }) {
     });
   }
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (builderObj === undefined) {
-        return;
-      }
-      setRefreshState({});
-    }, 5000);
-    return () => {
-      clearInterval(timer);
-    };
-  }, [builderObj]);
-
   const [createdAtOrder, setCreatedAtOrder] = useState(IOrder.None);
   const [costOrder, setCostOrder] = useState(IOrder.None);
   const [sortOrder, setSortOrder] = useState(IOrder.None);
