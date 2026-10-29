@@ -22,6 +22,7 @@ import (
 	"io"
 	"log/slog"
 	"strings"
+	"time"
 
 	"go.uber.org/dig"
 	"gorm.io/gorm"
@@ -427,19 +428,13 @@ func (s *service) RunRunner(ctx context.Context, req api.PostRunnerRun) (string,
 			slog.Error("create builder runner failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
-		err = s.Producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
-			Action:       enums.DaemonBuilderActionStart,
-			RepositoryID: req.RepositoryID,
-			BuilderID:    req.BuilderID,
-			RunnerID:     runnerObj.ID,
-		})
-		if err != nil {
-			slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()), "err", err)
-			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
-		}
 		return nil
 	})
 	if err != nil {
+		return "", err
+	}
+	if err = s.produceBuilderStart(ctx, req.RepositoryID, req.BuilderID, runnerObj.ID); err != nil {
+		s.failRunner(ctx, req.BuilderID, runnerObj.ID, err)
 		return "", err
 	}
 	return runnerObj.ID, nil
@@ -489,22 +484,46 @@ func (s *service) RerunRunner(ctx context.Context, req api.GetRunnerStop) (strin
 			slog.Error("create builder runner failed", "err", err)
 			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create builder runner failed: %v", err))
 		}
-		err = s.Producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
-			Action:       enums.DaemonBuilderActionStart,
-			RepositoryID: req.RepositoryID,
-			BuilderID:    req.BuilderID,
-			RunnerID:     newRunnerObj.ID,
-		})
-		if err != nil {
-			slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()), "err", err)
-			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
-		}
 		return nil
 	})
 	if err != nil {
 		return "", err
 	}
+	if err = s.produceBuilderStart(ctx, req.RepositoryID, req.BuilderID, newRunnerObj.ID); err != nil {
+		s.failRunner(ctx, req.BuilderID, newRunnerObj.ID, err)
+		return "", err
+	}
 	return newRunnerObj.ID, nil
+}
+
+// produceBuilderStart enqueues the build of a runner. The message is produced only after the runner
+// row is committed: the in-memory queue hands it to the builder daemon right away, and that daemon
+// cannot update a row it cannot see yet.
+func (s *service) produceBuilderStart(ctx context.Context, repositoryID, builderID, runnerID string) error {
+	err := s.Producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
+		Action:       enums.DaemonBuilderActionStart,
+		RepositoryID: repositoryID,
+		BuilderID:    builderID,
+		RunnerID:     runnerID,
+	})
+	if err != nil {
+		slog.Error(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()), "err", err)
+		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Send topic %s to work queue failed", enums.DaemonBuilder.String()))
+	}
+	return nil
+}
+
+// failRunner marks a runner as failed when its build could not be enqueued, so it does not stay in
+// Pending forever.
+func (s *service) failRunner(ctx context.Context, builderID, runnerID string, reason error) {
+	err := s.RepoBuilder.UpdateRunner(ctx, builderID, runnerID, map[string]any{
+		query.BuilderRunner.Status.ColumnName().String():        enums.BuildStatusFailed,
+		query.BuilderRunner.StatusMessage.ColumnName().String(): fmt.Sprintf("Enqueue build failed: %v", reason),
+		query.BuilderRunner.EndedAt.ColumnName().String():       time.Now().UnixMilli(),
+	})
+	if err != nil {
+		slog.Error("update runner status failed", "err", err, "runner_id", runnerID)
+	}
 }
 
 func (s *service) StopRunner(ctx context.Context, req api.GetRunnerStop) error {

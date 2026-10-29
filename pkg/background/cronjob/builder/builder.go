@@ -128,7 +128,8 @@ func (r builderRunner) runBuilder(ctx context.Context, scanTime time.Time, build
 	}
 	nextTrigger := schedule.Next(scanTime)
 
-	return query.Q.Transaction(func(tx *query.Query) error {
+	var runnerID string
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		builderRepository := repobuilder.NewBuilderRepository(tx)
 		claimed, err := builderRepository.ClaimNextTrigger(ctx, builderObj.ID, scanTime, nextTrigger)
 		if err != nil {
@@ -151,12 +152,19 @@ func (r builderRunner) runBuilder(ctx context.Context, scanTime time.Time, build
 		if err = builderRepository.CreateRunner(ctx, runner); err != nil {
 			return err
 		}
-		return r.producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
-			Action:       enums.DaemonBuilderActionStart,
-			BuilderID:    builderObj.ID,
-			RunnerID:     runner.ID,
-			RepositoryID: builderObj.RepositoryID,
-		})
+		runnerID = runner.ID
+		return nil
+	})
+	if err != nil || runnerID == "" {
+		return err
+	}
+	// The message is produced after the runner row is committed: the in-memory queue hands it to the
+	// builder daemon right away, and that daemon cannot update a row it cannot see yet.
+	return r.producer.Produce(ctx, enums.DaemonBuilder, api.DaemonBuilderPayload{
+		Action:       enums.DaemonBuilderActionStart,
+		BuilderID:    builderObj.ID,
+		RunnerID:     runnerID,
+		RepositoryID: builderObj.RepositoryID,
 	})
 }
 

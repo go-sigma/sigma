@@ -17,6 +17,7 @@ package builders
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"io"
 	"testing"
 
@@ -25,8 +26,13 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
+	repobuilder "github.com/go-sigma/sigma/pkg/dal/repository/builder"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	"github.com/go-sigma/sigma/pkg/testkit"
 	"github.com/go-sigma/sigma/pkg/utils/compress"
+	"github.com/go-sigma/sigma/pkg/utils/ptr"
+	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
 func TestCreateBuilderValidator(t *testing.T) {
@@ -100,4 +106,85 @@ func TestRunnerLogReaderForInactiveRunner(t *testing.T) {
 	data, err := io.ReadAll(reader)
 	require.NoError(t, err)
 	require.Empty(t, data)
+}
+
+// visibleRunnerProducer asserts that the runner row is committed before its build is enqueued: the
+// builder daemon consumes the message immediately and cannot update a row it does not see.
+type visibleRunnerProducer struct {
+	t         *testing.T
+	runnerIDs []string
+	err       error
+}
+
+func (p *visibleRunnerProducer) Produce(_ context.Context, topic enums.Daemon, payload any) error {
+	p.t.Helper()
+
+	require.Equal(p.t, enums.DaemonBuilder, topic)
+	builderPayload, ok := payload.(api.DaemonBuilderPayload)
+	require.True(p.t, ok)
+	require.Equal(p.t, enums.DaemonBuilderActionStart, builderPayload.Action)
+
+	runnerObj, err := query.Q.BuilderRunner.WithContext(context.Background()).
+		Where(query.Q.BuilderRunner.ID.Eq(builderPayload.RunnerID)).First()
+	require.NoError(p.t, err, "the runner row must be committed before the build is enqueued")
+	require.Equal(p.t, enums.BuildStatusPending, runnerObj.Status)
+
+	p.runnerIDs = append(p.runnerIDs, builderPayload.RunnerID)
+	return p.err
+}
+
+func TestRunRunnerEnqueuesAfterTheRunnerIsCommitted(t *testing.T) {
+	require.NotNil(t, testkit.InitRepository(t))
+
+	ctx := t.Context()
+	builderObj := &models.Builder{
+		ID:           uuid.NewV7String(),
+		RepositoryID: uuid.NewV7String(),
+		Source:       enums.BuilderSourceDockerfile,
+	}
+	require.NoError(t, query.Q.Builder.WithContext(ctx).Create(builderObj))
+
+	producer := &visibleRunnerProducer{t: t}
+	runnerID, err := (&service{
+		RepoBuilder: repobuilder.NewBuilderRepository(),
+		Producer:    producer,
+	}).RunRunner(ctx, api.PostRunnerRun{
+		RepositoryID: builderObj.RepositoryID,
+		BuilderID:    builderObj.ID,
+		RawTag:       "v1",
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, []string{runnerID}, producer.runnerIDs)
+}
+
+func TestRunRunnerFailsTheRunnerWhenEnqueueFails(t *testing.T) {
+	require.NotNil(t, testkit.InitRepository(t))
+
+	ctx := t.Context()
+	builderObj := &models.Builder{
+		ID:           uuid.NewV7String(),
+		RepositoryID: uuid.NewV7String(),
+		Source:       enums.BuilderSourceDockerfile,
+	}
+	require.NoError(t, query.Q.Builder.WithContext(ctx).Create(builderObj))
+
+	builderRepository := repobuilder.NewBuilderRepository()
+	producer := &visibleRunnerProducer{t: t, err: errors.New("queue is full")}
+	_, err := (&service{
+		RepoBuilder: builderRepository,
+		Producer:    producer,
+	}).RunRunner(ctx, api.PostRunnerRun{
+		RepositoryID: builderObj.RepositoryID,
+		BuilderID:    builderObj.ID,
+		RawTag:       "v1",
+	})
+
+	require.Error(t, err)
+	require.Len(t, producer.runnerIDs, 1)
+	runnerObj, getErr := builderRepository.GetRunner(ctx, producer.runnerIDs[0])
+	require.NoError(t, getErr)
+	require.Equal(t, enums.BuildStatusFailed, runnerObj.Status)
+	require.Contains(t, ptr.To(runnerObj.StatusMessage), "Enqueue build failed")
+	require.NotNil(t, runnerObj.EndedAt)
 }
