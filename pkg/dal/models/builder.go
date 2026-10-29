@@ -75,7 +75,7 @@ type Builder struct {
 
 // BuilderRunner represents a builder runner
 type BuilderRunner struct {
-	CreatedAt int64                 `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64                 `gorm:"autoCreateTime:milli"`
 	UpdatedAt int64                 `gorm:"autoUpdateTime:milli"`
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
