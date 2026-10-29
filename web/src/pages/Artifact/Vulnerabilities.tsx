@@ -152,7 +152,7 @@ export default function Vulnerabilities({ report, rows, layerIndex }: Vulnerabil
                 <th className="w-[40px] px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.package")}
                 </th>
-                <th className="w-[20%] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="w-[40px] px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t("artifact.fix")}
                 </th>
                 <th className="w-[88px] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -226,17 +226,21 @@ function VulnerabilityRow({ vulnerability, layerIndex }: { vulnerability: IArtif
           </div>
         )}
       </td>
-      <td className="px-4 py-3">
+      <td className="min-w-0 px-2 py-3">
         {vulnerability.fix_versions.length === 0 ? (
-          <div className="text-xs text-muted-foreground">{t("artifact.notFixed")}</div>
+          <div className="truncate text-xs text-muted-foreground" title={t("artifact.notFixed")}>{t("artifact.notFixed")}</div>
         ) : (
           <>
-            <div className="text-xs font-medium text-green-600 dark:text-green-500">{t("artifact.fixedVersion")}</div>
-            <div className="font-mono text-xs">{vulnerability.fix_versions.join(", ")}</div>
+            <div className="truncate text-xs font-medium text-green-600 dark:text-green-500" title={t("artifact.fixedVersion")}>
+              {t("artifact.fixedVersion")}
+            </div>
+            <div className="truncate font-mono text-xs" title={vulnerability.fix_versions.join(", ")}>
+              {vulnerability.fix_versions.join(", ")}
+            </div>
           </>
         )}
         {vulnerability.suggested_version === "" ? null : (
-          <div className="mt-1 font-mono text-[11px] text-muted-foreground" title={t("artifact.fixedVersion")}>
+          <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground" title={vulnerability.suggested_version}>
             {vulnerability.suggested_version}
           </div>
         )}
