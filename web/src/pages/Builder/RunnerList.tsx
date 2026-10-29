@@ -446,9 +446,7 @@ export default function ({ localServer }: { localServer: string }) {
       <Dialog open={logRunner !== undefined} onOpenChange={(open) => { if (!open) setLogRunner(undefined); }}>
         <DialogContent className="sm:max-w-5xl" aria-label="Build log">
           <DialogHeader>
-            <DialogTitle>
-              Build log · {logRunner?.tag ?? logRunner?.raw_tag}
-            </DialogTitle>
+            <DialogTitle>Build log</DialogTitle>
           </DialogHeader>
           {logRunner === undefined ? null : (
             <RunnerLogView
@@ -458,17 +456,19 @@ export default function ({ localServer }: { localServer: string }) {
               builderId={logRunner.builder_id}
               runnerId={logRunner.id}
               status={logRunner.status}
-              className="h-[60vh] w-full rounded-md bg-black p-2"
+              className="h-[60vh] w-full rounded-none bg-black p-1"
             />
           )}
           <DialogFooter>
-            {logRunner !== undefined && logRunner.status !== "Success" && logRunner.status !== "Failed" && logRunner.status !== "Stopped" ? (
-              <Button variant="destructive" disabled={logRunner.status === "Stopping"} onClick={() => stopRunner(logRunner)}>
-                Stop
-              </Button>
-            ) : null}
+            <Button
+              variant="destructive"
+              disabled={logRunner === undefined || !["Pending", "Building"].includes(logRunner.status)}
+              onClick={() => { if (logRunner !== undefined) stopRunner(logRunner); }}
+            >
+              Stop
+            </Button>
             <Button variant="outline" onClick={() => setLogRunner(undefined)}>
-              Close
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
