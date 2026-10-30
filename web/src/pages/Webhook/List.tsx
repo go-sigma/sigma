@@ -335,7 +335,7 @@ export default function ({ localServer }: { localServer: string }) {
               : "repositories"
           }
         />
-        <div className="flex flex-col flex-1 max-h-screen">
+        <div className="flex flex-col flex-1 h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title={t("header.webhook")} />
             <div className="pt-4 pb-4 flex justify-end items-center">

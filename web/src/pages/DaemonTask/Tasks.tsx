@@ -615,10 +615,10 @@ export default function ({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950">
         <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "daemon-tasks" : "repositories"} namespace={namespace} />
-        <div className="flex flex-col w-0 flex-1 overflow-visible">
-          <main className="relative z-0 focus:outline-none" tabIndex={0}>
+        <div className="flex flex-col w-0 flex-1 overflow-hidden h-screen">
+          <main className="relative z-0 flex min-h-0 flex-1 flex-col focus:outline-none" tabIndex={0}>
             <Header title={location.pathname.startsWith("/settings") ? t("header.settingDaemonTask") : t("header.namespaceDaemonTask")} />
-            <div className="flex flex-1 overflow-visible">
+            <div className="flex min-h-0 flex-1 overflow-auto">
               <div className="align-middle inline-block min-w-full border-gray-200">
                 <table className="min-w-full flex-1 overflow-visible">
                   <thead>

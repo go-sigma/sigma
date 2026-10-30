@@ -282,7 +282,7 @@ export default function ({ localServer }: { localServer: string }) {
           namespace={namespace}
           namespace_id={namespaceId || ""}
         />
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <div className="flex flex-col w-0 flex-1 overflow-hidden h-screen">
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.repository")} />
             <div className="pt-4 pb-4 flex justify-between items-center">

@@ -194,7 +194,7 @@ export default function ({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
         <HeaderMenu localServer={localServer} item="coderepos" />
-        <div className="flex flex-col flex-1 max-h-screen">
+        <div className="flex flex-col flex-1 h-screen">
           <main className="relative focus:outline-none" tabIndex={0}>
             <Header title={t("header.codeRepository")} />
             <div className="pt-4 pb-4 flex justify-between items-center">

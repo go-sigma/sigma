@@ -247,7 +247,7 @@ export default function Namespace({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
         <IMenu localServer={localServer} item="namespaces" />
-        <div className="flex flex-col flex-1 max-h-screen">
+        <div className="flex flex-col flex-1 h-screen">
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.namespace")} />
             <div className="pt-4 pb-4 flex justify-between items-center">

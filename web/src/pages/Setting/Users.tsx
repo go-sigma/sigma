@@ -162,7 +162,7 @@ export default function ({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
         <Menu localServer={localServer} item="users" />
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <div className="flex flex-col w-0 flex-1 overflow-hidden h-screen">
           <main className="relative z-0 focus:outline-none">
             <Header title={t("header.settingUsers")} />
             <div className="pt-4 pb-4 flex justify-between">

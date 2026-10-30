@@ -173,7 +173,7 @@ export default function Artifact({ localServer }: { localServer: string }) {
           repository={repository}
           repository_id={repositoryId}
         />
-        <div className="flex flex-col w-0 flex-1 overflow-hidden max-h-screen">
+        <div className="flex flex-col w-0 flex-1 overflow-hidden h-screen">
           <main>
             <Header
               title={t("artifact.title")}

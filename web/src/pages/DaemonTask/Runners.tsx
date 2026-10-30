@@ -129,7 +129,7 @@ export default function ({ localServer }: { localServer: string }) {
       </HelmetProvider>
       <div className="min-h-screen flex overflow-hidden bg-background">
         <IMenu localServer={localServer} item={location.pathname.startsWith("/settings") ? "daemon-tasks" : "repositories"} namespace={namespace} />
-        <div className="flex flex-col w-0 flex-1 overflow-visible">
+        <div className="flex flex-col w-0 flex-1 overflow-hidden h-screen">
           <main className="relative z-0 focus:outline-none" tabIndex={0}>
             <Header title={location.pathname.startsWith("/settings") ? "Setting - Daemon Task" : "Namespace - Daemon Task"}
               props={

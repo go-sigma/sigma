@@ -112,6 +112,16 @@ function AppLayout() {
   const location = useLocation();
   const menuProps = getAppMenuProps(location.pathname, location.search);
 
+  // The app shell owns the scrolling: the sidebar is fixed and every page
+  // scrolls inside its own container, so the document itself must never scroll.
+  // Without this the wheel over a pagination bar sits on the window scroller and
+  // drags the whole page (pagination included) up instead of scrolling the list.
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    html.classList.add("overflow-hidden");
+    return () => html.classList.remove("overflow-hidden");
+  }, []);
+
   return (
     <AppLayoutMenuContext.Provider value={true}>
       <div className="min-h-screen flex overflow-hidden bg-white dark:bg-gray-950">
