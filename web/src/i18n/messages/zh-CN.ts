@@ -179,6 +179,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "tag.table.createdAt": "创建时间",
   "tag.table.updatedAt": "更新时间",
 
+  "builder.runners": "构建器运行记录",
   "builder.ociRepository": "OCI 仓库",
   "builder.ociRepositoryDescription": "构建器会将制品推送到此仓库",
   "builder.codeRepository": "代码仓库",

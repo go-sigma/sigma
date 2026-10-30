@@ -177,6 +177,7 @@ const enUS = {
   "tag.table.createdAt": "Created At",
   "tag.table.updatedAt": "Updated At",
 
+  "builder.runners": "Builder runners",
   "builder.ociRepository": "OCI Repository",
   "builder.ociRepositoryDescription": "Builder will push the artifact to this repository",
   "builder.codeRepository": "Code Repository",

@@ -270,7 +270,7 @@ export default function ({ localServer }: { localServer: string }) {
         <Menu localServer={localServer} item="repositories" namespace={namespace} repository={repositoryObj?.name} selfClick={true} />
         <div className="flex flex-col w-0 flex-1 overflow-hidden h-screen">
           <main className="relative z-0 focus:outline-none">
-            <Header title="Repository"
+            <Header title={t("builder.runners")}
               props={
                 <RepositoryTabs
                   namespace={namespace || ""}
