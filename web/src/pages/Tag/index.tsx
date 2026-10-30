@@ -540,7 +540,7 @@ export default function Tag({ localServer }: { localServer: string }) {
                           {/* <th className="pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                               Pull Times
                             </th> */}
-                          <th className="pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          <th className="pb-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                             Vulnerabilities
                           </th>
                           <th className="pb-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
@@ -709,7 +709,7 @@ function DetailItem({ artifact, onOpen }: { artifact: IArtifact; onOpen: () => v
       {/* <td className="text-right text-xs w-45">
         {artifact.pull_times}
       </td> */}
-      <td className="text-right text-xs w-55">
+      <td className="text-left text-xs w-55">
         <span className="bg-red-800 text-white text-xs font-medium mr-1 px-2 py-0.5 dark:bg-red-900 dark:text-red-300">
           <span>{vulnerabilityObj.critical || 0}</span> C
         </span>
