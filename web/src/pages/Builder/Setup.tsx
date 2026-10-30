@@ -18,7 +18,7 @@ import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Info } from 'lucide-react';
 import axios from "axios";
 import { orderBy } from "lodash-es";
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -95,6 +95,28 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // The effects below rewrite the query string, so they must not depend on it: reading the
+  // parameters through a ref keeps them current without re-running the effects, which would
+  // re-fetch the builder and revert whatever the user just changed (the platform picker lost
+  // every selection after the first one for exactly that reason).
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
+  // react-router rebuilds setSearchParams whenever the query string changes, so call it through a
+  // ref: setQueryParams stays stable and always merges its patch into the latest query string.
+  const setSearchParamsRef = useRef(setSearchParams);
+  useEffect(() => {
+    setSearchParamsRef.current = setSearchParams;
+  }, [setSearchParams]);
+  const setQueryParams = useCallback((patch: Record<string, string>) => {
+    setSearchParamsRef.current({
+      ...Object.fromEntries(searchParamsRef.current.entries()),
+      ...patch,
+    });
+  }, []);
 
   const { id, namespace: routeNamespace } = useParams<{ id?: string; namespace?: string }>();
 
@@ -308,29 +330,28 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
     if (!codeRepositorySelected.id) {
       return;
     }
+    const params = searchParamsRef.current;
     let url = `${localServer}/api/v1/coderepos/${codeRepositoryProviderSelected.provider}/repos/${codeRepositorySelected.id}/branches`;
     axios.get(url).then(response => {
       if (response.status == 200) {
         const data = response.data as ICodeRepositoryBranchList;
         setCodeRepositoryBranchList(data.items);
-        if (searchParams.get('code_repository_branch_name') !== null) {
+        if (params.get('code_repository_branch_name') !== null) {
           for (let i = 0; i < data.total; i++) {
-            if (data.items[i].name === searchParams.get('code_repository_branch_name')) {
+            if (data.items[i].name === params.get('code_repository_branch_name')) {
               setCodeRepositoryBranchSelected(data.items[i]);
-              setSearchParams({
-                ...Object.fromEntries(searchParams.entries()),
+              setQueryParams({
                 code_repository_branch_name: data.items[i].name,
               });
               break;
             }
           }
         }
-        if (searchParams.get('cron_branch_name') !== null) {
+        if (params.get('cron_branch_name') !== null) {
           for (let i = 0; i < data.total; i++) {
-            if (data.items[i].name === searchParams.get('cron_branch_name')) {
+            if (data.items[i].name === params.get('cron_branch_name')) {
               setCodeRepositoryBranchSelected(data.items[i]);
-              setSearchParams({
-                ...Object.fromEntries(searchParams.entries()),
+              setQueryParams({
                 cron_branch_name: data.items[i].name,
               });
               break;
@@ -345,7 +366,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [codeRepositorySelected, codeRepositoryProviderSelected.provider, localServer, searchParams, setSearchParams]);
+  }, [codeRepositorySelected, codeRepositoryProviderSelected.provider, localServer, setQueryParams]);
 
   // Branches change far more often than repositories, so refresh them when a branch picker
   // is opened instead of only using the snapshot taken when the repository was chosen.
@@ -539,19 +560,18 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
     if (id === undefined) {
       return;
     }
-    axios.get(`${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${searchParams.get('repository_id')}`).then(response => {
+    const params = searchParamsRef.current;
+    axios.get(`${localServer}/api/v1/namespaces/${namespaceSelected.id}/repositories/${params.get('repository_id')}`).then(response => {
       if (response?.status === 200) {
         let repositoryItem = response.data as IRepositoryItem;
         let builderItem = repositoryItem.builder || {} as IBuilderItem;
         setBuilderSource(builderItem.source);
-        setSearchParams({
-          ...Object.fromEntries(searchParams.entries()),
+        setQueryParams({
           builder_source: builderItem.source,
           cron_enabled: builderItem.cron_rule !== null ? "true" : "false",
         });
         if (builderItem.scm_branch !== undefined) {
-          setSearchParams({
-            ...Object.fromEntries(searchParams.entries()),
+          setQueryParams({
             code_repository_branch_name: builderItem.scm_branch || '',
           });
         }
@@ -580,8 +600,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
             }
           }
         }
-        setSearchParams({
-          ...Object.fromEntries(searchParams.entries()),
+        setQueryParams({
           platforms: ps,
         });
         setSelectedPlatforms(platforms);
@@ -593,13 +612,11 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
           setCronTagTemplate(builderItem.cron_tag_template || '');
           if (builderItem.source === 'SelfCodeRepository') {
             setCronBranch(builderItem.cron_branch || '');
-            setSearchParams({
-              ...Object.fromEntries(searchParams.entries()),
+            setQueryParams({
               cron_branch_name: builderItem.cron_branch || '',
             });
           } else if (builderItem.source === 'CodeRepository') {
-            setSearchParams({
-              ...Object.fromEntries(searchParams.entries()),
+            setQueryParams({
               cron_branch_name: builderItem.cron_branch || '',
             });
           }
@@ -609,7 +626,7 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
       const errorcode = error.response.data as IHTTPError;
       Toast({ level: "warning", title: errorcode.title, message: errorcode.description });
     });
-  }, [id, localServer, namespaceSelected.id, searchParams, setSearchParams]);
+  }, [id, localServer, namespaceSelected.id, setQueryParams]);
 
   return (
     <Fragment>
@@ -1342,22 +1359,15 @@ export default function ({ localServer, embedded = false, onConfigured }: { loca
                         {supportPlatforms.map(item => (
                           <DropdownMenuCheckboxItem
                             key={item.name}
+                            // Keep the menu open so several platforms can be selected in one go.
+                            closeOnClick={false}
                             checked={selectedPlatforms.some(selected => selected.name === item.name)}
                             onCheckedChange={(checked) => {
                               const platforms = checked
                                 ? [...selectedPlatforms, item]
                                 : selectedPlatforms.filter(selected => selected.name !== item.name);
-                              let ps = "";
-                              for (let i = 0; i < platforms.length; i++) {
-                              if (i == 0) {
-                              ps += platforms[i].name;
-                              } else {
-                              ps += `,${platforms[i].name}`
-                              }
-                              }
-                              setSearchParams({
-                              ...Object.fromEntries(searchParams.entries()),
-                              platforms: ps,
+                              setQueryParams({
+                                platforms: platforms.map(platform => platform.name).join(","),
                               });
                               setSelectedPlatforms(platforms);
                             }}
