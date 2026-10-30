@@ -16,7 +16,7 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
-import { CornerDownLeft, SquarePen, Trash2 } from "lucide-react";
+import { CornerDownLeft, EllipsisVertical, SquarePen, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useNavigate, useParams } from "react-router-dom";
@@ -48,6 +48,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -376,7 +382,7 @@ export default function ({ localServer }: { localServer: string }) {
                         }}
                       />
                     </TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className="text-center">
                       {t("common.action")}
                     </TableHead>
                   </TableRow>
@@ -669,30 +675,37 @@ function TableItem({
             .tz(dayjs.tz.guess())
             .format("YYYY-MM-DD HH:mm:ss")}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-center">
           {canManage && (
-            <div className="flex items-center justify-end gap-1">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="size-6"
-                title={t("common.update")}
-                aria-label={t("common.update")}
-                onClick={() => setUpdateRepositoryModal(true)}
-              >
-                <SquarePen />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="size-6 text-destructive hover:text-destructive"
-                title={t("common.delete")}
-                aria-label={t("common.delete")}
-                onClick={() => setDeleteRepositoryModal(true)}
-              >
-                <Trash2 />
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 text-muted-foreground data-popup-open:bg-muted"
+                  >
+                    <EllipsisVertical />
+                    <span className="sr-only">{t("common.openOptions")}</span>
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-32">
+                <DropdownMenuItem
+                  onClick={() => setUpdateRepositoryModal(true)}
+                >
+                  <SquarePen />
+                  <span>{t("common.update")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteRepositoryModal(true)}
+                >
+                  <Trash2 />
+                  <span>{t("common.delete")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </TableCell>
       </TableRow>
