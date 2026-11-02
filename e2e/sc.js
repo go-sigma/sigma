@@ -6,7 +6,7 @@ export const options = {
 };
 
 const username = 'sigma';
-const password = 'Admin@123';
+const password = __ENV.SIGMA_ADMIN_PASSWORD;
 
 const host = "http://127.0.0.1:3000";
 

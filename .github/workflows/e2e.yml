@@ -51,5 +51,5 @@ jobs:
         run: |
           ./e2e/push.sh
           curl https://github.com/grafana/k6/releases/download/v2.3.0/k6-v2.3.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
-          ./k6 run e2e/sc.js
+          ./k6 run -e SIGMA_ADMIN_PASSWORD="$SIGMA_ADMIN_PASSWORD" e2e/sc.js
           docker logs sigma
