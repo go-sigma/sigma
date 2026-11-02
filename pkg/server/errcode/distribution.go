@@ -38,6 +38,12 @@ func NewDSError(c *gin.Context, code ErrCode) {
 }
 
 var (
+	// StatusClientClosedRequest is the non-standard status code (nginx
+	// convention) used when the client closed the connection before the response
+	// was written. The distribution spec has no error code for this case, and the
+	// client never reads the response, so only the status is written.
+	StatusClientClosedRequest = 499
+
 	// DSErrCodeUnknown is a generic error that can be used as a last
 	// resort if there is no situation-specific error message that can be used
 	DSErrCodeUnknown = ErrCode{

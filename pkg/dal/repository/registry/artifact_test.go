@@ -117,6 +117,7 @@ func TestArtifactRepositoryAssociateArtifact(t *testing.T) {
 	child := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, "sha256:child")
 	referrer := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, "sha256:referrer")
 	referrer.ReferrerID = &parent.ID
+	referrer.ReferrerDigest = &parent.Digest
 	require.NoError(t, fixture.ArtifactRepository.Create(ctx, parent))
 	require.NoError(t, fixture.ArtifactRepository.Create(ctx, child))
 	require.NoError(t, fixture.ArtifactRepository.Create(ctx, referrer))
@@ -279,4 +280,55 @@ func TestArtifactRepositoryGetByDigestWithReports(t *testing.T) {
 
 	_, err = fixture.ArtifactRepository.GetByDigestWithReports(ctx, fixture.Repository.ID, "sha256:missing")
 	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+}
+
+func TestArtifactRepositoryReferrersPushedBeforeSubject(t *testing.T) {
+	fixture := newRegistryFixture(t)
+	ctx := t.Context()
+
+	subjectDigest := "sha256:referrers-subject"
+	referrerDigest := "sha256:referrers-attestation"
+
+	// The client pushes the referrer first: the subject digest is known, but the
+	// subject artifact does not exist yet.
+	referrerObj := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, referrerDigest)
+	referrerObj.ReferrerDigest = &subjectDigest
+	require.NoError(t, fixture.ArtifactRepository.Create(ctx, referrerObj))
+
+	got, err := fixture.ArtifactRepository.GetReferrers(ctx, fixture.Repository.ID, subjectDigest, nil)
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	require.Equal(t, referrerObj.ID, got[0].ID)
+	require.Nil(t, got[0].ReferrerID)
+
+	got, err = fixture.ArtifactRepository.FindReferrersBySubjects(ctx, fixture.Repository.ID, []string{subjectDigest})
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	require.Equal(t, referrerObj.ID, got[0].ID)
+
+	// The subject is pushed afterwards and links the pending referrer.
+	subjectObj := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, subjectDigest)
+	require.NoError(t, fixture.ArtifactRepository.Create(ctx, subjectObj))
+	require.NoError(t, fixture.ArtifactRepository.ResolveReferrers(ctx, fixture.Repository.ID, subjectDigest, subjectObj.ID))
+
+	referrerRow, err := fixture.ArtifactRepository.GetByDigest(ctx, fixture.Repository.ID, referrerDigest)
+	require.NoError(t, err)
+	require.NotNil(t, referrerRow.ReferrerID)
+	require.Equal(t, subjectObj.ID, *referrerRow.ReferrerID)
+}
+func TestArtifactRepositoryFindDeletableWithCursorSkipsPendingReferrers(t *testing.T) {
+	fixture := newRegistryFixture(t)
+	ctx := t.Context()
+
+	// A referrer whose subject is not stored yet must not be collected: it does
+	// not resolve to an artifact id, but it is referenced by digest.
+	subjectDigest := "sha256:pending-subject"
+	referrerObj := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, "sha256:pending-attestation")
+	referrerObj.ReferrerDigest = &subjectDigest
+	require.NoError(t, fixture.ArtifactRepository.Create(ctx, referrerObj))
+
+	before := time.Now().Add(time.Hour).UnixMilli()
+	deletable, err := fixture.ArtifactRepository.FindDeletableWithCursor(ctx, fixture.Repository.ID, before, "", 10)
+	require.NoError(t, err)
+	require.Empty(t, deletable)
 }

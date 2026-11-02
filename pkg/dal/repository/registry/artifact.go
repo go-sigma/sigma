@@ -45,6 +45,9 @@ type ArtifactRepository interface {
 	FindDeletableWithCursor(ctx context.Context, repositoryID string, before int64, last string, limit int64) ([]*models.Artifact, error)
 	// FindReferrersBySubjects finds referrers for the given subject digests
 	FindReferrersBySubjects(ctx context.Context, repositoryID string, digests []string) ([]*models.Artifact, error)
+	// ResolveReferrers links the referrers that were stored before their subject
+	// arrived by pointing them at the subject artifact ID
+	ResolveReferrers(ctx context.Context, repositoryID string, subjectDigest string, subjectID string) error
 	// Get gets the artifact with the specified artifact ID
 	Get(ctx context.Context, id string) (*models.Artifact, error)
 	// GetByDigest gets the artifact with the specified repository and digest
@@ -142,26 +145,46 @@ func (s *artifactRepository) FindDeletableWithCursor(ctx context.Context, reposi
 
 	return s.tx.Artifact.WithContext(ctx).
 		Where(s.tx.Artifact.ID.Gt(last), s.tx.Artifact.RepositoryID.Eq(repositoryID), s.tx.Artifact.DeletedAt.Eq(0)).
-		Where(s.tx.Artifact.LastPull.Lt(before)).
-		Or(s.tx.Artifact.LastPull.IsNull(), s.tx.Artifact.UpdatedAt.Lt(before)).
-		Where(s.tx.Artifact.ReferrerID.IsNull()).
+		Where(field.Or(
+			s.tx.Artifact.LastPull.IsNull(),
+			s.tx.Artifact.LastPull.Lt(before),
+			s.tx.Artifact.UpdatedAt.Lt(before),
+		)).
+		Where(s.tx.Artifact.ReferrerDigest.IsNull()).
 		Not(gen.Exists(tagSubQuery), gen.Exists(parentSubQuery)).
 		Limit(int(limit)).
 		Order(s.tx.Artifact.ID).
 		Find()
 }
 
-// FindReferrersBySubjects finds referrers for the given subject digests
+// FindReferrersBySubjects finds referrers for the given subject digests.
+// The digest is matched instead of the resolved subject ID so that referrers
+// stored before their subject are found as well.
 func (s *artifactRepository) FindReferrersBySubjects(ctx context.Context, repositoryID string, digests []string) ([]*models.Artifact, error) {
 	if len(digests) == 0 {
 		return nil, nil
 	}
-	subject := s.tx.Artifact.As("subject")
 	return s.tx.Artifact.WithContext(ctx).
-		Join(subject, subject.ID.EqCol(s.tx.Artifact.ReferrerID)).
-		Where(subject.RepositoryID.Eq(repositoryID), subject.DeletedAt.Eq(0), subject.Digest.In(digests...)).
-		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID), s.tx.Artifact.DeletedAt.Eq(0)).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Where(s.tx.Artifact.DeletedAt.Eq(0)).
+		Where(s.tx.Artifact.ReferrerDigest.In(digests...)).
 		Find()
+}
+
+// ResolveReferrers links the referrers that were stored before their subject
+// arrived. A referrer keeps the subject digest from the moment it is pushed, so
+// the link is completed as soon as the subject artifact exists.
+func (s *artifactRepository) ResolveReferrers(ctx context.Context, repositoryID string, subjectDigest string, subjectID string) error {
+	_, err := s.tx.Artifact.WithContext(ctx).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Where(s.tx.Artifact.ReferrerDigest.Eq(subjectDigest)).
+		Where(s.tx.Artifact.ReferrerID.IsNull()).
+		Where(s.tx.Artifact.DeletedAt.Eq(0)).
+		UpdateSimple(
+			s.tx.Artifact.ReferrerID.Value(subjectID),
+			s.tx.Artifact.UpdatedAt.Value(time.Now().UnixMilli()),
+		)
+	return err
 }
 
 // Get gets the artifact with the specified artifact ID
@@ -473,18 +496,17 @@ func (s *artifactRepository) GetRepositorySize(ctx context.Context, repositoryID
 	return res.BlobsSize, nil
 }
 
-// GetReferrers gets artifacts that refer to the specified subject digest
+// GetReferrers gets artifacts that refer to the specified subject digest.
+// The subject artifact does not have to be stored: a referrer can be pushed
+// before its subject.
 func (s *artifactRepository) GetReferrers(ctx context.Context, repositoryID string, digest string, artifactTypes []string) ([]*models.Artifact, error) {
-	artifactObj, err := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
-		Where(s.tx.Artifact.Digest.Eq(digest)).First()
-	if err != nil {
-		return nil, err
-	}
-	q := s.tx.Artifact.WithContext(ctx).Where(s.tx.Artifact.RepositoryID.Eq(repositoryID))
+	q := s.tx.Artifact.WithContext(ctx).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
+		Where(s.tx.Artifact.ReferrerDigest.Eq(digest))
 	if len(artifactTypes) > 0 {
 		q = q.Where(s.tx.Artifact.ConfigMediaType.In(artifactTypes...))
 	}
-	return q.Where(s.tx.Artifact.ReferrerID.Eq(artifactObj.ID)).Find()
+	return q.Find()
 }
 
 // IsArtifactAssociatedWithArtifact checks whether the artifact is associated with another artifact

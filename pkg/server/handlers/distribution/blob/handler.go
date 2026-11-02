@@ -15,6 +15,7 @@
 package blob
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -85,8 +86,17 @@ func init() {
 
 // dsError maps a service error (typically an errcode.ErrCode) into a
 // distribution-spec HTTP error response.
+//
+// A canceled request context means the client closed the connection (docker push
+// abandons the in-flight requests when it retries), so the failure is reported
+// with the client-closed status instead of a misleading 500.
 func (h *handler) dsError(c *gin.Context, err error) {
 	if err == nil {
+		return
+	}
+	if ctxErr := c.Request.Context().Err(); ctxErr != nil {
+		slog.Debug("client closed the request before it completed", "err", err, "ctxErr", ctxErr)
+		c.AbortWithStatus(errcode.StatusClientClosedRequest)
 		return
 	}
 	if e, ok := errcode.AsType[errcode.ErrCode](err); ok {

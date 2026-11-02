@@ -15,9 +15,19 @@
 package manifest
 
 import (
+	"context"
+	"encoding/json/v2"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/go-sigma/sigma/pkg/server/errcode"
+	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
 func TestParseRef(t *testing.T) {
@@ -27,4 +37,35 @@ func TestParseRef(t *testing.T) {
 
 	refs = h.parseRef("sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157")
 	assert.Equal(t, refs.Digest.String(), "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157")
+}
+
+func TestDsErrorClientClosedRequest(t *testing.T) {
+	ginEngine := testkit.NewGin()
+	ginEngine.PUT("/v2/library/alpine/manifests/latest", func(c *gin.Context) {
+		ctx, cancel := context.WithCancel(c.Request.Context())
+		cancel()
+		c.Request = c.Request.WithContext(ctx)
+		(&handler{}).dsError(c, errcode.DSErrCodeUnknown)
+	})
+
+	recorder := httptest.NewRecorder()
+	ginEngine.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/v2/library/alpine/manifests/latest", nil))
+	require.Equal(t, errcode.StatusClientClosedRequest, recorder.Code)
+	require.Empty(t, recorder.Body.Bytes())
+}
+
+func TestDsErrorMapsErrCode(t *testing.T) {
+	ginEngine := testkit.NewGin()
+	ginEngine.PUT("/v2/library/alpine/manifests/latest", func(c *gin.Context) {
+		(&handler{}).dsError(c, errcode.DSErrCodeManifestUnknown)
+	})
+
+	recorder := httptest.NewRecorder()
+	ginEngine.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/v2/library/alpine/manifests/latest", nil))
+	require.Equal(t, http.StatusNotFound, recorder.Code)
+
+	var response dtspecv1.ErrorResponse
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	require.Len(t, response.Errors, 1)
+	require.Equal(t, errcode.DSErrCodeManifestUnknown.Code, response.Errors[0].Code)
 }

@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS `artifacts` (
   `pushed_at` integer NOT NULL,
   `last_pull` integer,
   `referrer_id` varchar(36),
+  `referrer_digest` varchar(256),
   `pull_times` bigint NOT NULL DEFAULT 0,
   `created_at` integer NOT NULL,
   `updated_at` integer NOT NULL,
@@ -185,6 +186,8 @@ CREATE INDEX `artifacts_idx_gc_deletable` ON `artifacts` (
 );
 
 CREATE INDEX `artifacts_idx_referrer_deleted` ON `artifacts` (`referrer_id`, `deleted_at`);
+
+CREATE INDEX `artifacts_idx_referrer_digest` ON `artifacts` (`repository_id`, `referrer_digest`, `deleted_at`);
 
 CREATE TABLE IF NOT EXISTS `artifact_sboms` (
   `id` varchar(36) PRIMARY KEY,

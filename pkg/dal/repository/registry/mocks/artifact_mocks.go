@@ -422,6 +422,20 @@ func (mr *MockArtifactRepositoryMockRecorder) ListArtifact(ctx, req any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListArtifact", reflect.TypeOf((*MockArtifactRepository)(nil).ListArtifact), ctx, req)
 }
 
+// ResolveReferrers mocks base method.
+func (m *MockArtifactRepository) ResolveReferrers(ctx context.Context, repositoryID, subjectDigest, subjectID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveReferrers", ctx, repositoryID, subjectDigest, subjectID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResolveReferrers indicates an expected call of ResolveReferrers.
+func (mr *MockArtifactRepositoryMockRecorder) ResolveReferrers(ctx, repositoryID, subjectDigest, subjectID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveReferrers", reflect.TypeOf((*MockArtifactRepository)(nil).ResolveReferrers), ctx, repositoryID, subjectDigest, subjectID)
+}
+
 // UpdateSbom mocks base method.
 func (m *MockArtifactRepository) UpdateSbom(ctx context.Context, artifactID string, updates map[string]any) error {
 	m.ctrl.T.Helper()

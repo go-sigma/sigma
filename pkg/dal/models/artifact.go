@@ -52,6 +52,11 @@ type Artifact struct {
 	ReferrerID *string
 	Referrer   *Artifact
 
+	// ReferrerDigest is the digest of the artifact this artifact refers to (the
+	// OCI subject). Unlike ReferrerID it is always persisted, so a referrer that
+	// is pushed before its subject can be linked once the subject is stored.
+	ReferrerDigest *string `gorm:"size:256"`
+
 	// ArtifactSubs In the artifact_artifacts table, artifact_id refers to the upper-level artifact index,
 	// and artifact_sub_id refers to the lower-level artifact.
 	ArtifactSubs []*Artifact `gorm:"many2many:artifact_artifacts;"`

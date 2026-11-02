@@ -403,11 +403,12 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 	}
 
 	var blobsSize int64
-	var digests = make([]string, 0, len(manifest.References())+1)
+	digests := make([]string, 0, len(manifest.References()))
 	for _, reference := range manifest.References() {
 		digests = append(digests, reference.Digest.String())
 		blobsSize += reference.Size
 	}
+	digests = dedupeDigests(digests)
 
 	artifactObj := &models.Artifact{
 		ID:           uuid.NewV7String(),
@@ -419,12 +420,15 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 		ContentType:  mediaType,
 	}
 
-	referrerID, err := s.getArtifactReferrer(ctx, repository, manifest)
+	subject, err := s.getArtifactSubject(ctx, repositoryObj, manifest)
 	if err != nil {
-		slog.Error("get artifact referrer failed", "err", err, "digest", dgst.String())
+		slog.Error("get artifact subject failed", "err", err, "digest", dgst.String())
 		return "", errcode.DSErrCodeUnknown
 	}
-	artifactObj.ReferrerID = referrerID
+	if subject != nil {
+		artifactObj.ReferrerDigest = &subject.Digest
+		artifactObj.ReferrerID = subject.ID
+	}
 
 	tryFindArtifactObj, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, dgst.String())
 	if err != nil {
@@ -478,7 +482,6 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 				artifactObj.ConfigMediaType = new(reference.MediaType)
 				artifactObj.ConfigRaw = configRaw
 			}
-			digests = append(digests, reference.Digest.String())
 		}
 
 		artifactObj.Type = s.getArtifactType(descriptor, manifest)
@@ -521,7 +524,7 @@ type manifestRefs struct {
 func (s *service) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, manifest distribution.Manifest, descriptor distribution.Descriptor, isNewArtifact bool) error {
 	blobObjs, err := s.RepoBlob.FindByDigests(ctx, digests)
 	if err != nil {
-		slog.Error("find blobs failed", "err", err, "digest", refs.Digest.String())
+		logWriteError(ctx, err, "find blobs failed", "digest", refs.Digest.String())
 		return errcode.DSErrCodeUnknown
 	}
 
@@ -531,13 +534,16 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 		artifactRepository := reporegistry.NewArtifactRepository(tx)
 		err = artifactRepository.Create(ctx, artifactObj)
 		if err != nil {
-			slog.Error("create artifact failed", "err", err, "repository", repositoryObj.Name, "digest", refs.Digest.String(),
+			logWriteError(ctx, err, "create artifact failed", "repository", repositoryObj.Name, "digest", refs.Digest.String(),
 				"artifactObj", artifactObj)
 			if e, ok := err.(errcode.ErrCode); ok {
 				return e
 			}
 			return errcode.DSErrCodeUnknown
 		}
+		// The subject may have been pushed after this referrer: link the
+		// referrers that are still waiting for it.
+		s.resolveReferrers(ctx, artifactRepository, repositoryObj, artifactObj)
 		if refs.Tag != "" {
 			tagRepository := reporegistry.NewTagRepository(tx)
 			err = tagRepository.Create(ctx, &models.Tag{
@@ -547,7 +553,7 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 				Name:         refs.Tag,
 			})
 			if err != nil {
-				slog.Error("create tag failed", "err", err, "tag", refs.Tag, "digest", refs.Digest.String())
+				logWriteError(ctx, err, "create tag failed", "tag", refs.Tag, "digest", refs.Digest.String())
 				if e, ok := err.(errcode.ErrCode); ok { // maybe got exceed tag quota error
 					return e
 				}
@@ -557,7 +563,7 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 		if isNewArtifact {
 			namespaceRepository := reponamespace.NewNamespaceRepository(tx)
 			if err := namespaceRepository.IncrementSize(ctx, repositoryObj.NamespaceID, artifactObj.BlobsSize); err != nil {
-				slog.Error("increment namespace size failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
+				logWriteError(ctx, err, "increment namespace size failed", "namespace_id", repositoryObj.NamespaceID)
 				if e, ok := err.(errcode.ErrCode); ok {
 					return e
 				}
@@ -565,7 +571,7 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 			}
 			repositoryRepository := reporegistry.NewRepositoryRepository(tx)
 			if err := repositoryRepository.IncrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
-				slog.Error("increment repository size failed", "err", err, "repository_id", repositoryObj.ID)
+				logWriteError(ctx, err, "increment repository size failed", "repository_id", repositoryObj.ID)
 				if e, ok := err.(errcode.ErrCode); ok {
 					return e
 				}
@@ -620,7 +626,7 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 func (s *service) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, _ distribution.Manifest, _ distribution.Descriptor, isNewArtifact bool) error {
 	artifactObjs, err := s.RepoArtifact.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
-		slog.Error("get artifacts failed", "err", err, "repository", repositoryObj.Name, "digests", digests)
+		logWriteError(ctx, err, "get artifacts failed", "repository", repositoryObj.Name, "digests", digests)
 		return errcode.DSErrCodeUnknown
 	}
 
@@ -630,12 +636,15 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 		repoArtifact := reporegistry.NewArtifactRepository(tx)
 		err = repoArtifact.Create(ctx, artifactObj)
 		if err != nil {
-			slog.Error("create artifact failed", "err", err, "repository", repositoryObj.Name, "digest", refs.Digest.String())
+			logWriteError(ctx, err, "create artifact failed", "repository", repositoryObj.Name, "digest", refs.Digest.String())
 			if e, ok := err.(errcode.ErrCode); ok {
 				return e
 			}
 			return errcode.DSErrCodeUnknown
 		}
+		// The subject may have been pushed after this referrer: link the
+		// referrers that are still waiting for it.
+		s.resolveReferrers(ctx, repoArtifact, repositoryObj, artifactObj)
 		if refs.Tag != "" {
 			tagRepository := reporegistry.NewTagRepository(tx)
 			err = tagRepository.Create(ctx, &models.Tag{
@@ -645,7 +654,7 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 				Name:         refs.Tag,
 			})
 			if err != nil {
-				slog.Error("create tag failed", "err", err, "repository", repositoryObj.Name, "tag", refs.Tag)
+				logWriteError(ctx, err, "create tag failed", "repository", repositoryObj.Name, "tag", refs.Tag)
 				if e, ok := err.(errcode.ErrCode); ok {
 					return e
 				}
@@ -655,7 +664,7 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 		if isNewArtifact {
 			namespaceRepository := reponamespace.NewNamespaceRepository(tx)
 			if err := namespaceRepository.IncrementSize(ctx, repositoryObj.NamespaceID, artifactObj.BlobsSize); err != nil {
-				slog.Error("increment namespace size failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
+				logWriteError(ctx, err, "increment namespace size failed", "namespace_id", repositoryObj.NamespaceID)
 				if e, ok := err.(errcode.ErrCode); ok {
 					return e
 				}
@@ -663,7 +672,7 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 			}
 			repositoryRepository := reporegistry.NewRepositoryRepository(tx)
 			if err := repositoryRepository.IncrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
-				slog.Error("increment repository size failed", "err", err, "repository_id", repositoryObj.ID)
+				logWriteError(ctx, err, "increment repository size failed", "repository_id", repositoryObj.ID)
 				if e, ok := err.(errcode.ErrCode); ok {
 					return e
 				}
@@ -675,7 +684,7 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 			Tag:          refs.Tag,
 		})
 		if err != nil {
-			slog.Error("enqueue tag pushed task failed", "err", err, "tag", refs.Tag, "digest", refs.Digest.String())
+			logWriteError(ctx, err, "enqueue tag pushed task failed", "tag", refs.Tag, "digest", refs.Digest.String())
 			return errcode.DSErrCodeUnknown
 		}
 		return nil
@@ -768,13 +777,20 @@ func (s *service) getArtifactType(descriptor distribution.Descriptor, manifest d
 	return enums.ArtifactTypeUnknown
 }
 
-// getArtifactReferrer resolves the referrer artifact id (OCI Subject).
-func (s *service) getArtifactReferrer(ctx context.Context, repository string, manifest distribution.Manifest) (*string, error) {
+// artifactSubject is the OCI subject referenced by a manifest. Digest is always
+// known, while ID is only set once the subject artifact is stored.
+type artifactSubject struct {
+	Digest string
+	ID     *string
+}
+
+// getArtifactSubject extracts the OCI subject from the manifest. A subject that
+// is not stored yet is not an error: a client pushes the referrer and its
+// subject in parallel (buildkit pushes the image manifest together with its
+// provenance attestation), and the registry must accept either order. The link
+// is completed by ResolveReferrers when the subject is stored later.
+func (s *service) getArtifactSubject(ctx context.Context, repositoryObj *models.Repository, manifest distribution.Manifest) (*artifactSubject, error) {
 	mediaType, data, err := manifest.Payload()
-	if err != nil {
-		return nil, err
-	}
-	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err != nil {
 		return nil, err
 	}
@@ -806,12 +822,57 @@ func (s *service) getArtifactReferrer(ctx context.Context, repository string, ma
 		return nil, nil
 	}
 
+	subject := &artifactSubject{Digest: dgst}
 	artifactObj, err := s.RepoArtifact.GetByDigest(ctx, repositoryObj.ID, dgst)
-	if err != nil {
+	switch {
+	case err == nil:
+		subject.ID = &artifactObj.ID
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		slog.Debug("subject artifact not found, it will be linked once pushed",
+			"digest", dgst, "repository", repositoryObj.Name)
+	default:
 		return nil, err
 	}
-	referrerID := artifactObj.ID
-	return &referrerID, nil
+	return subject, nil
+}
+
+// dedupeDigests removes repeated digests while keeping their order. A manifest
+// may reference the same digest more than once, and the digest list feeds both
+// the blob lookup and the blob associations, so it must not contain duplicates.
+func dedupeDigests(digests []string) []string {
+	seen := make(map[string]struct{}, len(digests))
+	result := make([]string, 0, len(digests))
+	for _, dgst := range digests {
+		if _, ok := seen[dgst]; ok {
+			continue
+		}
+		seen[dgst] = struct{}{}
+		result = append(result, dgst)
+	}
+	return result
+}
+
+// resolveReferrers links the referrers that were pushed before this artifact,
+// so a referrer stored ahead of its subject is treated as referenced by the GC.
+// A failure here is not fatal: the referrers API is queried by digest, and a
+// later push of the same artifact retries the link.
+func (s *service) resolveReferrers(ctx context.Context, repo reporegistry.ArtifactRepository, repositoryObj *models.Repository, artifactObj *models.Artifact) {
+	if err := repo.ResolveReferrers(ctx, repositoryObj.ID, artifactObj.Digest, artifactObj.ID); err != nil {
+		logWriteError(ctx, err, "resolve referrers failed", "repository", repositoryObj.Name, "digest", artifactObj.Digest)
+	}
+}
+
+// logWriteError reports a manifest write failure. A canceled context means the
+// client closed the connection (docker push abandons the in-flight requests
+// when it retries), which is not a server failure: it is logged at warning level
+// because the client retry usually succeeds.
+func logWriteError(ctx context.Context, err error, msg string, args ...any) {
+	args = append([]any{"err", err}, args...)
+	if ctx.Err() != nil || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		slog.Warn(msg, append(args, "reason", "client closed the request")...)
+		return
+	}
+	slog.Error(msg, args...)
 }
 
 // DeleteManifest deletes a manifest by digest or tag.

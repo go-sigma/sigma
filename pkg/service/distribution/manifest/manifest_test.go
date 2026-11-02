@@ -312,50 +312,113 @@ func TestDeleteManifestErrorMapping(t *testing.T) {
 	}
 }
 
-func TestGetArtifactReferrer(t *testing.T) {
+func TestGetArtifactSubject(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ctx := t.Context()
 	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
 	subjectDigest := digest.FromString("subject")
-	referrerArtifact := &models.Artifact{ID: "referrer-id", RepositoryID: repository.ID, Digest: subjectDigest.String()}
+	subjectArtifact := &models.Artifact{ID: "subject-id", RepositoryID: repository.ID, Digest: subjectDigest.String()}
 	payload, err := json.Marshal(imgspecv1.Manifest{
 		MediaType: imgspecv1.MediaTypeImageManifest,
 		Subject:   &imgspecv1.Descriptor{Digest: subjectDigest},
 	})
 	require.NoError(t, err)
 
-	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
 	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
-	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
-	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, subjectDigest.String()).Return(referrerArtifact, nil)
+	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, subjectDigest.String()).Return(subjectArtifact, nil)
 
-	svc := &service{RepoRegistry: repoRegistry, RepoArtifact: repoArtifact}
-	got, err := svc.getArtifactReferrer(ctx, repository.Name, fakeManifest{
+	svc := &service{RepoArtifact: repoArtifact}
+	got, err := svc.getArtifactSubject(ctx, repository, fakeManifest{
 		mediaType: imgspecv1.MediaTypeImageManifest,
 		payload:   payload,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, got)
-	require.Equal(t, referrerArtifact.ID, *got)
+	require.Equal(t, subjectDigest.String(), got.Digest)
+	require.NotNil(t, got.ID)
+	require.Equal(t, subjectArtifact.ID, *got.ID)
 }
 
-func TestGetArtifactReferrerWithoutSubject(t *testing.T) {
+func TestGetArtifactSubjectNotStoredYet(t *testing.T) {
 	ctrl := gomock.NewController(t)
+	ctx := t.Context()
+	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
+	subjectDigest := digest.FromString("subject")
+	payload, err := json.Marshal(imgspecv1.Index{
+		MediaType: imgspecv1.MediaTypeImageIndex,
+		Subject:   &imgspecv1.Descriptor{Digest: subjectDigest},
+	})
+	require.NoError(t, err)
+
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
+	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, subjectDigest.String()).Return(nil, gorm.ErrRecordNotFound)
+
+	svc := &service{RepoArtifact: repoArtifact}
+	got, err := svc.getArtifactSubject(ctx, repository, fakeManifest{
+		mediaType: imgspecv1.MediaTypeImageIndex,
+		payload:   payload,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Equal(t, subjectDigest.String(), got.Digest)
+	require.Nil(t, got.ID)
+}
+
+func TestGetArtifactSubjectLookupFailed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	ctx := t.Context()
+	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
+	subjectDigest := digest.FromString("subject")
+	payload, err := json.Marshal(imgspecv1.Manifest{
+		MediaType: imgspecv1.MediaTypeImageManifest,
+		Subject:   &imgspecv1.Descriptor{Digest: subjectDigest},
+	})
+	require.NoError(t, err)
+
+	repoArtifact := reporegistrymocks.NewMockArtifactRepository(ctrl)
+	repoArtifact.EXPECT().GetByDigest(ctx, repository.ID, subjectDigest.String()).Return(nil, errors.New("db is down"))
+
+	svc := &service{RepoArtifact: repoArtifact}
+	got, err := svc.getArtifactSubject(ctx, repository, fakeManifest{
+		mediaType: imgspecv1.MediaTypeImageManifest,
+		payload:   payload,
+	})
+	require.Error(t, err)
+	require.Nil(t, got)
+}
+
+func TestGetArtifactSubjectWithoutSubject(t *testing.T) {
 	ctx := t.Context()
 	repository := &models.Repository{ID: "repo-id", NamespaceID: "namespace-id", Name: "library/alpine"}
 	payload, err := json.Marshal(imgspecv1.Manifest{MediaType: imgspecv1.MediaTypeImageManifest})
 	require.NoError(t, err)
 
-	repoRegistry := reporegistrymocks.NewMockRepositoryRepository(ctrl)
-	repoRegistry.EXPECT().GetByName(ctx, repository.Name).Return(repository, nil)
-
-	svc := &service{RepoRegistry: repoRegistry}
-	got, err := svc.getArtifactReferrer(ctx, repository.Name, fakeManifest{
+	svc := &service{}
+	got, err := svc.getArtifactSubject(ctx, repository, fakeManifest{
 		mediaType: imgspecv1.MediaTypeImageManifest,
 		payload:   payload,
 	})
 	require.NoError(t, err)
 	require.Nil(t, got)
+}
+
+func TestDedupeDigests(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []string
+		want  []string
+	}{
+		{name: "empty", input: nil, want: []string{}},
+		{name: "no duplicate", input: []string{"a", "b"}, want: []string{"a", "b"}},
+		{name: "consecutive duplicate", input: []string{"a", "a", "b"}, want: []string{"a", "b"}},
+		{name: "non consecutive duplicate", input: []string{"a", "b", "a"}, want: []string{"a", "b"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, dedupeDigests(tt.input))
+		})
+	}
 }
 
 func TestGetReferrerBuildsOCIIndex(t *testing.T) {

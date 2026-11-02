@@ -45,6 +45,7 @@ func newArtifact(db *gorm.DB, opts ...gen.DOOption) artifact {
 	_artifact.PushedAt = field.NewInt64(tableName, "pushed_at")
 	_artifact.PullTimes = field.NewInt64(tableName, "pull_times")
 	_artifact.ReferrerID = field.NewString(tableName, "referrer_id")
+	_artifact.ReferrerDigest = field.NewString(tableName, "referrer_digest")
 	_artifact.Vulnerability = artifactHasOneVulnerability{
 		db: db.Session(&gorm.Session{}),
 
@@ -1020,6 +1021,7 @@ type artifact struct {
 	PushedAt        field.Int64
 	PullTimes       field.Int64
 	ReferrerID      field.String
+	ReferrerDigest  field.String
 	Vulnerability   artifactHasOneVulnerability
 
 	Sbom artifactHasOneSbom
@@ -1068,6 +1070,7 @@ func (a *artifact) updateTableName(table string) *artifact {
 	a.PushedAt = field.NewInt64(table, "pushed_at")
 	a.PullTimes = field.NewInt64(table, "pull_times")
 	a.ReferrerID = field.NewString(table, "referrer_id")
+	a.ReferrerDigest = field.NewString(table, "referrer_digest")
 
 	a.fillFieldMap()
 
@@ -1092,7 +1095,7 @@ func (a *artifact) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *artifact) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 25)
+	a.fieldMap = make(map[string]field.Expr, 26)
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
@@ -1110,6 +1113,7 @@ func (a *artifact) fillFieldMap() {
 	a.fieldMap["pushed_at"] = a.PushedAt
 	a.fieldMap["pull_times"] = a.PullTimes
 	a.fieldMap["referrer_id"] = a.ReferrerID
+	a.fieldMap["referrer_digest"] = a.ReferrerDigest
 
 }
 
