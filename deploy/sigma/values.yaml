@@ -222,7 +222,8 @@ config:
       password: internal-sigma
     admin:
       username: sigma
-      password: sigma
+      # Leave empty to generate a random password on first start; it is printed in the logs.
+      password: ""
       email: sigma@sigma.io
     token:
       realm: ""

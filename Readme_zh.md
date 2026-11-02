@@ -17,7 +17,7 @@ Sigma 是一个极容易部署和维护的镜像仓库，并且自主完整实�
 docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 ```
 
-默认的用户名密码是: sigma/Admin@123, 如果你想在启动的时候初始化其他的用户名密码, 请根据[这里](https://docs.sigma.tosone.cn/docs/configuration)的配置说明来修改配置文件。
+默认的用户名是 `sigma`，密码会在首次启动时随机生成并打印在服务日志中，所以首次启动后请查看日志获取初始密码。如果想使用固定的初始密码，可以按照[这里](https://docs.sigma.tosone.cn/docs/configuration)的配置说明设置 `auth.admin.password`。
 
 ## Demo Server
 

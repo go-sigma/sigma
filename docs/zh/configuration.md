@@ -182,7 +182,8 @@ auth:
     enabled: true
   admin:
     username: sigma
-    password: Admin@123
+    # 留空则在首次启动时随机生成密码，并在日志中打印
+    password: ""
     email: sigma@sigma.io
   token:
     realm: ""

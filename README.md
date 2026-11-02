@@ -17,7 +17,7 @@ Now you can use this command to run a simple server:
 docker run --name sigma -p 3000:3000 --rm tosone/sigma:nightly-alpine
 ```
 
-The default username and password is: sigma/Admin@123. If you want to modify the default password, please refer to the [configuration instructions](https://docs.sigma.tosone.cn/docs/configuration).
+The default username is `sigma`. The password is generated randomly on first start and printed in the server logs, so check the logs after the first startup. If you want to use a fixed password, set `auth.admin.password` by following the [configuration instructions](https://docs.sigma.tosone.cn/docs/configuration).
 
 ## Demo Server
 

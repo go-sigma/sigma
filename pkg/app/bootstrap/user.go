@@ -17,8 +17,11 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
+	"unicode"
 
+	passwordgenerator "github.com/sethvargo/go-password/password"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
@@ -26,7 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
-	"github.com/go-sigma/sigma/pkg/service/password"
+	svcpassword "github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
@@ -34,16 +37,50 @@ type initUserParams struct {
 	dig.In
 
 	Config         *config.Configuration
-	PasswordSvc    password.Service
+	PasswordSvc    svcpassword.Service
 	UserRepository repouser.UserRepository
 }
 
-var (
-	// ErrAdminUsername is the error of the admin user username is not set
-	ErrAdminUsername = fmt.Errorf("the admin user username is not set")
-	// ErrAdminPassword is the error of the admin user password is not set
-	ErrAdminPassword = fmt.Errorf("the admin user password is not set")
+const (
+	// adminPasswordLength is the length of the auto-generated administrator password.
+	adminPasswordLength = 10
+	// adminPasswordDigits is the number of digits in the auto-generated administrator password.
+	adminPasswordDigits = 2
+	// adminPasswordGenerateAttempts bounds the retries needed to obtain a password
+	// that contains both upper and lower case letters.
+	adminPasswordGenerateAttempts = 10
 )
+
+// ErrAdminUsername is the error of the admin user username is not set
+var ErrAdminUsername = fmt.Errorf("the admin user username is not set")
+
+// errAdminPasswordGenerate is the error of failing to generate an admin user password
+var errAdminPasswordGenerate = fmt.Errorf("failed to generate the admin user password")
+
+// generateAdminPassword generates a random administrator password. The password
+// only contains upper/lower case letters and digits, so it can be copied from
+// the logs without shell quoting issues.
+func generateAdminPassword() (string, error) {
+	for range adminPasswordGenerateAttempts {
+		pwd, err := passwordgenerator.Generate(adminPasswordLength, adminPasswordDigits, 0, false, true)
+		if err != nil {
+			return "", err
+		}
+		var hasUpper, hasLower bool
+		for _, char := range pwd {
+			if unicode.IsUpper(char) {
+				hasUpper = true
+			}
+			if unicode.IsLower(char) {
+				hasLower = true
+			}
+		}
+		if hasUpper && hasLower {
+			return pwd, nil
+		}
+	}
+	return "", fmt.Errorf("%w: no password with upper and lower case letters generated after %d attempts", errAdminPasswordGenerate, adminPasswordGenerateAttempts)
+}
 
 func initUser(digCon *dig.Container) error {
 	return digCon.Invoke(initUserWithParams)
@@ -78,13 +115,18 @@ func initUserWithParams(params initUserParams) error {
 		return err
 	}
 
-	adminUserPassword := strings.TrimSpace(config.Auth.Admin.Password)
-	if adminUserPassword == "" {
-		return ErrAdminPassword
-	}
 	adminUserUsername := strings.TrimSpace(config.Auth.Admin.Username)
 	if adminUserUsername == "" {
 		return ErrAdminUsername
+	}
+	adminUserPassword := strings.TrimSpace(config.Auth.Admin.Password)
+	generatedPassword := false
+	if adminUserPassword == "" {
+		adminUserPassword, err = generateAdminPassword()
+		if err != nil {
+			return err
+		}
+		generatedPassword = true
 	}
 	adminUserPasswordHashed, err := pwdSvc.Hash(adminUserPassword)
 	if err != nil {
@@ -101,6 +143,10 @@ func initUserWithParams(params initUserParams) error {
 	err = userSvc.Create(ctx, adminUser)
 	if err != nil {
 		return err
+	}
+	if generatedPassword {
+		slog.Warn("admin user created with an auto-generated password, please record it and change it after login",
+			"username", adminUserUsername, "password", adminUserPassword)
 	}
 
 	return nil

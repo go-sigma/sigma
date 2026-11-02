@@ -33,7 +33,7 @@ with `0600` permissions. Override the location with `--credentials-file` or
 ./bin/sigma-cli login \
   --server https://sigma.example.com \
   --username sigma \
-  --password 'Admin@123'
+  --password '<admin-password>'
 ```
 
 Credentials can also be supplied without a credentials file through the
@@ -42,7 +42,7 @@ persistent flags or environment variables:
 ```bash
 export SIGMA_SERVER=https://sigma.example.com
 export SIGMA_USERNAME=sigma
-export SIGMA_PASSWORD='Admin@123'
+export SIGMA_PASSWORD='<admin-password>'
 ```
 
 Global flags:

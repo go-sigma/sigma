@@ -27,14 +27,14 @@ helm package demo
 Helm v3.13.0 之前：
 
 ``` bash
-helm registry login --insecure -u sigma -p Admin@123 127.0.0.1:3000
+helm registry login --insecure -u sigma -p '<admin-password>' 127.0.0.1:3000
 helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --insecure-skip-tls-verify
 ```
 
 Helm v3.13.0 之后：
 
 ``` bash
-helm registry login -u sigma -p Admin@123 127.0.0.1:3000
+helm registry login -u sigma -p '<admin-password>' 127.0.0.1:3000
 helm push demo-0.1.0.tgz oci://127.0.0.1:3000/library/demo --plain-http
 ```
 

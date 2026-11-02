@@ -16,8 +16,10 @@ package bootstrap
 
 import (
 	"testing"
+	"unicode"
 
 	"github.com/stretchr/testify/require"
+	pwdvalidate "github.com/wagslane/go-password-validator"
 	"go.uber.org/dig"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
@@ -29,6 +31,32 @@ import (
 	"github.com/go-sigma/sigma/pkg/testkit"
 	"github.com/go-sigma/sigma/pkg/utils/ptr"
 )
+
+func TestGenerateAdminPassword(t *testing.T) {
+	for range 20 {
+		pwd, err := generateAdminPassword()
+		require.NoError(t, err)
+		require.Len(t, pwd, adminPasswordLength)
+
+		var upper, lower, digit int
+		for _, r := range pwd {
+			switch {
+			case unicode.IsUpper(r):
+				upper++
+			case unicode.IsLower(r):
+				lower++
+			case unicode.IsDigit(r):
+				digit++
+			default:
+				require.Failf(t, "unexpected character", "password %q contains %q", pwd, r)
+			}
+		}
+		require.NotZero(t, upper, pwd)
+		require.NotZero(t, lower, pwd)
+		require.Equal(t, adminPasswordDigits, digit, pwd)
+		require.NoError(t, pwdvalidate.Validate(pwd, consts.PwdStrength), pwd)
+	}
+}
 
 func TestInitUser(t *testing.T) {
 	logger.SetLevel("debug")
@@ -97,7 +125,7 @@ func TestInitUser(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "admin_no_password",
+			name: "admin_generated_password",
 			genDigCon: func(t *testing.T) *dig.Container {
 				digCon := dig.New()
 
@@ -130,8 +158,21 @@ func TestInitUser(t *testing.T) {
 
 				return digCon
 			},
-			afterCheck: nil,
-			wantErr:    ErrAdminPassword,
+			afterCheck: func(t *testing.T, c *dig.Container) {
+				var userRepository repouser.UserRepository
+				require.NoError(t, c.Invoke(func(f repouser.UserRepository) { userRepository = f }))
+
+				ctx := t.Context()
+				count, err := userRepository.Count(ctx)
+				require.NoError(t, err)
+				require.Equal(t, int64(3), count)
+
+				user, err := userRepository.GetByUsername(ctx, "sigma")
+				require.NoError(t, err)
+				require.NotNil(t, user.Password)
+				require.NotEmpty(t, *user.Password)
+			},
+			wantErr: nil,
 		},
 		{
 			name: "admin_no_username",

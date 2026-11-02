@@ -11,7 +11,7 @@ Guidance for AI agents working in the `sigma` repository.
 - License: Apache 2.0
 - Entry point: `main.go` -> `cmd.Execute()`
 - Default port: 3000
-- Default credentials: `sigma` / `Admin@123`
+- Default credentials: username `sigma`; the initial password is randomly generated on first start and printed in the server logs unless `auth.admin.password` is configured.
 
 ## Build & Run
 

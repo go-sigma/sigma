@@ -31,7 +31,7 @@ make build-cli
 ./bin/sigma-cli login \
   --server https://sigma.example.com \
   --username sigma \
-  --password 'Admin@123'
+  --password '<admin-password>'
 ```
 
 也可以不落盘，直接用全局参数或环境变量提供凭据：
@@ -39,7 +39,7 @@ make build-cli
 ```bash
 export SIGMA_SERVER=https://sigma.example.com
 export SIGMA_USERNAME=sigma
-export SIGMA_PASSWORD='Admin@123'
+export SIGMA_PASSWORD='<admin-password>'
 ```
 
 全局参数：
