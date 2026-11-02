@@ -174,16 +174,17 @@ func (s *artifactRepository) FindReferrersBySubjects(ctx context.Context, reposi
 // ResolveReferrers links the referrers that were stored before their subject
 // arrived. A referrer keeps the subject digest from the moment it is pushed, so
 // the link is completed as soon as the subject artifact exists.
+//
+// Only referrer_id is assigned: updated_at is maintained by the gorm
+// autoUpdateTime hook, and assigning it explicitly makes gorm emit the column
+// twice, which PostgreSQL rejects with SQLSTATE 42601 (duplicate assignment).
 func (s *artifactRepository) ResolveReferrers(ctx context.Context, repositoryID string, subjectDigest string, subjectID string) error {
 	_, err := s.tx.Artifact.WithContext(ctx).
 		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).
 		Where(s.tx.Artifact.ReferrerDigest.Eq(subjectDigest)).
 		Where(s.tx.Artifact.ReferrerID.IsNull()).
 		Where(s.tx.Artifact.DeletedAt.Eq(0)).
-		UpdateSimple(
-			s.tx.Artifact.ReferrerID.Value(subjectID),
-			s.tx.Artifact.UpdatedAt.Value(time.Now().UnixMilli()),
-		)
+		UpdateSimple(s.tx.Artifact.ReferrerID.Value(subjectID))
 	return err
 }
 
