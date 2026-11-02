@@ -114,7 +114,7 @@ http:
 
 storage:
   rootdirectory: ./storage
-  redirect: true
+  redirect: false
   type: s3
   filesystem:
     path: /var/lib/sigma/oci/
