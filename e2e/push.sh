@@ -19,7 +19,15 @@ fi
 
 set -e
 
-ADMIN_PASSWORD=$(docker logs sigma 2>&1 | sed -n 's/.*auto-generated password.*password=\([A-Za-z0-9]*\).*/\1/p' | tail -n 1)
+# The logger colorizes its output with ANSI escapes even when the logs are
+# piped, so `password=` is followed by a reset sequence instead of the value.
+# Strip the escapes before matching; the ESC byte is built with printf so the
+# expression works with both GNU and BSD sed.
+ANSI_ESCAPE=$(printf '\033')
+ADMIN_PASSWORD=$(docker logs sigma 2>&1 \
+  | sed -e "s/${ANSI_ESCAPE}\[[0-9;]*[A-Za-z]//g" \
+  | sed -n 's/.*auto-generated password.*password=\([A-Za-z0-9]\{1,\}\).*/\1/p' \
+  | tail -n 1)
 if [ -z "$ADMIN_PASSWORD" ]; then
   echo "cannot find the auto-generated admin password in the sigma logs."
   docker logs sigma
