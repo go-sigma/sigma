@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/service/distribution/upload"
 	"github.com/go-sigma/sigma/pkg/service/namespaces"
 	"github.com/go-sigma/sigma/pkg/service/oauth2"
+	"github.com/go-sigma/sigma/pkg/service/overview"
 	"github.com/go-sigma/sigma/pkg/service/repositories"
 	"github.com/go-sigma/sigma/pkg/service/systems"
 	"github.com/go-sigma/sigma/pkg/service/tags"
@@ -51,6 +52,7 @@ func InitDigContainer(digCon *dig.Container) error {
 		digCon.Provide(daemons.NewService),
 		digCon.Provide(systems.NewService),
 		digCon.Provide(oauth2.NewService),
+		digCon.Provide(overview.NewService),
 		digCon.Provide(blob.NewService),
 		digCon.Provide(manifest.NewService),
 		digCon.Provide(upload.NewService),

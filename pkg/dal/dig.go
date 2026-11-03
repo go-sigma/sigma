@@ -24,6 +24,7 @@ import (
 	repocoderepo "github.com/go-sigma/sigma/pkg/dal/repository/coderepo"
 	repodaemon "github.com/go-sigma/sigma/pkg/dal/repository/daemon"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
+	repooverview "github.com/go-sigma/sigma/pkg/dal/repository/overview"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	reposetting "github.com/go-sigma/sigma/pkg/dal/repository/setting"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
@@ -41,6 +42,7 @@ func initDigContainer(digCon *dig.Container) error {
 		digCon.Provide(repodaemon.NewDaemonRepository),
 		digCon.Provide(reponamespace.NewNamespaceMemberRepository),
 		digCon.Provide(reponamespace.NewCachedNamespaceRepository),
+		digCon.Provide(repooverview.NewOverviewRepository),
 		digCon.Provide(reporegistry.NewCachedRepositoryRepository),
 		digCon.Provide(reposetting.NewSettingRepository),
 		digCon.Provide(reporegistry.NewTagRepository),
