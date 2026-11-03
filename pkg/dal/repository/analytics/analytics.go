@@ -30,14 +30,16 @@ import (
 
 // AnalyticsRepository defines analytics rollup repository operations
 type AnalyticsRepository interface {
-	// IncrUserPush increments a user's hourly push count
-	IncrUserPush(ctx context.Context, hour int64, userID string, delta int64) error
+	// IncrUser increments a user's hourly push and pull counts
+	IncrUser(ctx context.Context, hour int64, userID string, pushDelta, pullDelta int64) error
 	// IncrNamespace increments namespace hourly activity counters
 	IncrNamespace(ctx context.Context, hour int64, namespaceID string, pushDelta, pullDelta, sizeDelta, tagDelta int64) error
-	// ListUserPush lists hourly user push rollups
+	// ListUserPush lists hourly user activity rollups
 	ListUserPush(ctx context.Context, userID string, startHour, endHour int64) ([]*models.UserActivityHourly, error)
 	// ListNamespaceActivity lists hourly namespace activity rollups
 	ListNamespaceActivity(ctx context.Context, namespaceID string, startHour, endHour int64) ([]*models.NamespaceActivityHourly, error)
+	// ListAllNamespaceActivity lists hourly activity rollups of every namespace
+	ListAllNamespaceActivity(ctx context.Context, startHour, endHour int64) ([]*models.NamespaceActivityHourly, error)
 	// DeleteBeforeHour deletes rollups older than the retention cutoff
 	DeleteBeforeHour(ctx context.Context, hour int64) error
 }
@@ -55,14 +57,19 @@ func NewAnalyticsRepository(txs ...*query.Query) AnalyticsRepository {
 	return &analyticsRepository{tx: tx}
 }
 
-// IncrUserPush increments a user's hourly push count
-func (s *analyticsRepository) IncrUserPush(ctx context.Context, hour int64, userID string, delta int64) error {
+// IncrUser increments a user's hourly push and pull counts
+func (s *analyticsRepository) IncrUser(
+	ctx context.Context,
+	hour int64, userID string, pushDelta, pullDelta int64,
+) error {
+
 	now := time.Now().UTC().UnixMilli()
 	return s.tx.UnderlyingDB().WithContext(ctx).
 		Clauses(clause.OnConflict{
 			Columns: []clause.Column{{Name: "hour"}, {Name: "user_id"}},
 			DoUpdates: clause.Assignments(map[string]any{
-				"push_count": gorm.Expr("user_activity_hourlies.push_count + ?", delta),
+				"push_count": gorm.Expr("user_activity_hourlies.push_count + ?", pushDelta),
+				"pull_count": gorm.Expr("user_activity_hourlies.pull_count + ?", pullDelta),
 				"updated_at": now,
 			}),
 		}).
@@ -70,7 +77,8 @@ func (s *analyticsRepository) IncrUserPush(ctx context.Context, hour int64, user
 			ID:        uuid.NewV7String(),
 			Hour:      hour,
 			UserID:    userID,
-			PushCount: delta,
+			PushCount: pushDelta,
+			PullCount: pullDelta,
 			CreatedAt: now,
 			UpdatedAt: now,
 		}).Error
@@ -132,6 +140,20 @@ func (s *analyticsRepository) ListNamespaceActivity(
 	return s.tx.NamespaceActivityHourly.WithContext(ctx).
 		Where(
 			s.tx.NamespaceActivityHourly.NamespaceID.Eq(namespaceID),
+			s.tx.NamespaceActivityHourly.Hour.Gte(startHour),
+			s.tx.NamespaceActivityHourly.Hour.Lte(endHour),
+		).
+		Order(s.tx.NamespaceActivityHourly.Hour).
+		Find()
+}
+
+// ListAllNamespaceActivity lists hourly activity rollups of every namespace
+func (s *analyticsRepository) ListAllNamespaceActivity(
+	ctx context.Context, startHour, endHour int64,
+) ([]*models.NamespaceActivityHourly, error) {
+
+	return s.tx.NamespaceActivityHourly.WithContext(ctx).
+		Where(
 			s.tx.NamespaceActivityHourly.Hour.Gte(startHour),
 			s.tx.NamespaceActivityHourly.Hour.Lte(endHour),
 		).

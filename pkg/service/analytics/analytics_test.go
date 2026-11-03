@@ -206,13 +206,14 @@ func newFakeAnalyticsRepository() *fakeAnalyticsRepository {
 	}
 }
 
-func (repo *fakeAnalyticsRepository) IncrUserPush(_ context.Context, hour int64, userID string, delta int64) error {
+func (repo *fakeAnalyticsRepository) IncrUser(_ context.Context, hour int64, userID string, pushDelta, pullDelta int64) error {
 	row := repo.userRows[hour]
 	if row == nil {
 		row = &models.UserActivityHourly{Hour: hour, UserID: userID}
 		repo.userRows[hour] = row
 	}
-	row.PushCount += delta
+	row.PushCount += pushDelta
+	row.PullCount += pullDelta
 	return nil
 }
 
@@ -259,6 +260,20 @@ func (repo *fakeAnalyticsRepository) ListNamespaceActivity(
 	rows := make([]*models.NamespaceActivityHourly, 0, len(repo.namespaceRows))
 	for _, row := range repo.namespaceRows {
 		if row.NamespaceID == namespaceID && row.Hour >= startHour && row.Hour <= endHour {
+			rows = append(rows, row)
+		}
+	}
+	return rows, nil
+}
+
+func (repo *fakeAnalyticsRepository) ListAllNamespaceActivity(
+	_ context.Context,
+	startHour, endHour int64,
+) ([]*models.NamespaceActivityHourly, error) {
+
+	rows := make([]*models.NamespaceActivityHourly, 0, len(repo.namespaceRows))
+	for _, row := range repo.namespaceRows {
+		if row.Hour >= startHour && row.Hour <= endHour {
 			rows = append(rows, row)
 		}
 	}

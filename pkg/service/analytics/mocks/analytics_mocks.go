@@ -56,6 +56,21 @@ func (mr *MockServiceMockRecorder) Flush(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Flush", reflect.TypeOf((*MockService)(nil).Flush), ctx)
 }
 
+// GetGlobalActivity mocks base method.
+func (m *MockService) GetGlobalActivity(ctx context.Context, days int) ([]api.DailyActivity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGlobalActivity", ctx, days)
+	ret0, _ := ret[0].([]api.DailyActivity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGlobalActivity indicates an expected call of GetGlobalActivity.
+func (mr *MockServiceMockRecorder) GetGlobalActivity(ctx, days any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalActivity", reflect.TypeOf((*MockService)(nil).GetGlobalActivity), ctx, days)
+}
+
 // GetNamespaceTrends mocks base method.
 func (m *MockService) GetNamespaceTrends(ctx context.Context, namespaceID string, days int) ([]api.NamespaceHourlyMetric, error) {
 	m.ctrl.T.Helper()
@@ -69,6 +84,21 @@ func (m *MockService) GetNamespaceTrends(ctx context.Context, namespaceID string
 func (mr *MockServiceMockRecorder) GetNamespaceTrends(ctx, namespaceID, days any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespaceTrends", reflect.TypeOf((*MockService)(nil).GetNamespaceTrends), ctx, namespaceID, days)
+}
+
+// GetUserActivity mocks base method.
+func (m *MockService) GetUserActivity(ctx context.Context, userID string, days int) ([]api.DailyActivity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserActivity", ctx, userID, days)
+	ret0, _ := ret[0].([]api.DailyActivity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserActivity indicates an expected call of GetUserActivity.
+func (mr *MockServiceMockRecorder) GetUserActivity(ctx, userID, days any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserActivity", reflect.TypeOf((*MockService)(nil).GetUserActivity), ctx, userID, days)
 }
 
 // GetUserPushHeatmap mocks base method.

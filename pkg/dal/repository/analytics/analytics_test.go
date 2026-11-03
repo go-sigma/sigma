@@ -41,16 +41,17 @@ func TestAnalyticsRepository(t *testing.T) {
 	namespaceID := uuid.NewV7String()
 	otherNamespaceID := uuid.NewV7String()
 
-	require.NoError(t, analyticsRepository.IncrUserPush(ctx, 10, userID, 2))
-	require.NoError(t, analyticsRepository.IncrUserPush(ctx, 10, userID, 3))
-	require.NoError(t, analyticsRepository.IncrUserPush(ctx, 11, userID, 5))
-	require.NoError(t, analyticsRepository.IncrUserPush(ctx, 10, otherUserID, 7))
+	require.NoError(t, analyticsRepository.IncrUser(ctx, 10, userID, 2, 1))
+	require.NoError(t, analyticsRepository.IncrUser(ctx, 10, userID, 3, 2))
+	require.NoError(t, analyticsRepository.IncrUser(ctx, 11, userID, 5, 0))
+	require.NoError(t, analyticsRepository.IncrUser(ctx, 10, otherUserID, 7, 3))
 
 	userRollups, err := analyticsRepository.ListUserPush(ctx, userID, 9, 10)
 	require.NoError(t, err)
 	require.Len(t, userRollups, 1)
 	require.Equal(t, int64(10), userRollups[0].Hour)
 	require.Equal(t, int64(5), userRollups[0].PushCount)
+	require.Equal(t, int64(3), userRollups[0].PullCount)
 
 	userRollups, err = analyticsRepository.ListUserPush(ctx, userID, 10, 11)
 	require.NoError(t, err)
@@ -75,6 +76,11 @@ func TestAnalyticsRepository(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, namespaceRollups, 2)
 	require.Equal(t, []int64{20, 21}, []int64{namespaceRollups[0].Hour, namespaceRollups[1].Hour})
+
+	allNamespaceRollups, err := analyticsRepository.ListAllNamespaceActivity(ctx, 20, 20)
+	require.NoError(t, err)
+	require.Len(t, allNamespaceRollups, 2)
+	require.ElementsMatch(t, []string{namespaceID, otherNamespaceID}, []string{allNamespaceRollups[0].NamespaceID, allNamespaceRollups[1].NamespaceID})
 
 	require.NoError(t, analyticsRepository.DeleteBeforeHour(ctx, 11))
 
