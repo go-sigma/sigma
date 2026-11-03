@@ -23,4 +23,8 @@ const (
 	// SCM credentials at rest. The value is generated on first start when
 	// auth.credentialKey is not configured.
 	SettingCredentialMasterKey = "credential.master_key" // #nosec G101 -- settings key name, not a credential
+	// SettingJwtPrivateKey is the settings key holding the base64 encoded Ed25519
+	// private key used to sign JWTs. The value is generated on first start when
+	// auth.jwt.privateKey is not configured.
+	SettingJwtPrivateKey = "jwt.private_key" // #nosec G101 -- settings key name, not a credential
 )

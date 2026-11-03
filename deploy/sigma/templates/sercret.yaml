@@ -6,8 +6,6 @@ metadata:
   labels:
     {{- include "sigma.labels" . | nindent 4 }}
 data:
-  {{ $privateKey := (genPrivateKey "rsa" | b64enc) }}
-  AUTH_JWT_PRIVATEKEY: {{ .Values.config.auth.jwt.privateKey | default $privateKey | quote }}
   AUTH_USER_PASSWORD: {{ (trimPrefix "sigma:" (htpasswd "sigma" (.Values.config.auth.user.password | default "sigma")))  | b64enc | quote }}
   SIGMA_DATABASE_MYSQL_PASSWORD: {{ .Values.external.mysql.password | default "" | toString | b64enc | quote }}
   SIGMA_DATABASE_POSTGRESQL_PASSWORD: {{ ternary .Values.postgresql.auth.password .Values.external.postgresql.password .Values.postgresql.enabled | default "" | toString | b64enc | quote }}

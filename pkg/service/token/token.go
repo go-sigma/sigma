@@ -18,7 +18,10 @@ import (
 	"context"
 	"crypto"
 	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"time"
@@ -77,17 +80,50 @@ type service struct {
 	cacheCli   cache.Cacher[string]
 }
 
+// ParsePrivateKey decodes the base64 encoded Ed25519 private key used by
+// auth.jwt.privateKey. The inner text has to be a PKCS8 PEM block, the format
+// produced by `openssl genpkey -algorithm ED25519 | base64`.
+func ParsePrivateKey(encoded string) (ed25519.PrivateKey, error) {
+	if encoded == "" {
+		return nil, fmt.Errorf("private key is empty")
+	}
+	pemBytes, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return nil, fmt.Errorf("decode private key: %w", err)
+	}
+	parsed, err := jwt.ParseEdPrivateKeyFromPEM(pemBytes)
+	if err != nil {
+		return nil, fmt.Errorf("parse private key: %w", err)
+	}
+	privateKey, ok := parsed.(ed25519.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid private key")
+	}
+	return privateKey, nil
+}
+
+// GeneratePrivateKey creates a new Ed25519 private key encoded the same way as
+// auth.jwt.privateKey expects, so it can be persisted and read back unchanged.
+func GeneratePrivateKey() (string, error) {
+	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return "", fmt.Errorf("generate ed25519 key: %w", err)
+	}
+	privateKeyDER, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return "", fmt.Errorf("marshal ed25519 key: %w", err)
+	}
+	pemBytes := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDER})
+	return base64.StdEncoding.EncodeToString(pemBytes), nil
+}
+
 // NewService creates the token service.
 func NewService(params service) (Service, error) {
-	privateKeyBytes, err := base64.StdEncoding.DecodeString(params.Config.Auth.Jwt.PrivateKey)
+	privateKey, err := ParsePrivateKey(params.Config.Auth.Jwt.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
-	privateKey, err := jwt.ParseEdPrivateKeyFromPEM(privateKeyBytes)
-	if err != nil {
-		return nil, err
-	}
-	publicKey, ok := privateKey.(ed25519.PrivateKey)
+	publicKey, ok := privateKey.Public().(ed25519.PublicKey)
 	if !ok {
 		return nil, fmt.Errorf("invalid private key")
 	}
@@ -100,7 +136,7 @@ func NewService(params service) (Service, error) {
 		return nil, fmt.Errorf("new cacher failed: %v", err)
 	}
 	params.privateKey = privateKey
-	params.publicKey = publicKey.Public()
+	params.publicKey = publicKey
 	params.cacheCli = cacheCli
 	return &params, nil
 }
