@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - dev
+  # Required checks have to run again for every merge queue entry.
+  merge_group:
 
 jobs:
   unit-test:
@@ -133,7 +135,9 @@ jobs:
               "pkg/testkit"
               "pkg/version"
             )
-            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            # Merge queue entries run the same package set as the pull request
+            # they come from.
+            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] || [ "${GITHUB_EVENT_NAME}" = "merge_group" ]; then
               excludes+=("pkg/storage/oss")
             fi
 
