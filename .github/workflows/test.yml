@@ -49,8 +49,6 @@ jobs:
           RS3_SECRET_KEY: sigma-sigma
         ports:
           - 9000:9000
-        entrypoint: /bin/sh
-        command: '-c "mkdir -p /var/lib/rs3/data/sigma && exec rs3"'
         options: >-
           --health-cmd "curl --fail http://127.0.0.1:${RS3_PORT}/readyz || exit 1"
           --health-interval 30s
@@ -116,6 +114,14 @@ jobs:
             ${{ runner.os }}-go-build-test-${{ matrix.go }}-${{ hashFiles('go.mod', 'go.sum') }}-
             ${{ runner.os }}-go-build-test-${{ matrix.go }}-
             ${{ runner.os }}-go-build-test-
+      # pkg/storage/s3 writes to the shared "sigma" bucket without creating it,
+      # and rs3 answers NoSuchBucket rather than creating buckets on demand.
+      # rs3-cli ships in the image, so use its own API instead of relying on the
+      # service entrypoint override to make the directory.
+      - name: Ensure rs3 bucket
+        run: |
+          docker exec -e RS3_ENDPOINT=http://127.0.0.1:9000 \
+            "${{ job.services.rs3.id }}" rs3-cli mb --ensure s3://sigma
       - name: Run unit tests
         env:
           COS_ENDPOINT: ${{ secrets.COS_ENDPOINT }}
