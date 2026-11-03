@@ -49,8 +49,9 @@ jobs:
           RS3_SECRET_KEY: sigma-sigma
         ports:
           - 9000:9000
-        entrypoint: /bin/sh
-        command: '-c "mkdir -p /var/lib/rs3/data/sigma && exec rs3"'
+        # rs3 creates the bucket directory on the first write, so the shared
+        # "sigma" bucket used by the storage tests does not need to be
+        # pre-created through an entrypoint override.
         options: >-
           --health-cmd "curl --fail http://127.0.0.1:${RS3_PORT}/readyz || exit 1"
           --health-interval 30s
