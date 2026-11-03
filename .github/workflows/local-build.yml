@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - dev
+  # Required checks have to run again for every merge queue entry.
+  merge_group:
 
 jobs:
   local-build:
