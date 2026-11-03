@@ -60,9 +60,9 @@ type Service interface {
 	// ListRunners lists builder runners with pagination.
 	ListRunners(ctx context.Context, builderID string, pagination api.Pagination, sort api.Sortable) ([]*models.BuilderRunner, int64, error)
 	// RunRunner creates a new runner and produces a build start event.
-	RunRunner(ctx context.Context, req api.PostRunnerRun) (string, error)
+	RunRunner(ctx context.Context, userID string, req api.PostRunnerRun) (string, error)
 	// RerunRunner creates a new runner from an existing one and produces a build start event.
-	RerunRunner(ctx context.Context, req api.GetRunnerStop) (string, error)
+	RerunRunner(ctx context.Context, userID string, req api.GetRunnerStop) (string, error)
 	// StopRunner updates runner status to stopping and produces a build stop event.
 	StopRunner(ctx context.Context, req api.GetRunnerStop) error
 	// RunnerLogReader returns a log reader for the runner and whether the stream is gzip-compressed.
@@ -205,6 +205,7 @@ func (s *service) CreateBuilder(ctx context.Context, userID string, req api.Crea
 	builderObj := &models.Builder{
 		ID:           uuid.NewV7String(),
 		RepositoryID: req.RepositoryID,
+		CreatorID:    &userID,
 
 		Source: req.Source,
 
@@ -395,11 +396,19 @@ func (s *service) GetRunner(ctx context.Context, runnerID string) (*models.Build
 	return runnerObj, nil
 }
 
+// triggeredBy returns the acting user of a build, or nil when there is no session user.
+func triggeredBy(userID string) *string {
+	if userID == "" {
+		return nil
+	}
+	return &userID
+}
+
 func (s *service) ListRunners(ctx context.Context, builderID string, pagination api.Pagination, sort api.Sortable) ([]*models.BuilderRunner, int64, error) {
 	return s.RepoBuilder.ListRunners(ctx, builderID, pagination, sort)
 }
 
-func (s *service) RunRunner(ctx context.Context, req api.PostRunnerRun) (string, error) {
+func (s *service) RunRunner(ctx context.Context, userID string, req api.PostRunnerRun) (string, error) {
 	builderObj, err := s.RepoBuilder.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -418,10 +427,11 @@ func (s *service) RunRunner(ctx context.Context, req api.PostRunnerRun) (string,
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		repoBuilder := repobuilder.NewBuilderRepository(tx)
 		runnerObj = &models.BuilderRunner{
-			ID:        uuid.NewV7String(),
-			BuilderID: req.BuilderID,
-			RawTag:    req.RawTag,
-			ScmBranch: req.ScmBranch,
+			ID:          uuid.NewV7String(),
+			BuilderID:   req.BuilderID,
+			TriggeredBy: triggeredBy(userID),
+			RawTag:      req.RawTag,
+			ScmBranch:   req.ScmBranch,
 		}
 		err = repoBuilder.CreateRunner(ctx, runnerObj)
 		if err != nil {
@@ -440,7 +450,7 @@ func (s *service) RunRunner(ctx context.Context, req api.PostRunnerRun) (string,
 	return runnerObj.ID, nil
 }
 
-func (s *service) RerunRunner(ctx context.Context, req api.GetRunnerStop) (string, error) {
+func (s *service) RerunRunner(ctx context.Context, userID string, req api.GetRunnerStop) (string, error) {
 	builderObj, err := s.RepoBuilder.GetByRepositoryID(ctx, req.RepositoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -474,10 +484,11 @@ func (s *service) RerunRunner(ctx context.Context, req api.GetRunnerStop) (strin
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		repoBuilder := repobuilder.NewBuilderRepository(tx)
 		newRunnerObj = &models.BuilderRunner{
-			ID:        uuid.NewV7String(),
-			BuilderID: req.BuilderID,
-			RawTag:    runnerObj.RawTag,
-			ScmBranch: runnerObj.ScmBranch,
+			ID:          uuid.NewV7String(),
+			BuilderID:   req.BuilderID,
+			TriggeredBy: triggeredBy(userID),
+			RawTag:      runnerObj.RawTag,
+			ScmBranch:   runnerObj.ScmBranch,
 		}
 		err = repoBuilder.CreateRunner(ctx, newRunnerObj)
 		if err != nil {

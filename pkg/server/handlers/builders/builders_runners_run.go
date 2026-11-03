@@ -43,7 +43,7 @@ import (
 func (h *handler) PostRunnerRun(c *gin.Context, req *api.PostRunnerRun) {
 	ctx := c.Request.Context()
 
-	runnerID, err := h.BuilderSvc.RunRunner(ctx, *req)
+	runnerID, err := h.BuilderSvc.RunRunner(ctx, actingUserID(c), *req)
 	if err != nil {
 		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
 			errcode.NewHTTPError(c, e)
