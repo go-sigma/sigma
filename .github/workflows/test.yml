@@ -58,6 +58,15 @@ jobs:
           --health-start-period 5s
           --health-retries 3
     steps:
+      # Android, .NET and Haskell tooling ship with the runner and nothing here
+      # uses them; dropping them keeps docker builds and go test away from the
+      # disk limits of the hosted runners.
+      - name: Free disk space
+        uses: endersonmenezes/free-disk-space@v4
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
       - name: Checkout branch
         uses: actions/checkout@v7
         with:
