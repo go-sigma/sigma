@@ -33,6 +33,7 @@ func newUserActivityHourly(db *gorm.DB, opts ...gen.DOOption) userActivityHourly
 	_userActivityHourly.Hour = field.NewInt64(tableName, "hour")
 	_userActivityHourly.UserID = field.NewString(tableName, "user_id")
 	_userActivityHourly.PushCount = field.NewInt64(tableName, "push_count")
+	_userActivityHourly.PullCount = field.NewInt64(tableName, "pull_count")
 
 	_userActivityHourly.fillFieldMap()
 
@@ -49,6 +50,7 @@ type userActivityHourly struct {
 	Hour      field.Int64
 	UserID    field.String
 	PushCount field.Int64
+	PullCount field.Int64
 
 	fieldMap map[string]field.Expr
 }
@@ -71,6 +73,7 @@ func (u *userActivityHourly) updateTableName(table string) *userActivityHourly {
 	u.Hour = field.NewInt64(table, "hour")
 	u.UserID = field.NewString(table, "user_id")
 	u.PushCount = field.NewInt64(table, "push_count")
+	u.PullCount = field.NewInt64(table, "pull_count")
 
 	u.fillFieldMap()
 
@@ -99,13 +102,14 @@ func (u *userActivityHourly) GetFieldByName(fieldName string) (field.OrderExpr, 
 }
 
 func (u *userActivityHourly) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 6)
+	u.fieldMap = make(map[string]field.Expr, 7)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["hour"] = u.Hour
 	u.fieldMap["user_id"] = u.UserID
 	u.fieldMap["push_count"] = u.PushCount
+	u.fieldMap["pull_count"] = u.PullCount
 }
 
 func (u userActivityHourly) clone(db *gorm.DB) userActivityHourly {

@@ -23,6 +23,7 @@ type UserActivityHourly struct {
 	Hour      int64  `gorm:"uniqueIndex:idx_user_activity_hourly_hour_user;index:idx_user_activity_hourly_user_hour"`
 	UserID    string `gorm:"uniqueIndex:idx_user_activity_hourly_hour_user;index:idx_user_activity_hourly_user_hour"`
 	PushCount int64  `gorm:"default:0"`
+	PullCount int64  `gorm:"default:0"`
 }
 
 // NamespaceActivityHourly stores per-namespace hourly activity increments.

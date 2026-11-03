@@ -29,6 +29,10 @@ type Builder struct {
 
 	RepositoryID string
 
+	// CreatorID is the user that configured this builder. The home dashboard uses it to
+	// attribute builds started by cron or webhook, which have no acting user.
+	CreatorID *string `gorm:"size:36"`
+
 	Source enums.BuilderSource
 
 	// source CodeRepository
@@ -80,7 +84,9 @@ type BuilderRunner struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
 
-	BuilderID     string
+	BuilderID string
+	// TriggeredBy is the user that started this build. Cron and webhook triggers leave it empty.
+	TriggeredBy   *string `gorm:"size:36"`
 	Log           []byte
 	Status        enums.BuildStatus `gorm:"default:Pending"`
 	StatusMessage *string
