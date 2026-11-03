@@ -191,8 +191,11 @@ auth:
   jwt:
     ttl: 6h
     refreshTTL: 72h
-    # generate the key with: openssl genpkey -algorithm ED25519 | base64
-    privateKey: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSUFZY0NvYldvT2V2dnNjOWRlcStab1JFS2lyWW52MW1MRUFpZzlySDNmOHMKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo="
+    # base64 编码的 Ed25519 私钥，可用以下命令生成：
+    # openssl genpkey -algorithm ED25519 | base64
+    # 留空则在首次启动时生成并写入 settings 表，后续启动直接复用；
+    # 配置了值则始终以配置为准。
+    privateKey: ""
   oauth2:
     github:
       # github login will disable if auth.oauth.github.enabled set false

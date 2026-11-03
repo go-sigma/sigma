@@ -231,6 +231,8 @@ config:
     jwt:
       ttl: 1h
       refreshTtl: 24h
+      # base64 encoded Ed25519 private key.
+      # when empty, sigma generates one on first start and stores it in the database.
       privateKey: ""
     loginRateLimit:
       # throttle failed logins per username; when enabled, once maxFailures is

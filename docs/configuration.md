@@ -187,8 +187,11 @@ auth:
   jwt:
     ttl: 6h
     refreshTTL: 72h
-    # generate the key with: openssl genpkey -algorithm ED25519 | base64
-    privateKey: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSUFZY0NvYldvT2V2dnNjOWRlcStab1JFS2lyWW52MW1MRUFpZzlySDNmOHMKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo="
+    # base64 encoded Ed25519 private key, generate one with:
+    # openssl genpkey -algorithm ED25519 | base64
+    # leave it empty to generate a key on first start and store it in the
+    # settings table; later starts reuse it. A configured key always wins.
+    privateKey: ""
   oauth2:
     github:
       # github login will disable if auth.oauth.github.enabled set false
