@@ -194,6 +194,19 @@ jobs:
             } | tee -a test-results/unit-test.log
 
             set +e
+            if [ "${database_type}" = "turso" ]; then
+              # turso-go extracts its native library into ~/.cache/turso-go
+              # without a file lock, so test binaries started in parallel can
+              # read a partially written .so and panic with a hash mismatch.
+              # Warm the cache with a single package first, then run the suite
+              # with the usual package-level parallelism. The same package is
+              # still part of the suite below, so its coverage is unaffected.
+              echo "warming turso native library cache" | tee -a test-results/unit-test.log
+              CI_DATABASE_TYPE="${database_type}" \
+                go test -count=1 -run '^TestInitialize$' -v \
+                  -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+                  ./pkg/dal >>test-results/unit-test.log 2>&1
+            fi
             CI_DATABASE_TYPE="${database_type}" \
               COS_ENDPOINT="${cos_endpoint}" \
               OSS_BUCKET="${oss_bucket}" \
