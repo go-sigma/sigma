@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { useId, useMemo, useState } from "react";
+import axios from "axios";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import {
   Card,
@@ -23,11 +24,11 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { useTranslation } from "@/i18n/useTranslation";
+import { IDailyBuildList } from "@/interfaces";
 import { cn } from "@/lib/utils";
 
 import CardTitleWithHint from "./CardTitleWithHint";
 import { useElementWidth } from "./chart";
-import { mockBuildActivity } from "./mock";
 
 const chartHeight = 220;
 // The right padding only keeps the last point clear of the card edge.
@@ -55,15 +56,36 @@ function formatDuration(seconds: number) {
   return `${minutes}m ${rest}s`;
 }
 
-// BuildTrend plots daily build successes, failures and the average build duration.
-export default function BuildTrend() {
+type BuildTrendProps = {
+  localServer: string;
+};
+
+// BuildTrend plots daily build successes and failures of the current user or, for
+// administrators, of the whole instance.
+export default function BuildTrend({ localServer }: BuildTrendProps) {
   const { locale, t } = useTranslation();
   const [containerRef, width] = useElementWidth();
   const areaId = useId();
   const [range, setRange] = useState<Range>(30);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [data, setData] = useState<IDailyBuildList>();
 
-  const points = useMemo(() => mockBuildActivity(range), [range]);
+  useEffect(() => {
+    let cancelled = false;
+    axios.get(`${localServer}/api/v1/builds/daily?days=${range}`).then(response => {
+      if (!cancelled && response.status === 200) {
+        setData(response.data as IDailyBuildList);
+      }
+    }).catch(() => {
+      // The card stays empty; the overview request already reported the failure.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [localServer, range]);
+
+  const points = useMemo(() => data?.items ?? [], [data]);
+  const summary = data?.summary;
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   const dateFormatter = useMemo(
@@ -76,7 +98,7 @@ export default function BuildTrend() {
   );
 
   const geometry = useMemo(() => {
-    if (width === 0) {
+    if (width === 0 || points.length === 0) {
       return undefined;
     }
     const innerWidth = Math.max(width - chartPadding.left - chartPadding.right, 1);
@@ -123,18 +145,7 @@ export default function BuildTrend() {
     above: hoveredPoint.successY - tooltipGap - 86 >= 0,
   };
 
-  const summary = useMemo(() => {
-    const success = points.reduce((total, point) => total + point.success, 0);
-    const failed = points.reduce((total, point) => total + point.failed, 0);
-    const durations = points.map(point => point.duration);
-    return {
-      success,
-      failed,
-      rate: success + failed === 0 ? 0 : (success / (success + failed)) * 100,
-      fastest: Math.min(...durations),
-      slowest: Math.max(...durations),
-    };
-  }, [points]);
+  const total = (summary?.success ?? 0) + (summary?.failed ?? 0);
 
   return (
     <Card className="h-full gap-[1.2rem]">
@@ -172,18 +183,20 @@ export default function BuildTrend() {
             <span className="inline-flex items-center gap-1.5">
               <span className="h-0.5 w-4 rounded-full bg-primary" />
               {t("home.buildTrendSuccess")}
-              <span className="font-medium tabular-nums text-foreground">{numberFormatter.format(summary.success)}</span>
+              <span className="font-medium tabular-nums text-foreground">{numberFormatter.format(summary?.success ?? 0)}</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="h-0.5 w-4 rounded-full bg-destructive" />
               {t("home.buildTrendFailed")}
-              <span className="font-medium tabular-nums text-foreground">{numberFormatter.format(summary.failed)}</span>
+              <span className="font-medium tabular-nums text-foreground">{numberFormatter.format(summary?.failed ?? 0)}</span>
             </span>
           </div>
 
           <div ref={containerRef} className="relative mt-2">
             {geometry === undefined ? (
-              <div style={{ height: chartHeight }} />
+              <div className="flex items-center justify-center text-xs text-muted-foreground" style={{ height: chartHeight }}>
+                {data === undefined ? null : t("home.emptyBuilds")}
+              </div>
             ) : (
               <>
                 <svg
@@ -319,19 +332,19 @@ export default function BuildTrend() {
           <div>
             <dt className="text-xs text-muted-foreground">{t("home.buildTrendRate")}</dt>
             <dd className="mt-0.5 text-sm font-medium tabular-nums text-foreground">
-              {summary.rate.toFixed(1)}%
+              {total === 0 ? "—" : `${(summary?.success_rate ?? 0).toFixed(1)}%`}
             </dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">{t("home.buildTrendFastest")}</dt>
             <dd className="mt-0.5 text-sm font-medium tabular-nums text-foreground">
-              {formatDuration(summary.fastest)}
+              {total === 0 ? "—" : formatDuration(summary?.fastest ?? 0)}
             </dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">{t("home.buildTrendSlowest")}</dt>
             <dd className="mt-0.5 text-sm font-medium tabular-nums text-foreground">
-              {formatDuration(summary.slowest)}
+              {total === 0 ? "—" : formatDuration(summary?.slowest ?? 0)}
             </dd>
           </div>
         </dl>

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+import axios from "axios";
 import { Activity, ArrowUpRight, Boxes, ChevronRight, HardDrive, Tags } from "lucide-react";
-import { Fragment, useMemo, type ComponentType, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
 
 import Header from "@/components/Header";
 import Menu from "@/components/Menu";
+import Notification from "@/components/Notification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,28 +40,57 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTranslation } from "@/i18n/useTranslation";
+import { IDailyActivity, IDailyActivityList, IHTTPError, IOverview } from "@/interfaces";
 import { cn } from "@/lib/utils";
 
 import ActivityHeatmap from "./ActivityHeatmap";
 import ActivityTrend from "./ActivityTrend";
-import QuickStart from "./QuickStart";
 import BuildTrend from "./BuildTrend";
 import CardTitleWithHint from "./CardTitleWithHint";
-import { formatBytes, mockDailyActivity, mockOverview, mockTopNamespaces } from "./mock";
+import QuickStart from "./QuickStart";
+import { formatBytes } from "./format";
 
 // The shares of a namespace quota that deserve a warning color.
 const quotaWarning = 0.8;
+// The heatmap and the trend chart share one activity window.
+const activityDays = 371;
 
 export default function Home({ localServer }: { localServer: string }) {
   const { locale, t } = useTranslation();
   const navigate = useNavigate();
+  const [overview, setOverview] = useState<IOverview>();
+  const [activity, setActivity] = useState<IDailyActivity[]>();
+
+  useEffect(() => {
+    let cancelled = false;
+    axios.get(`${localServer}/api/v1/overview`).then(response => {
+      if (!cancelled && response.status === 200) {
+        setOverview(response.data as IOverview);
+      }
+    }).catch(error => {
+      const errorcode = error.response?.data as IHTTPError;
+      Notification({ level: "warning", title: t("home.loadFailed"), message: errorcode?.description });
+    });
+    axios.get(`${localServer}/api/v1/activity/daily?days=${activityDays}`).then(response => {
+      if (!cancelled && response.status === 200) {
+        setActivity((response.data as IDailyActivityList).items ?? []);
+      }
+    }).catch(() => {
+      // The activity charts simply stay empty; the overview already reported the failure.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [localServer, t]);
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
-  const storagePercent = (mockOverview.storage.used / mockOverview.storage.limit) * 100;
-  const pushes30d = useMemo(
-    () => mockDailyActivity(30).reduce((total, point) => total + point.push, 0),
-    [],
-  );
+
+  const loading = overview === undefined;
+  const formatCount = (value: number | undefined) => (value === undefined ? "—" : numberFormatter.format(value));
+
+  const storagePercent = overview !== undefined && overview.storage.capacity > 0
+    ? Math.min((overview.storage.used / overview.storage.capacity) * 100, 100)
+    : undefined;
 
   return (
     <Fragment>
@@ -79,23 +110,29 @@ export default function Home({ localServer }: { localServer: string }) {
                   <MetricCard
                     icon={HardDrive}
                     label={t("home.metricStorage")}
-                    value={formatBytes(mockOverview.storage.used)}
+                    value={formatBytes(overview?.storage.used ?? 0)}
                     footer={
                       <div className="mt-3 space-y-1.5">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              storagePercent >= quotaWarning * 100 ? "bg-destructive" : "bg-primary",
-                            )}
-                            style={{ width: `${Math.min(storagePercent, 100)}%` }}
-                          />
-                        </div>
+                        {storagePercent !== undefined && (
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all",
+                                storagePercent >= quotaWarning * 100 ? "bg-destructive" : "bg-primary",
+                              )}
+                              style={{ width: `${storagePercent}%` }}
+                            />
+                          </div>
+                        )}
                         <div className="text-xs text-muted-foreground">
-                          {t("home.metricStorageHint", {
-                            limit: formatBytes(mockOverview.storage.limit),
-                            percent: storagePercent.toFixed(1),
-                          })}
+                          {storagePercent !== undefined
+                            ? t("home.metricStorageHint", {
+                              limit: formatBytes(overview?.storage.capacity ?? 0),
+                              percent: storagePercent.toFixed(1),
+                            })
+                            : t(overview?.scope === "global" ? "home.metricStorageNoCapacity" : "home.metricStorageSelfHint", {
+                              used: formatBytes(overview?.storage.used ?? 0),
+                            })}
                         </div>
                       </div>
                     }
@@ -103,27 +140,27 @@ export default function Home({ localServer }: { localServer: string }) {
                   <MetricCard
                     icon={Boxes}
                     label={t("home.metricNamespaces")}
-                    value={numberFormatter.format(mockOverview.namespaces)}
+                    value={formatCount(overview?.counts.namespaces)}
                     hint={t("home.metricNamespacesHint", {
-                      repositories: numberFormatter.format(mockOverview.repositories),
+                      repositories: numberFormatter.format(overview?.counts.repositories ?? 0),
                     })}
                   />
                   <MetricCard
                     icon={Tags}
                     label={t("home.metricTags")}
-                    value={numberFormatter.format(mockOverview.tags)}
+                    value={formatCount(overview?.counts.tags)}
                     hint={t("home.metricTagsHint", {
-                      repositories: numberFormatter.format(mockOverview.repositories),
+                      repositories: numberFormatter.format(overview?.counts.repositories ?? 0),
                     })}
                   />
                   <MetricCard
                     icon={Activity}
                     label={t("home.metricPushes")}
-                    value={numberFormatter.format(pushes30d)}
+                    value={formatCount(overview?.activity.push)}
                     hint={
                       <span className="inline-flex items-center gap-1">
                         <ArrowUpRight className="size-3.5 text-green-600 dark:text-green-500" />
-                        {t("home.metricPushesDelta", { delta: `+${mockOverview.pushesDelta}%` })}
+                        {t("home.metricPushesDelta", { delta: `${overview?.activity.push_delta ?? 0}%` })}
                       </span>
                     }
                   />
@@ -132,8 +169,8 @@ export default function Home({ localServer }: { localServer: string }) {
                 <QuickStart localServer={localServer} />
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <ActivityHeatmap />
-                  <ActivityTrend />
+                  <ActivityHeatmap items={activity} days={activityDays} />
+                  <ActivityTrend items={activity} />
                 </div>
 
                 <div className="grid gap-4 lg:auto-rows-[26rem] lg:grid-cols-2">
@@ -157,16 +194,18 @@ export default function Home({ localServer }: { localServer: string }) {
                             <TableHead>{t("home.topNamespacesName")}</TableHead>
                             <TableHead className="text-right">{t("home.topNamespacesRepositories")}</TableHead>
                             <TableHead className="text-right">{t("home.topNamespacesTags")}</TableHead>
-                            <TableHead className="w-[240px]">{t("home.topNamespacesStorage")}</TableHead>
+                            <TableHead className="w-[120px] text-right">{t("home.topNamespacesStorage")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {mockTopNamespaces.map(namespace => {
-                            const percent = Math.min((namespace.used / namespace.limit) * 100, 100);
-                            const nearLimit = percent >= quotaWarning * 100;
+                          {(overview?.namespaces ?? []).map(namespace => {
+                            const percent = namespace.size_limit > 0
+                              ? Math.min((namespace.size / namespace.size_limit) * 100, 100)
+                              : 0;
+                            const nearLimit = namespace.size_limit > 0 && percent >= quotaWarning * 100;
                             return (
                               <TableRow
-                                key={namespace.name}
+                                key={namespace.id}
                                 className="cursor-pointer"
                                 onClick={() => navigate(`/namespaces/${namespace.name}/repositories`)}
                               >
@@ -184,36 +223,46 @@ export default function Home({ localServer }: { localServer: string }) {
                                 <TableCell className="text-right tabular-nums text-muted-foreground">
                                   {numberFormatter.format(namespace.tags)}
                                 </TableCell>
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                                      <div
+                                <TableCell className="text-right">
+                                  {namespace.size_limit > 0 ? (
+                                    <div className="flex items-center justify-end gap-2">
+                                      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                                        <div
+                                          className={cn("h-full rounded-full", nearLimit ? "bg-destructive" : "bg-primary")}
+                                          style={{ width: `${percent}%` }}
+                                        />
+                                      </div>
+                                      <span
                                         className={cn(
-                                          "h-full rounded-full",
-                                          nearLimit ? "bg-destructive" : "bg-primary",
+                                          "shrink-0 text-xs tabular-nums",
+                                          nearLimit ? "text-destructive" : "text-muted-foreground",
                                         )}
-                                        style={{ width: `${percent}%` }}
-                                      />
+                                      >
+                                        {percent.toFixed(0)}%
+                                      </span>
                                     </div>
-                                    <span
-                                      className={cn(
-                                        "shrink-0 text-xs tabular-nums",
-                                        nearLimit ? "text-destructive" : "text-muted-foreground",
-                                      )}
-                                    >
-                                      {percent.toFixed(0)}%
+                                  ) : (
+                                    <span className="text-xs tabular-nums text-muted-foreground">
+                                      {formatBytes(namespace.size)}
                                     </span>
-                                  </div>
+                                  )}
                                 </TableCell>
                               </TableRow>
                             );
                           })}
+                          {!loading && (overview?.namespaces ?? []).length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                                {t("home.emptyNamespaces")}
+                              </TableCell>
+                            </TableRow>
+                          )}
                         </TableBody>
                       </Table>
                     </CardContent>
                   </Card>
 
-                  <BuildTrend />
+                  <BuildTrend localServer={localServer} />
                 </div>
               </div>
             </div>

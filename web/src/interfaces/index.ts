@@ -665,3 +665,50 @@ export interface IWebhookLogList {
   items: IWebhookLogItem[];
   total: number;
 }
+
+export interface IOverviewNamespace {
+  id: string;
+  name: string;
+  visibility: string;
+  repositories: number;
+  tags: number;
+  size: number;
+  size_limit: number;
+}
+
+export interface IOverview {
+  scope: "global" | "self";
+  storage: { used: number; capacity: number };
+  counts: { namespaces: number; repositories: number; tags: number };
+  activity: { push: number; pull: number; push_delta: number; pull_delta: number };
+  namespaces: IOverviewNamespace[];
+}
+
+export interface IDailyActivity {
+  date: string;
+  push_count: number;
+  pull_count: number;
+}
+
+export interface IDailyActivityList {
+  items: IDailyActivity[];
+}
+
+export interface IDailyBuildCount {
+  date: string;
+  success: number;
+  failed: number;
+}
+
+export interface IBuildSummary {
+  success: number;
+  failed: number;
+  success_rate: number;
+  fastest: number;
+  slowest: number;
+}
+
+export interface IDailyBuildList {
+  items: IDailyBuildCount[];
+  summary: IBuildSummary;
+}

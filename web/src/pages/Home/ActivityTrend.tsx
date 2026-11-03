@@ -23,11 +23,11 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { useTranslation } from "@/i18n/useTranslation";
+import { IDailyActivity } from "@/interfaces";
 import { cn } from "@/lib/utils";
 
-import { niceCeil, useElementWidth } from "./chart";
 import CardTitleWithHint from "./CardTitleWithHint";
-import { mockDailyActivity } from "./mock";
+import { useElementWidth } from "./chart";
 
 const chartHeight = 200;
 // The right padding holds the push axis labels: both series keep their own scale
@@ -42,15 +42,26 @@ const ranges = [7, 30] as const;
 
 type Range = (typeof ranges)[number];
 
+type ActivityTrendProps = {
+  items?: IDailyActivity[];
+};
+
 // ActivityTrend plots daily pulls and pushes for the last week or month.
-export default function ActivityTrend() {
+export default function ActivityTrend({ items }: ActivityTrendProps) {
   const { locale, t } = useTranslation();
   const [containerRef, width] = useElementWidth();
   const areaId = useId();
   const [range, setRange] = useState<Range>(30);
   const [hovered, setHovered] = useState<number | null>(null);
 
-  const points = useMemo(() => mockDailyActivity(range), [range]);
+  const points = useMemo(
+    () => (items ?? []).slice(-range).map(item => ({
+      date: item.date,
+      push: item.push_count,
+      pull: item.pull_count,
+    })),
+    [items, range],
+  );
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   const dateFormatter = useMemo(
@@ -63,13 +74,15 @@ export default function ActivityTrend() {
   );
 
   const geometry = useMemo(() => {
-    if (width === 0) {
+    if (width === 0 || points.length === 0) {
       return undefined;
     }
     const innerWidth = Math.max(width - chartPadding.left - chartPadding.right, 1);
     const innerHeight = chartHeight - chartPadding.top - chartPadding.bottom;
-    const pullMax = niceCeil(Math.max(...points.map(point => point.pull)));
-    const pushMax = niceCeil(Math.max(...points.map(point => point.push)));
+    // Counts are integers, so the axes are rounded to a multiple of the grid steps; niceCeil
+    // would produce fractions like 0.25 pull when the window is empty.
+    const pullMax = Math.max(gridSteps, Math.ceil(Math.max(...points.map(point => point.pull)) / gridSteps) * gridSteps);
+    const pushMax = Math.max(gridSteps, Math.ceil(Math.max(...points.map(point => point.push)) / gridSteps) * gridSteps);
     const stepX = points.length > 1 ? innerWidth / (points.length - 1) : 0;
     const baseline = chartPadding.top + innerHeight;
 
@@ -140,7 +153,7 @@ export default function ActivityTrend() {
           </div>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-0.5 w-4 rounded-full bg-primary" />
@@ -154,9 +167,11 @@ export default function ActivityTrend() {
           </span>
         </div>
 
-        <div ref={containerRef} className="relative mt-2">
+        <div ref={containerRef} className="relative flex-1">
           {geometry === undefined ? (
-            <div style={{ height: chartHeight }} />
+            <div className="flex items-center justify-center text-xs text-muted-foreground" style={{ height: chartHeight }}>
+              {items === undefined ? null : t("home.emptyActivity")}
+            </div>
           ) : (
             <>
               <svg

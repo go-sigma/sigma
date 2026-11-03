@@ -24,15 +24,20 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { useTranslation } from "@/i18n/useTranslation";
+import { IDailyActivity } from "@/interfaces";
 import { cn } from "@/lib/utils";
 
 import CardTitleWithHint from "./CardTitleWithHint";
-import { mockDailyActivity, type DailyActivity } from "./mock";
-
-// 53 columns of 7 days cover a full year plus the partial weeks on both ends.
-const dayCount = 371;
 
 const cellLevels = ["bg-muted", "bg-primary/20", "bg-primary/40", "bg-primary/60", "bg-primary"];
+
+// minMonthGap keeps short month names from colliding when two labels land next to each other.
+const minMonthGap = 3;
+// The tooltip is sized in its own box, so these keep it clear of the hovered cell and the edges.
+const tooltipGap = 6;
+const tooltipHalfWidth = 76;
+// Below this offset the tooltip would be clipped by the card, so it flips under the cell.
+const tooltipFlipThreshold = 56;
 
 function levelOf(count: number) {
   if (count <= 0) {
@@ -52,7 +57,7 @@ function levelOf(count: number) {
 
 type HeatmapDay = {
   date: string;
-  activity?: DailyActivity;
+  count?: number;
 };
 
 type HeatmapWeek = {
@@ -74,39 +79,46 @@ type HoveredDay = {
   above: boolean;
 };
 
-// The tooltip is sized in its own box, so these keep it clear of the hovered cell and the edges.
-const tooltipGap = 6;
-const tooltipHalfWidth = 76;
-// Below this offset the tooltip would be clipped by the card, so it flips under the cell.
-const tooltipFlipThreshold = 56;
+type ActivityHeatmapProps = {
+  items?: IDailyActivity[];
+  days: number;
+};
 
-// minMonthGap keeps short month names from colliding when two labels land next to each other.
-const minMonthGap = 3;
-
-// ActivityHeatmap plots one year of daily pushes as a GitHub style contribution grid.
-export default function ActivityHeatmap() {
+// ActivityHeatmap plots the daily pushes of the requested window as a contribution grid.
+export default function ActivityHeatmap({ items, days }: ActivityHeatmapProps) {
   const { locale, t } = useTranslation();
 
   const { weeks, monthLabels, total, thisWeek, lastWeek, busiest } = useMemo(() => {
-    const activity = mockDailyActivity(dayCount);
-    const byDate = new Map(activity.map(point => [point.date, point]));
-    const start = dayjs(activity[0].date).startOf("week");
-    const end = dayjs(activity[activity.length - 1].date);
+    const points = (items ?? []).map(item => ({ date: item.date, push: item.push_count }));
+    if (points.length === 0) {
+      return {
+        weeks: [] as HeatmapWeek[],
+        monthLabels: [] as MonthLabel[],
+        total: 0,
+        thisWeek: 0,
+        lastWeek: 0,
+        busiest: undefined as { date: string; push: number } | undefined,
+      };
+    }
+
+    const byDate = new Map(points.map(point => [point.date, point]));
+    const start = dayjs(points[0].date).startOf("week");
+    const end = dayjs(points[points.length - 1].date);
     const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short" });
-    const sum = (points: typeof activity) => points.reduce((accumulator, point) => accumulator + point.push, 0);
+    const sum = (window: typeof points) => window.reduce((accumulator, point) => accumulator + point.push, 0);
 
     const columns: HeatmapWeek[] = [];
     const labels: MonthLabel[] = [];
     let lastLabeledMonth = -1;
 
     for (let cursor = start; !cursor.isAfter(end, "day"); cursor = cursor.add(7, "day")) {
-      const days: HeatmapDay[] = [];
+      const week: HeatmapDay[] = [];
       for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
         const date = cursor.add(dayOffset, "day").format("YYYY-MM-DD");
-        days.push({ date, activity: byDate.get(date) });
+        week.push({ date, count: byDate.get(date)?.push });
       }
 
-      const firstInRange = days.find(day => day.activity !== undefined);
+      const firstInRange = week.find(day => day.count !== undefined);
       if (firstInRange !== undefined) {
         const month = dayjs(firstInRange.date).month();
         const lastLabel = labels[labels.length - 1];
@@ -119,18 +131,18 @@ export default function ActivityHeatmap() {
           lastLabeledMonth = month;
         }
       }
-      columns.push({ start: cursor.format("YYYY-MM-DD"), days });
+      columns.push({ start: cursor.format("YYYY-MM-DD"), days: week });
     }
 
     return {
       weeks: columns,
       monthLabels: labels,
-      total: sum(activity),
-      thisWeek: sum(activity.slice(-7)),
-      lastWeek: sum(activity.slice(-14, -7)),
-      busiest: activity.reduce((best, point) => (point.push > best.push ? point : best), activity[0]),
+      total: sum(points),
+      thisWeek: sum(points.slice(-7)),
+      lastWeek: sum(points.slice(-14, -7)),
+      busiest: points.reduce((best, point) => (point.push > best.push ? point : best), points[0]),
     };
-  }, [locale]);
+  }, [items, locale]);
 
   const dateFormatter = useMemo(
     () => new Intl.DateTimeFormat(locale, { dateStyle: "medium" }),
@@ -151,7 +163,7 @@ export default function ActivityHeatmap() {
   const gridRef = useRef<HTMLDivElement | null>(null);
   const [hoveredDay, setHoveredDay] = useState<HoveredDay>();
 
-  // One delegated handler keeps 371 cells from each owning a listener: the cell under the
+  // One delegated handler keeps the cells from each owning a listener: the cell under the
   // pointer is read from the dataset and the tooltip is placed relative to the grid.
   const trackHover = (event: MouseEvent<HTMLDivElement>) => {
     const cell = (event.target as HTMLElement).closest<HTMLElement>("[data-heatmap-date]");
@@ -189,7 +201,7 @@ export default function ActivityHeatmap() {
       <CardHeader>
         <CardTitleWithHint
           title={t("home.activityHeatmap")}
-          hint={t("home.activityHeatmapDescription", { days: dayCount - 6 })}
+          hint={t("home.activityHeatmapDescription", { days })}
         />
         <CardAction>
           <span className="text-xs text-muted-foreground">
@@ -198,69 +210,75 @@ export default function ActivityHeatmap() {
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <div className="grid grid-flow-col gap-[3px] [grid-auto-columns:minmax(0,1fr)]">
-            {weeks.map((week, column) => {
-              const label = labelByColumn.get(column);
-              return (
-                <div key={week.start} className="relative h-3.5">
-                  {label !== undefined && (
-                    <span className="absolute left-0 top-0 whitespace-nowrap text-[10px] leading-none text-muted-foreground">
-                      {label.label}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+        {weeks.length === 0 ? (
+          <div className="flex items-center justify-center py-10 text-xs text-muted-foreground">
+            {t("home.emptyActivity")}
           </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            <div className="grid grid-flow-col gap-[3px] [grid-auto-columns:minmax(0,1fr)]">
+              {weeks.map((week, column) => {
+                const label = labelByColumn.get(column);
+                return (
+                  <div key={week.start} className="relative h-3.5">
+                    {label !== undefined && (
+                      <span className="absolute left-0 top-0 whitespace-nowrap text-[10px] leading-none text-muted-foreground">
+                        {label.label}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-          <div
-            ref={gridRef}
-            className="relative grid grid-flow-col grid-rows-7 gap-[3px] [grid-auto-columns:minmax(0,1fr)]"
-            role="img"
-            aria-label={t("home.activityHeatmap")}
-            onMouseMove={trackHover}
-            onMouseLeave={() => setHoveredDay(undefined)}
-          >
-            {weeks.flatMap(week => week.days.map(day => {
-              if (day.activity === undefined) {
-                return <div key={day.date} className="aspect-square w-full" />;
-              }
-              return (
+            <div
+              ref={gridRef}
+              className="relative grid grid-flow-col grid-rows-7 gap-[3px] [grid-auto-columns:minmax(0,1fr)]"
+              role="img"
+              aria-label={t("home.activityHeatmap")}
+              onMouseMove={trackHover}
+              onMouseLeave={() => setHoveredDay(undefined)}
+            >
+              {weeks.flatMap(week => week.days.map(day => {
+                if (day.count === undefined) {
+                  return <div key={day.date} className="aspect-square w-full" />;
+                }
+                return (
+                  <div
+                    key={day.date}
+                    data-heatmap-date={day.date}
+                    data-heatmap-count={day.count}
+                    className={cn(
+                      "aspect-square w-full rounded-[2px] transition-shadow",
+                      cellLevels[levelOf(day.count)],
+                      hoveredDay?.date === day.date && "ring-1 ring-foreground/40 ring-offset-1 ring-offset-background",
+                    )}
+                  />
+                );
+              }))}
+
+              {hoveredDay !== undefined && (
                 <div
-                  key={day.date}
-                  data-heatmap-date={day.date}
-                  data-heatmap-count={day.activity.push}
                   className={cn(
-                    "aspect-square w-full rounded-[2px] transition-shadow",
-                    cellLevels[levelOf(day.activity.push)],
-                    hoveredDay?.date === day.date && "ring-1 ring-foreground/40 ring-offset-1 ring-offset-background",
+                    "pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-popover/90 px-2 py-1 text-xs shadow-md ring-1 ring-foreground/10 backdrop-blur-sm",
+                    hoveredDay.above && "-translate-y-full",
                   )}
-                />
-              );
-            }))}
-
-            {hoveredDay !== undefined && (
-              <div
-                className={cn(
-                  "pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-popover/90 px-2 py-1 text-xs shadow-md ring-1 ring-foreground/10 backdrop-blur-sm",
-                  hoveredDay.above && "-translate-y-full",
-                )}
-                style={{
-                  left: hoveredDay.left,
-                  top: hoveredDay.above ? hoveredDay.top - tooltipGap : hoveredDay.top + tooltipGap + 12,
-                }}
-              >
-                <div className="font-medium text-popover-foreground">
-                  {dateFormatter.format(new Date(hoveredDay.date))}
+                  style={{
+                    left: hoveredDay.left,
+                    top: hoveredDay.above ? hoveredDay.top - tooltipGap : hoveredDay.top + tooltipGap + 12,
+                  }}
+                >
+                  <div className="font-medium text-popover-foreground">
+                    {dateFormatter.format(new Date(hoveredDay.date))}
+                  </div>
+                  <div className="text-muted-foreground">
+                    {t("home.activityHeatmapCount", { count: hoveredDay.count })}
+                  </div>
                 </div>
-                <div className="text-muted-foreground">
-                  {t("home.activityHeatmapCount", { count: hoveredDay.count })}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="mt-1 flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground">
           <span>{t("home.activityHeatmapLess")}</span>
@@ -287,11 +305,13 @@ export default function ActivityHeatmap() {
             <dt className="text-xs text-muted-foreground">{t("home.activityHeatmapBusiest")}</dt>
             <dd className="mt-0.5 flex items-baseline gap-1.5">
               <span className="text-sm font-medium tabular-nums text-foreground">
-                {numberFormatter.format(busiest.push)}
+                {numberFormatter.format(busiest?.push ?? 0)}
               </span>
-              <span className="text-xs text-muted-foreground">
-                {shortDateFormatter.format(new Date(busiest.date))}
-              </span>
+              {busiest !== undefined && (
+                <span className="text-xs text-muted-foreground">
+                  {shortDateFormatter.format(new Date(busiest.date))}
+                </span>
+              )}
             </dd>
           </div>
         </dl>

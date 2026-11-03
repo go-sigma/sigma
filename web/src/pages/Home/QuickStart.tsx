@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
+import axios from "axios";
 import { Check, Copy, ExternalLink, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useTranslation } from "@/i18n/useTranslation";
+import { IEndpoint } from "@/interfaces";
 
 import CardTitleWithHint from "./CardTitleWithHint";
-import { mockOverview } from "./mock";
 
 const copyResetDelay = 1500;
 
@@ -35,20 +36,39 @@ export default function QuickStart({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState<string>();
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(dismissedStorageKey) === "1");
+  const [version, setVersion] = useState<{ version: string; git_hash: string }>();
+  const [endpoint, setEndpoint] = useState("");
 
-  const endpoint = useMemo(() => {
-    const base = localServer === "" ? window.location.origin : localServer;
-    return base.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  useEffect(() => {
+    let cancelled = false;
+    axios.get(`${localServer}/api/v1/systems/version`).then(response => {
+      if (!cancelled && response.status === 200) {
+        setVersion(response.data as { version: string; git_hash: string });
+      }
+    }).catch(() => {});
+    axios.get(`${localServer}/api/v1/systems/endpoint`).then(response => {
+      if (!cancelled && response.status === 200) {
+        setEndpoint((response.data as IEndpoint).endpoint ?? "");
+      }
+    }).catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [localServer]);
 
+  const registry = useMemo(() => {
+    const base = endpoint !== "" ? endpoint : localServer === "" ? window.location.origin : localServer;
+    return base.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  }, [endpoint, localServer]);
+
   const steps = useMemo(() => {
-    const image = `${endpoint}/library/myapp:latest`;
+    const image = `${registry}/library/myapp:latest`;
     return [
-      { key: "login", label: t("home.quickStartLogin"), command: `docker login ${endpoint}` },
+      { key: "login", label: t("home.quickStartLogin"), command: `docker login ${registry}` },
       { key: "tag", label: t("home.quickStartTag"), command: `docker tag myapp:latest ${image}` },
       { key: "push", label: t("home.quickStartPush"), command: `docker push ${image}` },
     ];
-  }, [endpoint, t]);
+  }, [registry, t]);
 
   const copy = async (key: string, command: string) => {
     try {
@@ -125,14 +145,13 @@ export default function QuickStart({ localServer }: { localServer: string }) {
               <dt className="text-xs text-muted-foreground">{t("home.version")}</dt>
               <dd className="mt-1 flex items-baseline gap-2">
                 <span className="text-sm font-medium tabular-nums text-foreground">
-                  {mockOverview.version}
+                  {version?.version || version?.git_hash || "—"}
                 </span>
-                <code className="font-mono text-xs text-muted-foreground">{mockOverview.commit}</code>
               </dd>
             </div>
             <div className="min-w-0">
               <dt className="text-xs text-muted-foreground">{t("home.endpoint")}</dt>
-              <dd className="mt-1 truncate font-mono text-xs text-foreground">{endpoint}</dd>
+              <dd className="mt-1 truncate font-mono text-xs text-foreground">{registry}</dd>
             </div>
           </dl>
 
