@@ -32,6 +32,7 @@ func newBuilder(db *gorm.DB, opts ...gen.DOOption) builder {
 	_builder.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_builder.ID = field.NewString(tableName, "id")
 	_builder.RepositoryID = field.NewString(tableName, "repository_id")
+	_builder.CreatorID = field.NewString(tableName, "creator_id")
 	_builder.Source = field.NewField(tableName, "source")
 	_builder.CodeRepositoryID = field.NewString(tableName, "code_repository_id")
 	_builder.Dockerfile = field.NewBytes(tableName, "dockerfile")
@@ -147,6 +148,7 @@ type builder struct {
 	DeletedAt                  field.Uint
 	ID                         field.String
 	RepositoryID               field.String
+	CreatorID                  field.String
 	Source                     field.Field
 	CodeRepositoryID           field.String
 	Dockerfile                 field.Bytes
@@ -196,6 +198,7 @@ func (b *builder) updateTableName(table string) *builder {
 	b.DeletedAt = field.NewUint(table, "deleted_at")
 	b.ID = field.NewString(table, "id")
 	b.RepositoryID = field.NewString(table, "repository_id")
+	b.CreatorID = field.NewString(table, "creator_id")
 	b.Source = field.NewField(table, "source")
 	b.CodeRepositoryID = field.NewString(table, "code_repository_id")
 	b.Dockerfile = field.NewBytes(table, "dockerfile")
@@ -245,12 +248,13 @@ func (b *builder) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *builder) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 32)
+	b.fieldMap = make(map[string]field.Expr, 33)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
 	b.fieldMap["id"] = b.ID
 	b.fieldMap["repository_id"] = b.RepositoryID
+	b.fieldMap["creator_id"] = b.CreatorID
 	b.fieldMap["source"] = b.Source
 	b.fieldMap["code_repository_id"] = b.CodeRepositoryID
 	b.fieldMap["dockerfile"] = b.Dockerfile

@@ -29,6 +29,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
 	"github.com/go-sigma/sigma/pkg/server/handlers/namespaces"
 	"github.com/go-sigma/sigma/pkg/server/handlers/oauth2"
+	"github.com/go-sigma/sigma/pkg/server/handlers/overview"
 	"github.com/go-sigma/sigma/pkg/server/handlers/repositories"
 	"github.com/go-sigma/sigma/pkg/server/handlers/systems"
 	"github.com/go-sigma/sigma/pkg/server/handlers/tags"
@@ -57,6 +58,7 @@ func Initialize(digCon *dig.Container) error {
 		{name: "daemons", initialize: daemons.Initialize},
 		{name: "namespaces", initialize: namespaces.Initialize},
 		{name: "oauth2", initialize: oauth2.Initialize},
+		{name: "overview", initialize: overview.Initialize},
 		{name: "repositories", initialize: repositories.Initialize},
 		{name: "systems", initialize: systems.Initialize},
 		{name: "tags", initialize: tags.Initialize},

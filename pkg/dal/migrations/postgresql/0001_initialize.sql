@@ -460,6 +460,7 @@ CREATE INDEX "webhook_logs_idx_deleted_at" ON "webhook_logs" ("deleted_at");
 CREATE TABLE IF NOT EXISTS "builders" (
   "id" varchar(36) PRIMARY KEY,
   "repository_id" varchar(36) NOT NULL,
+  "creator_id" varchar(36),
   "source" varchar(64) NOT NULL,
   -- source SelfCodeRepository
   "scm_credential_type" varchar(16),
@@ -503,6 +504,7 @@ CREATE TABLE IF NOT EXISTS "builders" (
 CREATE TABLE IF NOT EXISTS "builder_runners" (
   "id" varchar(36) PRIMARY KEY,
   "builder_id" varchar(36) NOT NULL,
+  "triggered_by" varchar(36),
   "log" bytea,
   "status" varchar(64) NOT NULL DEFAULT 'Pending',
   "status_message" varchar(255),
@@ -519,6 +521,10 @@ CREATE TABLE IF NOT EXISTS "builder_runners" (
   "deleted_at" bigint NOT NULL DEFAULT 0
 );
 
+CREATE INDEX "builder_runners_idx_builder_started" ON "builder_runners" ("builder_id", "started_at");
+
+CREATE INDEX "builder_runners_idx_started_at" ON "builder_runners" ("started_at");
+
 CREATE TABLE IF NOT EXISTS "settings" (
   "id" varchar(36) PRIMARY KEY,
   "key" varchar(256) NOT NULL UNIQUE,
@@ -533,6 +539,7 @@ CREATE TABLE IF NOT EXISTS "user_activity_hourlies" (
   "hour" bigint NOT NULL,
   "user_id" varchar(36) NOT NULL,
   "push_count" bigint NOT NULL DEFAULT 0,
+  "pull_count" bigint NOT NULL DEFAULT 0,
   "created_at" bigint NOT NULL,
   "updated_at" bigint NOT NULL,
   CONSTRAINT "user_activity_hourlies_unique_with_hour_user" UNIQUE ("hour", "user_id")

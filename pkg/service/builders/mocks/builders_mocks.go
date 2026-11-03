@@ -105,33 +105,33 @@ func (mr *MockBuilderServiceMockRecorder) ListRunners(ctx, builderID, pagination
 }
 
 // RerunRunner mocks base method.
-func (m *MockBuilderService) RerunRunner(ctx context.Context, req api.GetRunnerStop) (string, error) {
+func (m *MockBuilderService) RerunRunner(ctx context.Context, userID string, req api.GetRunnerStop) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RerunRunner", ctx, req)
+	ret := m.ctrl.Call(m, "RerunRunner", ctx, userID, req)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RerunRunner indicates an expected call of RerunRunner.
-func (mr *MockBuilderServiceMockRecorder) RerunRunner(ctx, req any) *gomock.Call {
+func (mr *MockBuilderServiceMockRecorder) RerunRunner(ctx, userID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RerunRunner", reflect.TypeOf((*MockBuilderService)(nil).RerunRunner), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RerunRunner", reflect.TypeOf((*MockBuilderService)(nil).RerunRunner), ctx, userID, req)
 }
 
 // RunRunner mocks base method.
-func (m *MockBuilderService) RunRunner(ctx context.Context, req api.PostRunnerRun) (string, error) {
+func (m *MockBuilderService) RunRunner(ctx context.Context, userID string, req api.PostRunnerRun) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunRunner", ctx, req)
+	ret := m.ctrl.Call(m, "RunRunner", ctx, userID, req)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RunRunner indicates an expected call of RunRunner.
-func (mr *MockBuilderServiceMockRecorder) RunRunner(ctx, req any) *gomock.Call {
+func (mr *MockBuilderServiceMockRecorder) RunRunner(ctx, userID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunRunner", reflect.TypeOf((*MockBuilderService)(nil).RunRunner), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunRunner", reflect.TypeOf((*MockBuilderService)(nil).RunRunner), ctx, userID, req)
 }
 
 // RunnerLogReader mocks base method.

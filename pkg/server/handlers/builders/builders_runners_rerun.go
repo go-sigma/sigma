@@ -43,7 +43,7 @@ import (
 func (h *handler) GetRunnerRerun(c *gin.Context, req *api.GetRunnerStop) {
 	ctx := c.Request.Context()
 
-	runnerID, err := h.BuilderSvc.RerunRunner(ctx, *req)
+	runnerID, err := h.BuilderSvc.RerunRunner(ctx, actingUserID(c), *req)
 	if err != nil {
 		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
 			errcode.NewHTTPError(c, e)

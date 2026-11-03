@@ -20,6 +20,13 @@ type DailyCount struct {
 	PushCount int64  `json:"push_count"`
 }
 
+// DailyActivity represents the aggregated pushes and pulls of one day.
+type DailyActivity struct {
+	Date      string `json:"date"`
+	PushCount int64  `json:"push_count"`
+	PullCount int64  `json:"pull_count"`
+}
+
 // NamespaceHourlyMetric represents namespace activity metrics aggregated by hour.
 type NamespaceHourlyMetric struct {
 	Hour      string `json:"hour"`

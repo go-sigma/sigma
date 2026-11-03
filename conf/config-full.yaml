@@ -119,6 +119,9 @@ http:
 storage:
   rootdirectory: ./storage
   redirect: false
+  # Total storage sigma may use, in bytes; only used by the admin home dashboard
+  # to render the storage usage ratio. 0 means unlimited.
+  capacity: 0
   type: filesystem
   filesystem:
     path: /var/lib/sigma/oci/

@@ -75,6 +75,10 @@ type Service interface {
 	Flush(ctx context.Context) error
 	// GetUserPushHeatmap returns daily push counts for a user.
 	GetUserPushHeatmap(ctx context.Context, userID string, days int) ([]api.DailyCount, error)
+	// GetUserActivity returns daily push and pull counts performed by a user.
+	GetUserActivity(ctx context.Context, userID string, days int) ([]api.DailyActivity, error)
+	// GetGlobalActivity returns daily push and pull counts of every namespace.
+	GetGlobalActivity(ctx context.Context, days int) ([]api.DailyActivity, error)
 	// GetNamespaceTrends returns hourly namespace activity metrics.
 	GetNamespaceTrends(ctx context.Context, namespaceID string, days int) ([]api.NamespaceHourlyMetric, error)
 }
@@ -124,6 +128,11 @@ func (s *service) RecordPull(ctx context.Context, event PullEvent) error {
 		return nil
 	}
 	hour := hourValue(time.Now().UTC())
+	if event.UserID != "" {
+		if err := s.Counter.HIncrBy(ctx, userPullKey(hour), map[string]int64{event.UserID: 1}); err != nil {
+			return err
+		}
+	}
 	if err := s.Counter.HIncrBy(ctx, namespaceKey(hour), map[string]int64{
 		event.NamespaceID + ":pull": 1,
 	}); err != nil {
@@ -225,6 +234,69 @@ func (s *service) GetUserPushHeatmap(ctx context.Context, userID string, days in
 	return items, nil
 }
 
+// GetUserActivity returns daily push and pull counts performed by a user.
+func (s *service) GetUserActivity(ctx context.Context, userID string, days int) ([]api.DailyActivity, error) {
+	startDay, startHour, endHour, days := s.activityWindow(days)
+	rows, err := s.RepoAnalytics.ListUserPush(ctx, userID, startHour, endHour)
+	if err != nil {
+		return nil, err
+	}
+	push := make(map[string]int64, len(rows))
+	pull := make(map[string]int64, len(rows))
+	for _, row := range rows {
+		rowTime, err := timeFromHour(row.Hour)
+		if err != nil {
+			return nil, err
+		}
+		date := rowTime.Format(time.DateOnly)
+		push[date] += row.PushCount
+		pull[date] += row.PullCount
+	}
+	return dailyActivity(startDay, days, push, pull), nil
+}
+
+// GetGlobalActivity returns daily push and pull counts of every namespace.
+func (s *service) GetGlobalActivity(ctx context.Context, days int) ([]api.DailyActivity, error) {
+	startDay, startHour, endHour, days := s.activityWindow(days)
+	rows, err := s.RepoAnalytics.ListAllNamespaceActivity(ctx, startHour, endHour)
+	if err != nil {
+		return nil, err
+	}
+	push := make(map[string]int64, len(rows))
+	pull := make(map[string]int64, len(rows))
+	for _, row := range rows {
+		rowTime, err := timeFromHour(row.Hour)
+		if err != nil {
+			return nil, err
+		}
+		date := rowTime.Format(time.DateOnly)
+		push[date] += row.PushCount
+		pull[date] += row.PullCount
+	}
+	return dailyActivity(startDay, days, push, pull), nil
+}
+
+// activityWindow normalizes the requested number of days and returns the first day of the window
+// together with the hour range the rollup tables are keyed by.
+func (s *service) activityWindow(days int) (time.Time, int64, int64, int) {
+	if days <= 0 || days > s.Config.Analytics.RetentionDays {
+		days = min(max(days, 1), s.Config.Analytics.RetentionDays)
+	}
+	now := time.Now().UTC()
+	startDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).AddDate(0, 0, -days+1)
+	return startDay, hourValue(startDay), hourValue(now), days
+}
+
+// dailyActivity expands the per-day counters into one item per day of the window.
+func dailyActivity(startDay time.Time, days int, push, pull map[string]int64) []api.DailyActivity {
+	items := make([]api.DailyActivity, 0, days)
+	for dayOffset := range days {
+		date := startDay.AddDate(0, 0, dayOffset).Format(time.DateOnly)
+		items = append(items, api.DailyActivity{Date: date, PushCount: push[date], PullCount: pull[date]})
+	}
+	return items
+}
+
 func (s *service) GetNamespaceTrends(
 	ctx context.Context,
 	namespaceID string,
@@ -270,17 +342,23 @@ func (s *service) GetNamespaceTrends(
 }
 
 func (s *service) flushHour(ctx context.Context, hour int64) error {
-	userKey := userPushKey(hour)
-	namespaceKey := namespaceKey(hour)
-	userFlushingKey := flushingKey(userKey)
-	namespaceFlushingKey := flushingKey(namespaceKey)
-	if err := s.Counter.Rename(ctx, userKey, userFlushingKey); err != nil {
+	userPushFlushingKey := flushingKey(userPushKey(hour))
+	userPullFlushingKey := flushingKey(userPullKey(hour))
+	namespaceFlushingKey := flushingKey(namespaceKey(hour))
+	if err := s.Counter.Rename(ctx, userPushKey(hour), userPushFlushingKey); err != nil {
 		return err
 	}
-	if err := s.Counter.Rename(ctx, namespaceKey, namespaceFlushingKey); err != nil {
+	if err := s.Counter.Rename(ctx, userPullKey(hour), userPullFlushingKey); err != nil {
 		return err
 	}
-	userCounts, err := s.Counter.HGetAll(ctx, userFlushingKey)
+	if err := s.Counter.Rename(ctx, namespaceKey(hour), namespaceFlushingKey); err != nil {
+		return err
+	}
+	userPushes, err := s.Counter.HGetAll(ctx, userPushFlushingKey)
+	if err != nil {
+		return err
+	}
+	userPulls, err := s.Counter.HGetAll(ctx, userPullFlushingKey)
 	if err != nil {
 		return err
 	}
@@ -288,8 +366,15 @@ func (s *service) flushHour(ctx context.Context, hour int64) error {
 	if err != nil {
 		return err
 	}
-	for userID, count := range userCounts {
-		if incrErr := s.RepoAnalytics.IncrUserPush(ctx, hour, userID, count); incrErr != nil {
+	userIDs := make(map[string]struct{}, len(userPushes)+len(userPulls))
+	for userID := range userPushes {
+		userIDs[userID] = struct{}{}
+	}
+	for userID := range userPulls {
+		userIDs[userID] = struct{}{}
+	}
+	for userID := range userIDs {
+		if incrErr := s.RepoAnalytics.IncrUser(ctx, hour, userID, userPushes[userID], userPulls[userID]); incrErr != nil {
 			return incrErr
 		}
 	}
@@ -307,7 +392,7 @@ func (s *service) flushHour(ctx context.Context, hour int64) error {
 			return err
 		}
 	}
-	if err := s.Counter.Del(ctx, userFlushingKey, namespaceFlushingKey); err != nil {
+	if err := s.Counter.Del(ctx, userPushFlushingKey, userPullFlushingKey, namespaceFlushingKey); err != nil {
 		return err
 	}
 	return s.Counter.SRem(ctx, dirtyHoursKey(), strconv.FormatInt(hour, 10))
@@ -358,6 +443,10 @@ func timeFromHour(hour int64) (time.Time, error) {
 
 func userPushKey(hour int64) string {
 	return fmt.Sprintf("%s:hour:%d:user_push", redisKeyPrefix, hour)
+}
+
+func userPullKey(hour int64) string {
+	return fmt.Sprintf("%s:hour:%d:user_pull", redisKeyPrefix, hour)
 }
 
 func namespaceKey(hour int64) string {

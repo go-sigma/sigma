@@ -225,8 +225,8 @@ func TestPostRunnerRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
-		RunRunner(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(_ context.Context, req api.PostRunnerRun) (string, error) {
+		RunRunner(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, _ string, req api.PostRunnerRun) (string, error) {
 			require.Equal(t, "1", req.BuilderID)
 			return "2", nil
 		})
@@ -243,7 +243,7 @@ func TestPostRunnerRunReturnsInternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
-		RunRunner(gomock.Any(), gomock.Any()).
+		RunRunner(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return("", errors.New("run failed"))
 
 	recorder, c := newBuildersContext(t)
@@ -257,8 +257,8 @@ func TestGetRunnerRerun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	serviceObj := buildersmocks.NewMockBuilderService(ctrl)
 	serviceObj.EXPECT().
-		RerunRunner(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(_ context.Context, req api.GetRunnerStop) (string, error) {
+		RerunRunner(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, _ string, req api.GetRunnerStop) (string, error) {
 			require.Equal(t, "2", req.RunnerID)
 			return "3", nil
 		})

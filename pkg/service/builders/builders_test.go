@@ -148,7 +148,7 @@ func TestRunRunnerEnqueuesAfterTheRunnerIsCommitted(t *testing.T) {
 	runnerID, err := (&service{
 		RepoBuilder: repobuilder.NewBuilderRepository(),
 		Producer:    producer,
-	}).RunRunner(ctx, api.PostRunnerRun{
+	}).RunRunner(ctx, "", api.PostRunnerRun{
 		RepositoryID: builderObj.RepositoryID,
 		BuilderID:    builderObj.ID,
 		RawTag:       "v1",
@@ -174,7 +174,7 @@ func TestRunRunnerFailsTheRunnerWhenEnqueueFails(t *testing.T) {
 	_, err := (&service{
 		RepoBuilder: builderRepository,
 		Producer:    producer,
-	}).RunRunner(ctx, api.PostRunnerRun{
+	}).RunRunner(ctx, "", api.PostRunnerRun{
 		RepositoryID: builderObj.RepositoryID,
 		BuilderID:    builderObj.ID,
 		RawTag:       "v1",

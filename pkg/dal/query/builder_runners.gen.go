@@ -32,6 +32,7 @@ func newBuilderRunner(db *gorm.DB, opts ...gen.DOOption) builderRunner {
 	_builderRunner.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_builderRunner.ID = field.NewString(tableName, "id")
 	_builderRunner.BuilderID = field.NewString(tableName, "builder_id")
+	_builderRunner.TriggeredBy = field.NewString(tableName, "triggered_by")
 	_builderRunner.Log = field.NewBytes(tableName, "log")
 	_builderRunner.Status = field.NewField(tableName, "status")
 	_builderRunner.StatusMessage = field.NewString(tableName, "status_message")
@@ -106,6 +107,7 @@ type builderRunner struct {
 	DeletedAt     field.Uint
 	ID            field.String
 	BuilderID     field.String
+	TriggeredBy   field.String
 	Log           field.Bytes
 	Status        field.Field
 	StatusMessage field.String
@@ -137,6 +139,7 @@ func (b *builderRunner) updateTableName(table string) *builderRunner {
 	b.DeletedAt = field.NewUint(table, "deleted_at")
 	b.ID = field.NewString(table, "id")
 	b.BuilderID = field.NewString(table, "builder_id")
+	b.TriggeredBy = field.NewString(table, "triggered_by")
 	b.Log = field.NewBytes(table, "log")
 	b.Status = field.NewField(table, "status")
 	b.StatusMessage = field.NewString(table, "status_message")
@@ -174,12 +177,13 @@ func (b *builderRunner) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (b *builderRunner) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 15)
+	b.fieldMap = make(map[string]field.Expr, 16)
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt
 	b.fieldMap["deleted_at"] = b.DeletedAt
 	b.fieldMap["id"] = b.ID
 	b.fieldMap["builder_id"] = b.BuilderID
+	b.fieldMap["triggered_by"] = b.TriggeredBy
 	b.fieldMap["log"] = b.Log
 	b.fieldMap["status"] = b.Status
 	b.fieldMap["status_message"] = b.StatusMessage

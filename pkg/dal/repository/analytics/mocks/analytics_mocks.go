@@ -69,18 +69,33 @@ func (mr *MockAnalyticsRepositoryMockRecorder) IncrNamespace(ctx, hour, namespac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrNamespace", reflect.TypeOf((*MockAnalyticsRepository)(nil).IncrNamespace), ctx, hour, namespaceID, pushDelta, pullDelta, sizeDelta, tagDelta)
 }
 
-// IncrUserPush mocks base method.
-func (m *MockAnalyticsRepository) IncrUserPush(ctx context.Context, hour int64, userID string, delta int64) error {
+// IncrUser mocks base method.
+func (m *MockAnalyticsRepository) IncrUser(ctx context.Context, hour int64, userID string, pushDelta, pullDelta int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncrUserPush", ctx, hour, userID, delta)
+	ret := m.ctrl.Call(m, "IncrUser", ctx, hour, userID, pushDelta, pullDelta)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// IncrUserPush indicates an expected call of IncrUserPush.
-func (mr *MockAnalyticsRepositoryMockRecorder) IncrUserPush(ctx, hour, userID, delta any) *gomock.Call {
+// IncrUser indicates an expected call of IncrUser.
+func (mr *MockAnalyticsRepositoryMockRecorder) IncrUser(ctx, hour, userID, pushDelta, pullDelta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrUserPush", reflect.TypeOf((*MockAnalyticsRepository)(nil).IncrUserPush), ctx, hour, userID, delta)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrUser", reflect.TypeOf((*MockAnalyticsRepository)(nil).IncrUser), ctx, hour, userID, pushDelta, pullDelta)
+}
+
+// ListAllNamespaceActivity mocks base method.
+func (m *MockAnalyticsRepository) ListAllNamespaceActivity(ctx context.Context, startHour, endHour int64) ([]*models.NamespaceActivityHourly, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAllNamespaceActivity", ctx, startHour, endHour)
+	ret0, _ := ret[0].([]*models.NamespaceActivityHourly)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAllNamespaceActivity indicates an expected call of ListAllNamespaceActivity.
+func (mr *MockAnalyticsRepositoryMockRecorder) ListAllNamespaceActivity(ctx, startHour, endHour any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllNamespaceActivity", reflect.TypeOf((*MockAnalyticsRepository)(nil).ListAllNamespaceActivity), ctx, startHour, endHour)
 }
 
 // ListNamespaceActivity mocks base method.

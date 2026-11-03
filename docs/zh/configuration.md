@@ -128,6 +128,8 @@ http:
 storage:
   rootdirectory: ./storage
   redirect: false
+  # sigma 可使用的存储总量（字节），管理员首页用它展示存储使用率；0 表示不限制。
+  capacity: 0
   type: filesystem
   filesystem:
     path: /var/lib/sigma/oci/
