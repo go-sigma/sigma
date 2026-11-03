@@ -90,6 +90,7 @@ data:
     storage:
       rootDirectory: ./storage
       redirect: {{ .Values.config.storage.redirect }}
+      capacity: {{ .Values.config.storage.capacity | int64 }}
       type: s3
       filesystem:
         path: /

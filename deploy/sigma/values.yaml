@@ -182,6 +182,9 @@ config:
     rootdirectory: ./storage
     # redirect blob pull requests to object storage presigned URLs when supported
     redirect: false
+    # total storage sigma may use, in bytes; only used by the admin home dashboard.
+    # 0 means unlimited.
+    capacity: 0
     type: s3
     filesystem:
       path: /

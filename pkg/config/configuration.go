@@ -565,13 +565,16 @@ type ConfigurationStorageOss struct {
 
 // ConfigurationStorage selects the blob storage backend (filesystem, s3, cos, oss or qiniu) and shared options such as redirects.
 type ConfigurationStorage struct {
-	RootDirectory string                         `yaml:"rootDirectory"`
-	Redirect      bool                           `yaml:"redirect"`
-	Type          enums.StorageType              `yaml:"type"`
-	Filesystem    ConfigurationStorageFilesystem `yaml:"filesystem"`
-	S3            ConfigurationStorageS3         `yaml:"s3"`
-	Cos           ConfigurationStorageCos        `yaml:"cos"`
-	Oss           ConfigurationStorageOss        `yaml:"oss"`
+	RootDirectory string `yaml:"rootDirectory"`
+	Redirect      bool   `yaml:"redirect"`
+	// Capacity is the total storage this sigma instance may use, in bytes. It is only used to
+	// render the storage usage ratio of the home dashboard for administrators; 0 means unlimited.
+	Capacity   int64                          `yaml:"capacity"`
+	Type       enums.StorageType              `yaml:"type"`
+	Filesystem ConfigurationStorageFilesystem `yaml:"filesystem"`
+	S3         ConfigurationStorageS3         `yaml:"s3"`
+	Cos        ConfigurationStorageCos        `yaml:"cos"`
+	Oss        ConfigurationStorageOss        `yaml:"oss"`
 }
 
 // ConfigurationProxy configures the upstream registry proxy used to pull and cache images from a remote registry.
