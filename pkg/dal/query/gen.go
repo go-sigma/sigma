@@ -22,6 +22,7 @@ var (
 	ArtifactVulnerability         *artifactVulnerability
 	Audit                         *audit
 	Blob                          *blob
+	BlobAttribution               *blobAttribution
 	BlobUpload                    *blobUpload
 	Builder                       *builder
 	BuilderRunner                 *builderRunner
@@ -34,6 +35,7 @@ var (
 	Namespace                     *namespace
 	NamespaceActivityHourly       *namespaceActivityHourly
 	NamespaceMember               *namespaceMember
+	QuotaUsage                    *quotaUsage
 	Repository                    *repository
 	Setting                       *setting
 	Tag                           *tag
@@ -52,6 +54,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	ArtifactVulnerability = &Q.ArtifactVulnerability
 	Audit = &Q.Audit
 	Blob = &Q.Blob
+	BlobAttribution = &Q.BlobAttribution
 	BlobUpload = &Q.BlobUpload
 	Builder = &Q.Builder
 	BuilderRunner = &Q.BuilderRunner
@@ -64,6 +67,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Namespace = &Q.Namespace
 	NamespaceActivityHourly = &Q.NamespaceActivityHourly
 	NamespaceMember = &Q.NamespaceMember
+	QuotaUsage = &Q.QuotaUsage
 	Repository = &Q.Repository
 	Setting = &Q.Setting
 	Tag = &Q.Tag
@@ -83,6 +87,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		ArtifactVulnerability:         newArtifactVulnerability(db, opts...),
 		Audit:                         newAudit(db, opts...),
 		Blob:                          newBlob(db, opts...),
+		BlobAttribution:               newBlobAttribution(db, opts...),
 		BlobUpload:                    newBlobUpload(db, opts...),
 		Builder:                       newBuilder(db, opts...),
 		BuilderRunner:                 newBuilderRunner(db, opts...),
@@ -95,6 +100,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Namespace:                     newNamespace(db, opts...),
 		NamespaceActivityHourly:       newNamespaceActivityHourly(db, opts...),
 		NamespaceMember:               newNamespaceMember(db, opts...),
+		QuotaUsage:                    newQuotaUsage(db, opts...),
 		Repository:                    newRepository(db, opts...),
 		Setting:                       newSetting(db, opts...),
 		Tag:                           newTag(db, opts...),
@@ -115,6 +121,7 @@ type Query struct {
 	ArtifactVulnerability         artifactVulnerability
 	Audit                         audit
 	Blob                          blob
+	BlobAttribution               blobAttribution
 	BlobUpload                    blobUpload
 	Builder                       builder
 	BuilderRunner                 builderRunner
@@ -127,6 +134,7 @@ type Query struct {
 	Namespace                     namespace
 	NamespaceActivityHourly       namespaceActivityHourly
 	NamespaceMember               namespaceMember
+	QuotaUsage                    quotaUsage
 	Repository                    repository
 	Setting                       setting
 	Tag                           tag
@@ -150,6 +158,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		ArtifactVulnerability:         q.ArtifactVulnerability.clone(db),
 		Audit:                         q.Audit.clone(db),
 		Blob:                          q.Blob.clone(db),
+		BlobAttribution:               q.BlobAttribution.clone(db),
 		BlobUpload:                    q.BlobUpload.clone(db),
 		Builder:                       q.Builder.clone(db),
 		BuilderRunner:                 q.BuilderRunner.clone(db),
@@ -162,6 +171,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Namespace:                     q.Namespace.clone(db),
 		NamespaceActivityHourly:       q.NamespaceActivityHourly.clone(db),
 		NamespaceMember:               q.NamespaceMember.clone(db),
+		QuotaUsage:                    q.QuotaUsage.clone(db),
 		Repository:                    q.Repository.clone(db),
 		Setting:                       q.Setting.clone(db),
 		Tag:                           q.Tag.clone(db),
@@ -190,6 +200,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		ArtifactVulnerability:         q.ArtifactVulnerability.replaceDB(db),
 		Audit:                         q.Audit.replaceDB(db),
 		Blob:                          q.Blob.replaceDB(db),
+		BlobAttribution:               q.BlobAttribution.replaceDB(db),
 		BlobUpload:                    q.BlobUpload.replaceDB(db),
 		Builder:                       q.Builder.replaceDB(db),
 		BuilderRunner:                 q.BuilderRunner.replaceDB(db),
@@ -202,6 +213,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Namespace:                     q.Namespace.replaceDB(db),
 		NamespaceActivityHourly:       q.NamespaceActivityHourly.replaceDB(db),
 		NamespaceMember:               q.NamespaceMember.replaceDB(db),
+		QuotaUsage:                    q.QuotaUsage.replaceDB(db),
 		Repository:                    q.Repository.replaceDB(db),
 		Setting:                       q.Setting.replaceDB(db),
 		Tag:                           q.Tag.replaceDB(db),
@@ -220,6 +232,7 @@ type queryCtx struct {
 	ArtifactVulnerability         *artifactVulnerabilityDo
 	Audit                         *auditDo
 	Blob                          *blobDo
+	BlobAttribution               *blobAttributionDo
 	BlobUpload                    *blobUploadDo
 	Builder                       *builderDo
 	BuilderRunner                 *builderRunnerDo
@@ -232,6 +245,7 @@ type queryCtx struct {
 	Namespace                     *namespaceDo
 	NamespaceActivityHourly       *namespaceActivityHourlyDo
 	NamespaceMember               *namespaceMemberDo
+	QuotaUsage                    *quotaUsageDo
 	Repository                    *repositoryDo
 	Setting                       *settingDo
 	Tag                           *tagDo
@@ -250,6 +264,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		ArtifactVulnerability:         q.ArtifactVulnerability.WithContext(ctx),
 		Audit:                         q.Audit.WithContext(ctx),
 		Blob:                          q.Blob.WithContext(ctx),
+		BlobAttribution:               q.BlobAttribution.WithContext(ctx),
 		BlobUpload:                    q.BlobUpload.WithContext(ctx),
 		Builder:                       q.Builder.WithContext(ctx),
 		BuilderRunner:                 q.BuilderRunner.WithContext(ctx),
@@ -262,6 +277,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Namespace:                     q.Namespace.WithContext(ctx),
 		NamespaceActivityHourly:       q.NamespaceActivityHourly.WithContext(ctx),
 		NamespaceMember:               q.NamespaceMember.WithContext(ctx),
+		QuotaUsage:                    q.QuotaUsage.WithContext(ctx),
 		Repository:                    q.Repository.WithContext(ctx),
 		Setting:                       q.Setting.WithContext(ctx),
 		Tag:                           q.Tag.WithContext(ctx),

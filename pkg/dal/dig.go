@@ -34,9 +34,11 @@ import (
 func initDigContainer(digCon *dig.Container) error {
 	for _, e := range []error{
 		digCon.Provide(reporegistry.NewArtifactRepository),
+		digCon.Provide(reporegistry.NewBlobAttributionRepository),
 		digCon.Provide(repoanalytics.NewAnalyticsRepository),
 		digCon.Provide(repoaudit.NewAuditRepository),
 		digCon.Provide(reporegistry.NewBlobRepository),
+		digCon.Provide(reporegistry.NewQuotaUsageRepository),
 		digCon.Provide(repobuilder.NewBuilderRepository),
 		digCon.Provide(repocoderepo.NewCodeRepositoryRepository),
 		digCon.Provide(repodaemon.NewDaemonRepository),
