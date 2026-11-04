@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `namespace_count` bigint NOT NULL DEFAULT 0,
   `status` varchar(64) NOT NULL DEFAULT 'Active',
   `role` varchar(64) NOT NULL DEFAULT 'User',
+  `password_change_required` integer NOT NULL DEFAULT 0,
   `created_at` integer NOT NULL,
   `updated_at` integer NOT NULL,
   `deleted_at` bigint NOT NULL DEFAULT 0,

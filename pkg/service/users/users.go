@@ -387,7 +387,8 @@ func (s *service) SelfResetPassword(ctx context.Context, userID string, password
 			return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 		}
 		err = userRepository.UpdateByID(ctx, userID, map[string]any{
-			query.User.Password.ColumnName().String(): pwdHash,
+			query.User.Password.ColumnName().String():               pwdHash,
+			query.User.PasswordChangeRequired.ColumnName().String(): false,
 		})
 		if err != nil {
 			slog.Error("update user failed", "err", err)

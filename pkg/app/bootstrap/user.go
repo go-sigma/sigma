@@ -139,6 +139,9 @@ func initUserWithParams(params initUserParams) error {
 		Password: new(adminUserPasswordHashed),
 		Email:    new(adminUserEmail),
 		Role:     enums.UserRoleRoot,
+		// A generated password is only known through the logs, so the login page asks for a new
+		// one before the account enters the app.
+		PasswordChangeRequired: generatedPassword,
 	}
 	err = userSvc.Create(ctx, adminUser)
 	if err != nil {

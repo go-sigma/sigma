@@ -19,6 +19,7 @@ import { NavigateFunction } from "react-router-dom";
 
 import { setApiNavigationHandlers } from "@/api/client";
 import { IUserLoginResponse } from "@/interfaces";
+import { notifySessionExpired } from "@/utils/session";
 
 let REFRESH_TOKEN_INTERVAL: ReturnType<typeof setInterval> | null;
 
@@ -39,9 +40,14 @@ export const setupAxiosInterceptor = (navigate: NavigateFunction) => {
       if (error?.response?.status === 401) {
         if (error?.response?.config?.url?.endsWith("/api/v1/users/login")) {
           return Promise.resolve(error?.response);
-        } else {
-          navigate("/login");
         }
+        // Every request of the page fails at once when the token expires; report it once and
+        // hand the response back so callers keep running their usual status checks.
+        notifySessionExpired(() => {
+          teardownAutoRefreshToken();
+          navigate("/login");
+        });
+        return Promise.resolve(error?.response);
       } else if (error?.response?.status === 500) {
         return Promise.reject(error);
       } else {

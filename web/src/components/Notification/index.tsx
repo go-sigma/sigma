@@ -17,8 +17,14 @@
 import { toast } from 'sonner';
 
 import { INotification } from "@/interfaces";
+import { sessionExpiredBurst } from "@/utils/session";
 
 export default function (noti: INotification) {
+  // Expiring the access token fails every in flight request; the session helper already showed
+  // one message for the whole burst, so the per request reports are dropped.
+  if (sessionExpiredBurst()) {
+    return;
+  }
   switch (noti.level) {
     case "success":
       toast.success(noti.title, { description: noti.message, duration: noti.autoClose || 3000 });

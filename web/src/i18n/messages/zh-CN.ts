@@ -1,6 +1,8 @@
 import enUS from "./en-US";
 
 const zhCN: Record<keyof typeof enUS, string> = {
+  "auth.sessionExpired": "登录已过期",
+  "auth.sessionExpiredDescription": "登录状态已失效，请重新登录。",
   "common.about": "关于",
   "common.action": "操作",
   "common.artifact": "制品",
@@ -128,6 +130,14 @@ const zhCN: Record<keyof typeof enUS, string> = {
 
   "pagination.summary": "显示第 {start} 到 {end} 条，共 {total} 条结果",
 
+  "login.firstLoginTitle": "设置新密码",
+  "login.firstLoginSubtitle": "该账号使用的是自动生成的初始密码，请设置新密码后继续。",
+  "login.newPassword": "新密码",
+  "login.confirmPassword": "确认密码",
+  "login.changePassword": "保存并继续",
+  "login.passwordMismatch": "两次输入的密码不一致",
+  "login.passwordTooWeak": "密码强度不足",
+  "login.passwordChanged": "密码已更新",
   "login.title": "sigma - 登录",
   "login.cardTitle": "登录你的账号",
   "login.subtitle": "输入用户名和密码登录",

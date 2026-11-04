@@ -27,14 +27,17 @@ type User struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"softDelete:milli"`
 	ID        string                `gorm:"primaryKey;size:36"`
 
-	Username       string
-	Password       *string
-	Email          *string
-	LastLogin      int64            `gorm:"autoCreateTime:milli"`
-	Status         enums.UserStatus `gorm:"default:Active"`
-	Role           enums.UserRole   `gorm:"default:User"`
-	NamespaceLimit int64            `gorm:"default:0"`
-	NamespaceCount int64            `gorm:"default:0"`
+	Username string
+	Password *string
+	Email    *string
+	// PasswordChangeRequired marks an account created with an auto-generated password: the login
+	// page asks the user to choose a new one before entering the app.
+	PasswordChangeRequired bool             `gorm:"default:false"`
+	LastLogin              int64            `gorm:"autoCreateTime:milli"`
+	Status                 enums.UserStatus `gorm:"default:Active"`
+	Role                   enums.UserRole   `gorm:"default:User"`
+	NamespaceLimit         int64            `gorm:"default:0"`
+	NamespaceCount         int64            `gorm:"default:0"`
 }
 
 // User3rdParty stores a third-party (e.g. GitHub, GitLab) account linked to a User, together with the last code-repository sync status.

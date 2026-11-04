@@ -56,10 +56,11 @@ func (h *handler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.PostUserLoginResponse{
-		RefreshToken: refreshToken,
-		Token:        accessToken,
-		ID:           user.ID,
-		Email:        ptr.To(user.Email),
-		Username:     user.Username,
+		RefreshToken:           refreshToken,
+		Token:                  accessToken,
+		ID:                     user.ID,
+		Email:                  ptr.To(user.Email),
+		Username:               user.Username,
+		PasswordChangeRequired: user.PasswordChangeRequired,
 	})
 }

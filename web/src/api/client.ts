@@ -19,6 +19,7 @@ import axios, { AxiosError, AxiosHeaders, AxiosRequestConfig } from 'axios';
 import { toApiError } from "./errors";
 import { QueryParams } from "./types";
 import { apiBaseURL } from "@/app/config";
+import { notifySessionExpired } from "@/utils/session";
 
 let navigateToLogin: (() => void) | undefined;
 
@@ -45,7 +46,7 @@ apiClient.interceptors.response.use(response => {
   if (error instanceof AxiosError && error.response?.status === 401) {
     const url = error.response.config?.url || "";
     if (!url.endsWith("/api/v1/users/login")) {
-      navigateToLogin?.();
+      notifySessionExpired(() => navigateToLogin?.());
     }
   }
   return Promise.reject(toApiError(error));

@@ -34,6 +34,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Username = field.NewString(tableName, "username")
 	_user.Password = field.NewString(tableName, "password")
 	_user.Email = field.NewString(tableName, "email")
+	_user.PasswordChangeRequired = field.NewBool(tableName, "password_change_required")
 	_user.LastLogin = field.NewInt64(tableName, "last_login")
 	_user.Status = field.NewField(tableName, "status")
 	_user.Role = field.NewField(tableName, "role")
@@ -48,19 +49,20 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo userDo
 
-	ALL            field.Asterisk
-	CreatedAt      field.Int64
-	UpdatedAt      field.Int64
-	DeletedAt      field.Uint
-	ID             field.String
-	Username       field.String
-	Password       field.String
-	Email          field.String
-	LastLogin      field.Int64
-	Status         field.Field
-	Role           field.Field
-	NamespaceLimit field.Int64
-	NamespaceCount field.Int64
+	ALL                    field.Asterisk
+	CreatedAt              field.Int64
+	UpdatedAt              field.Int64
+	DeletedAt              field.Uint
+	ID                     field.String
+	Username               field.String
+	Password               field.String
+	Email                  field.String
+	PasswordChangeRequired field.Bool
+	LastLogin              field.Int64
+	Status                 field.Field
+	Role                   field.Field
+	NamespaceLimit         field.Int64
+	NamespaceCount         field.Int64
 
 	fieldMap map[string]field.Expr
 }
@@ -84,6 +86,7 @@ func (u *user) updateTableName(table string) *user {
 	u.Username = field.NewString(table, "username")
 	u.Password = field.NewString(table, "password")
 	u.Email = field.NewString(table, "email")
+	u.PasswordChangeRequired = field.NewBool(table, "password_change_required")
 	u.LastLogin = field.NewInt64(table, "last_login")
 	u.Status = field.NewField(table, "status")
 	u.Role = field.NewField(table, "role")
@@ -113,7 +116,7 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 12)
+	u.fieldMap = make(map[string]field.Expr, 13)
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["deleted_at"] = u.DeletedAt
@@ -121,6 +124,7 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["password"] = u.Password
 	u.fieldMap["email"] = u.Email
+	u.fieldMap["password_change_required"] = u.PasswordChangeRequired
 	u.fieldMap["last_login"] = u.LastLogin
 	u.fieldMap["status"] = u.Status
 	u.fieldMap["role"] = u.Role

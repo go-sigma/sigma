@@ -184,7 +184,12 @@ auth:
     enabled: true
   admin:
     username: sigma
-    # 留空则在首次启动时随机生成密码，并在日志中打印
+    # 留空表示首次启动时随机生成密码。生成的密码只会打印一次到服务端日志，例如：
+    #   level=WARN msg="admin user created with an auto-generated password, please record it and
+    #   change it after login" username=sigma password=62AWdMKiKb
+    # 请记录该密码并用它登录，登录后立即修改：仍在使用自动生成密码的账号，登录页会先要求设置
+    # 新密码，然后才允许进入系统。
+    # 如果在这里显式填写密码，则不会生成随机密码，也不会打印该日志。
     password: ""
     email: sigma@sigma.io
   token:

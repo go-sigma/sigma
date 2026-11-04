@@ -1,4 +1,6 @@
 const enUS = {
+  "auth.sessionExpired": "Session expired",
+  "auth.sessionExpiredDescription": "Your sign in has expired. Please sign in again.",
   "common.about": "About",
   "common.action": "Action",
   "common.artifact": "Artifact",
@@ -126,6 +128,14 @@ const enUS = {
 
   "pagination.summary": "Showing {start} to {end} of {total} results",
 
+  "login.firstLoginTitle": "Set a new password",
+  "login.firstLoginSubtitle": "This account was created with a generated password. Choose a new one to continue.",
+  "login.newPassword": "New password",
+  "login.confirmPassword": "Confirm password",
+  "login.changePassword": "Save and continue",
+  "login.passwordMismatch": "The two passwords do not match",
+  "login.passwordTooWeak": "The password is too weak",
+  "login.passwordChanged": "Password updated",
   "login.title": "sigma - Login",
   "login.cardTitle": "Login to your account",
   "login.subtitle": "Enter your username and password to login",

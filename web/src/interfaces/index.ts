@@ -52,6 +52,7 @@ export interface IUserSelf {
   username: string;
   email: string;
   role: UserRole;
+  password_change_required?: boolean;
 }
 
 export interface IOauth2ClientID {
@@ -64,6 +65,8 @@ export interface IUserLoginResponse {
   email: string;
   token: string;
   refresh_token: string;
+  // password_change_required is true when the account still uses its generated password.
+  password_change_required?: boolean;
 }
 
 export interface INamespaceItem {
