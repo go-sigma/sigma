@@ -57,6 +57,9 @@ type BlobRepository interface {
 	FindByDigests(ctx context.Context, digests []string) ([]*models.Blob, error)
 	// Exists checks whether the blob with the specified digest exists
 	Exists(ctx context.Context, digest string) (bool, error)
+	// ExistsInRepository checks whether the blob with the specified digest is referenced
+	// by an artifact in the repository
+	ExistsInRepository(ctx context.Context, repositoryID, digest string) (bool, error)
 	// Incr increases the blob pull count
 	Incr(ctx context.Context, id string) error
 	// DeleteByID deletes the blob with the specified blob ID
@@ -216,6 +219,28 @@ func (s *blobRepository) Exists(ctx context.Context, digest string) (bool, error
 		return false, nil
 	}
 	return blob != nil, err
+}
+
+// ExistsInRepository checks whether the blob with the specified digest is referenced by
+// an artifact in the repository
+func (s *blobRepository) ExistsInRepository(ctx context.Context, repositoryID, digest string) (bool, error) {
+	artifactBlobs := artifactBlobsJoinTable{}
+	artifactID := field.NewString(artifactBlobs.TableName(), "artifact_id")
+	blobID := field.NewString(artifactBlobs.TableName(), "blob_id")
+	associateSubQuery := s.tx.Artifact.WithContext(ctx).
+		Select(s.tx.Artifact.ID).
+		Join(artifactBlobs, s.tx.Artifact.ID.EqCol(artifactID)).
+		Where(blobID.EqCol(s.tx.Blob.ID)).
+		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID))
+
+	count, err := s.tx.Blob.WithContext(ctx).
+		Where(s.tx.Blob.Digest.Eq(digest)).
+		Where(gen.Exists(associateSubQuery)).
+		Count()
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 // Incr increases the blob pull count

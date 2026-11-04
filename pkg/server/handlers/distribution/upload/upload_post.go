@@ -15,6 +15,7 @@
 package upload
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/distribution/reference"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/server/validators"
@@ -81,6 +83,16 @@ func (h *handler) PostUpload(c *gin.Context) {
 		return
 	}
 
+	// Cross-repository blob mount: when the blob already exists in the source
+	// repository, answer 201 Created instead of starting an upload session. Any reason
+	// not to mount falls back to a regular upload, which is what the distribution spec
+	// expects from a registry that cannot serve the mount.
+	if mount, from := c.Query("mount"), c.Query("from"); mount != "" && from != "" {
+		if h.mountBlob(c, ctx, user, strings.TrimSuffix(repository, "/blobs/uploads"), mount, from) {
+			return
+		}
+	}
+
 	digestStr := c.Query("digest")
 	if digestStr != "" {
 		dgest, err := digest.Parse(digestStr)
@@ -109,4 +121,52 @@ func (h *handler) PostUpload(c *gin.Context) {
 	c.Writer.Header().Set(consts.HeaderRange, "0-0")
 
 	c.Status(http.StatusAccepted)
+}
+
+// mountBlob serves a cross-repository blob mount request. It returns true after writing a
+// 201 Created response; otherwise it returns false and the caller starts a regular upload
+// session instead. Mounting requires read access to the source namespace and an artifact
+// in the source repository that references the blob.
+func (h *handler) mountBlob(c *gin.Context, ctx context.Context, user *models.User, targetRepository, mount, from string) bool {
+	dgest, err := digest.Parse(mount)
+	if err != nil {
+		slog.Debug("ignore mount request with invalid digest", "err", err, "digest", mount)
+		return false
+	}
+
+	fromRepository := strings.Trim(strings.TrimSpace(from), "/")
+	_, fromNamespace, _, _, err := reference.Parse(fromRepository)
+	if err != nil {
+		slog.Debug("ignore mount request with invalid source repository", "err", err, "from", from)
+		return false
+	}
+	if !(validators.ValidateNamespaceRaw(fromNamespace) && validators.ValidateRepositoryRaw(fromRepository)) { // nolint: staticcheck
+		return false
+	}
+
+	fromNamespaceObj, err := h.UploadSvc.GetNamespaceByName(ctx, fromNamespace)
+	if err != nil {
+		slog.Debug("ignore mount request with unknown source namespace", "err", err, "namespace", fromNamespace)
+		return false
+	}
+	authChecked, err := h.Authorizer.Namespace(ctx, *user, fromNamespaceObj.ID, enums.AuthRead)
+	if err != nil || !authChecked {
+		slog.Debug("ignore mount request without read access to source namespace", "err", err, "namespace", fromNamespace, "user", user.ID)
+		return false
+	}
+
+	exists, err := h.UploadSvc.CanMountBlob(ctx, fromRepository, dgest.String())
+	if err != nil {
+		slog.Error("check blob in source repository failed", "err", err, "from", fromRepository, "digest", dgest.String())
+		return false
+	}
+	if !exists {
+		slog.Debug("ignore mount request, blob not in source repository", "from", fromRepository, "digest", dgest.String())
+		return false
+	}
+
+	c.Writer.Header().Set(consts.HeaderLocation, fmt.Sprintf("%s://%s/v2/%s/blobs/%s", utils.Scheme(c), c.Request.Host, targetRepository, dgest.String()))
+	c.Writer.Header().Set(consts.ContentDigest, dgest.String())
+	c.Status(http.StatusCreated)
+	return true
 }

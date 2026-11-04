@@ -84,6 +84,21 @@ func (mr *MockBlobRepositoryMockRecorder) Exists(ctx, digest any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockBlobRepository)(nil).Exists), ctx, digest)
 }
 
+// ExistsInRepository mocks base method.
+func (m *MockBlobRepository) ExistsInRepository(ctx context.Context, repositoryID, digest string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistsInRepository", ctx, repositoryID, digest)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExistsInRepository indicates an expected call of ExistsInRepository.
+func (mr *MockBlobRepositoryMockRecorder) ExistsInRepository(ctx, repositoryID, digest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistsInRepository", reflect.TypeOf((*MockBlobRepository)(nil).ExistsInRepository), ctx, repositoryID, digest)
+}
+
 // FindAssociateWithArtifact mocks base method.
 func (m *MockBlobRepository) FindAssociateWithArtifact(ctx context.Context, ids []string) ([]string, error) {
 	m.ctrl.T.Helper()

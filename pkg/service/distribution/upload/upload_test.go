@@ -24,6 +24,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
@@ -54,6 +55,37 @@ func TestUploadQueries(t *testing.T) {
 	upload, err := service.GetUpload(t.Context(), "upload-1")
 	require.NoError(t, err)
 	require.Equal(t, "part-1", upload.ID)
+}
+
+func TestCanMountBlob(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
+	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
+	service := &service{
+		RepoBlob:     blobRepository,
+		RepoRegistry: repositoryRepository,
+	}
+
+	blobDigest := "sha256:fac304336cb8d9bcd2cbf47dbd4b6543677ee9c14bbe691621e76a07ad500b40"
+
+	repositoryRepository.EXPECT().
+		GetByName(gomock.Any(), "library/alpine").
+		Return(&models.Repository{ID: "repository-1"}, nil)
+	blobRepository.EXPECT().
+		ExistsInRepository(gomock.Any(), "repository-1", blobDigest).
+		Return(true, nil)
+
+	exists, err := service.CanMountBlob(t.Context(), "library/alpine", blobDigest)
+	require.NoError(t, err)
+	require.True(t, exists)
+
+	repositoryRepository.EXPECT().
+		GetByName(gomock.Any(), "library/missing").
+		Return(nil, gorm.ErrRecordNotFound)
+
+	exists, err = service.CanMountBlob(t.Context(), "library/missing", blobDigest)
+	require.NoError(t, err)
+	require.False(t, exists)
 }
 
 func TestDeleteUpload(t *testing.T) {
