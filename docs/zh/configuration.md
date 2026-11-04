@@ -261,3 +261,314 @@ audit:
     # maximum audit records changed per cleanup iteration
     batchSize: 1000
 ```
+
+## 环境变量覆盖
+
+上面每一项都可以用环境变量覆盖，容器化部署时不必再对配置文件做模板化。覆盖发生在
+读取 YAML 之后：设置了的变量一定优先于配置文件，没有设置的变量一定保留配置文件里的值。
+
+### 命名规则
+
+变量名是 `SIGMA_` 加上配置在文件中的路径，路径用 `_` 连接并全部大写：
+
+| 配置文件路径 | 环境变量 |
+| --- | --- |
+| `daemon.builder.enabled` | `SIGMA_DAEMON_BUILDER_ENABLED` |
+| `daemon.builder.type` | `SIGMA_DAEMON_BUILDER_TYPE` |
+| `daemon.builder.image` | `SIGMA_DAEMON_BUILDER_IMAGE` |
+| `daemon.builder.tlsVerify` | `SIGMA_DAEMON_BUILDER_TLSVERIFY` |
+| `daemon.builder.extra_hosts` | `SIGMA_DAEMON_BUILDER_EXTRA_HOSTS` |
+| `auth.jwt.privateKey` | `SIGMA_AUTH_JWT_PRIVATEKEY` |
+
+变量名不区分大小写，同一路径段内部的下划线可以省略，所以
+`SIGMA_DAEMON_BUILDER_TLS_VERIFY`、`sigma_daemon_builder_tlsverify` 与
+`SIGMA_DAEMON_BUILDER_TLSVERIFY` 是同一个配置项。
+
+### 取值写法
+
+| 类型 | 可用写法 | 示例 |
+| --- | --- | --- |
+| 字符串 | 原样使用 | `SIGMA_HTTP_ENDPOINT=https://registry.example.com` |
+| 布尔 | `true`、`false`、`1`、`0` | `SIGMA_DAEMON_BUILDER_ENABLED=true` |
+| 整数 | 十进制 | `SIGMA_DATABASE_MYSQL_PORT=3306` |
+| 时长 | Go duration 语法 | `SIGMA_DAEMON_GC_RETENTION=48h` |
+| 枚举 | 文档中列出的取值，启动时校验 | `SIGMA_DAEMON_BUILDER_TYPE=docker` |
+| 浮点 | 十进制，用 `.` 作小数点 | `SIGMA_TRACE_SAMPLERATIO=0.25` |
+| 列表 | 逗号分隔，自动去掉首尾空格 | `SIGMA_REDIS_ADDRS=redis-0:6379,redis-1:6379` |
+
+无法解析的值、未知的枚举值、以及不是 `true/false/1/0` 的布尔值都会让启动直接失败，
+报错信息同时包含变量名和配置路径，例如
+`SIGMA_DAEMON_GC_BATCHSIZE (daemon.gc.batchSize): ... invalid syntax`。
+同一次启动里的其它合法覆盖仍会先生效，然后才返回错误。
+
+### 完整对照表
+
+按字母顺序排列，覆盖配置文件的每一个叶子节点。
+
+#### analytics
+
+| config path | environment variable |
+| --- | --- |
+| `analytics.backend` | `SIGMA_ANALYTICS_BACKEND` |
+| `analytics.counterBackend` | `SIGMA_ANALYTICS_COUNTERBACKEND` |
+| `analytics.enabled` | `SIGMA_ANALYTICS_ENABLED` |
+| `analytics.flushInterval` | `SIGMA_ANALYTICS_FLUSHINTERVAL` |
+| `analytics.reconcileCron` | `SIGMA_ANALYTICS_RECONCILECRON` |
+| `analytics.retentionDays` | `SIGMA_ANALYTICS_RETENTIONDAYS` |
+
+#### audit
+
+| config path | environment variable |
+| --- | --- |
+| `audit.cleanup.batchSize` | `SIGMA_AUDIT_CLEANUP_BATCHSIZE` |
+| `audit.cleanup.hardDeleteAfterMonths` | `SIGMA_AUDIT_CLEANUP_HARDDELETEAFTERMONTHS` |
+| `audit.cleanup.interval` | `SIGMA_AUDIT_CLEANUP_INTERVAL` |
+| `audit.cleanup.softDeleteAfterMonths` | `SIGMA_AUDIT_CLEANUP_SOFTDELETEAFTERMONTHS` |
+| `audit.enabled` | `SIGMA_AUDIT_ENABLED` |
+| `audit.recordListGet` | `SIGMA_AUDIT_RECORDLISTGET` |
+
+#### auth
+
+| config path | environment variable |
+| --- | --- |
+| `auth.admin.email` | `SIGMA_AUTH_ADMIN_EMAIL` |
+| `auth.admin.password` | `SIGMA_AUTH_ADMIN_PASSWORD` |
+| `auth.admin.username` | `SIGMA_AUTH_ADMIN_USERNAME` |
+| `auth.anonymous.enabled` | `SIGMA_AUTH_ANONYMOUS_ENABLED` |
+| `auth.credentialKey` | `SIGMA_AUTH_CREDENTIALKEY` |
+| `auth.jwt.privateKey` | `SIGMA_AUTH_JWT_PRIVATEKEY` |
+| `auth.jwt.refreshTTL` | `SIGMA_AUTH_JWT_REFRESHTTL` |
+| `auth.jwt.ttl` | `SIGMA_AUTH_JWT_TTL` |
+| `auth.loginRateLimit.delay` | `SIGMA_AUTH_LOGINRATELIMIT_DELAY` |
+| `auth.loginRateLimit.enabled` | `SIGMA_AUTH_LOGINRATELIMIT_ENABLED` |
+| `auth.loginRateLimit.maxFailures` | `SIGMA_AUTH_LOGINRATELIMIT_MAXFAILURES` |
+| `auth.loginRateLimit.window` | `SIGMA_AUTH_LOGINRATELIMIT_WINDOW` |
+| `auth.oauth2.gitea.clientId` | `SIGMA_AUTH_OAUTH2_GITEA_CLIENTID` |
+| `auth.oauth2.gitea.clientSecret` | `SIGMA_AUTH_OAUTH2_GITEA_CLIENTSECRET` |
+| `auth.oauth2.gitea.enabled` | `SIGMA_AUTH_OAUTH2_GITEA_ENABLED` |
+| `auth.oauth2.github.clientId` | `SIGMA_AUTH_OAUTH2_GITHUB_CLIENTID` |
+| `auth.oauth2.github.clientSecret` | `SIGMA_AUTH_OAUTH2_GITHUB_CLIENTSECRET` |
+| `auth.oauth2.github.enabled` | `SIGMA_AUTH_OAUTH2_GITHUB_ENABLED` |
+| `auth.oauth2.gitlab.clientId` | `SIGMA_AUTH_OAUTH2_GITLAB_CLIENTID` |
+| `auth.oauth2.gitlab.clientSecret` | `SIGMA_AUTH_OAUTH2_GITLAB_CLIENTSECRET` |
+| `auth.oauth2.gitlab.enabled` | `SIGMA_AUTH_OAUTH2_GITLAB_ENABLED` |
+| `auth.token.realm` | `SIGMA_AUTH_TOKEN_REALM` |
+| `auth.token.service` | `SIGMA_AUTH_TOKEN_SERVICE` |
+
+#### cache
+
+| config path | environment variable |
+| --- | --- |
+| `cache.inmemory.size` | `SIGMA_CACHE_INMEMORY_SIZE` |
+| `cache.negativeTtl` | `SIGMA_CACHE_NEGATIVETTL` |
+| `cache.prefix` | `SIGMA_CACHE_PREFIX` |
+| `cache.prewarm.enabled` | `SIGMA_CACHE_PREWARM_ENABLED` |
+| `cache.prewarm.limit` | `SIGMA_CACHE_PREWARM_LIMIT` |
+| `cache.prewarm.timeout` | `SIGMA_CACHE_PREWARM_TIMEOUT` |
+| `cache.redis.ttl` | `SIGMA_CACHE_REDIS_TTL` |
+| `cache.ttl` | `SIGMA_CACHE_TTL` |
+| `cache.type` | `SIGMA_CACHE_TYPE` |
+
+#### daemon
+
+| config path | environment variable |
+| --- | --- |
+| `daemon.builder.docker.network` | `SIGMA_DAEMON_BUILDER_DOCKER_NETWORK` |
+| `daemon.builder.docker.sock` | `SIGMA_DAEMON_BUILDER_DOCKER_SOCK` |
+| `daemon.builder.enabled` | `SIGMA_DAEMON_BUILDER_ENABLED` |
+| `daemon.builder.extra_hosts` | `SIGMA_DAEMON_BUILDER_EXTRA_HOSTS` |
+| `daemon.builder.image` | `SIGMA_DAEMON_BUILDER_IMAGE` |
+| `daemon.builder.kubernetes.kubeconfig` | `SIGMA_DAEMON_BUILDER_KUBERNETES_KUBECONFIG` |
+| `daemon.builder.kubernetes.namespace` | `SIGMA_DAEMON_BUILDER_KUBERNETES_NAMESPACE` |
+| `daemon.builder.podman.uri` | `SIGMA_DAEMON_BUILDER_PODMAN_URI` |
+| `daemon.builder.tlsVerify` | `SIGMA_DAEMON_BUILDER_TLSVERIFY` |
+| `daemon.builder.type` | `SIGMA_DAEMON_BUILDER_TYPE` |
+| `daemon.gc.batchSize` | `SIGMA_DAEMON_GC_BATCHSIZE` |
+| `daemon.gc.cron` | `SIGMA_DAEMON_GC_CRON` |
+| `daemon.gc.lockExpire` | `SIGMA_DAEMON_GC_LOCKEXPIRE` |
+| `daemon.gc.lockWaitTimeout` | `SIGMA_DAEMON_GC_LOCKWAITTIMEOUT` |
+| `daemon.gc.recordBatchSize` | `SIGMA_DAEMON_GC_RECORDBATCHSIZE` |
+| `daemon.gc.retention` | `SIGMA_DAEMON_GC_RETENTION` |
+| `daemon.gc.workerCount` | `SIGMA_DAEMON_GC_WORKERCOUNT` |
+| `daemon.sizeReconcile.batchSize` | `SIGMA_DAEMON_SIZERECONCILE_BATCHSIZE` |
+| `daemon.sizeReconcile.interval` | `SIGMA_DAEMON_SIZERECONCILE_INTERVAL` |
+| `daemon.sizeReconcile.lockExpire` | `SIGMA_DAEMON_SIZERECONCILE_LOCKEXPIRE` |
+| `daemon.sizeReconcile.lockWaitTimeout` | `SIGMA_DAEMON_SIZERECONCILE_LOCKWAITTIMEOUT` |
+| `daemon.vulnerability.grype.dbCacheDir` | `SIGMA_DAEMON_VULNERABILITY_GRYPE_DBCACHEDIR` |
+| `daemon.vulnerability.staleTimeout` | `SIGMA_DAEMON_VULNERABILITY_STALETIMEOUT` |
+
+#### database
+
+| config path | environment variable |
+| --- | --- |
+| `database.connMaxIdleTime` | `SIGMA_DATABASE_CONNMAXIDLETIME` |
+| `database.connMaxLifetime` | `SIGMA_DATABASE_CONNMAXLIFETIME` |
+| `database.maxIdleConns` | `SIGMA_DATABASE_MAXIDLECONNS` |
+| `database.maxOpenConns` | `SIGMA_DATABASE_MAXOPENCONNS` |
+| `database.mysql.database` | `SIGMA_DATABASE_MYSQL_DATABASE` |
+| `database.mysql.host` | `SIGMA_DATABASE_MYSQL_HOST` |
+| `database.mysql.password` | `SIGMA_DATABASE_MYSQL_PASSWORD` |
+| `database.mysql.port` | `SIGMA_DATABASE_MYSQL_PORT` |
+| `database.mysql.username` | `SIGMA_DATABASE_MYSQL_USERNAME` |
+| `database.postgresql.database` | `SIGMA_DATABASE_POSTGRESQL_DATABASE` |
+| `database.postgresql.host` | `SIGMA_DATABASE_POSTGRESQL_HOST` |
+| `database.postgresql.password` | `SIGMA_DATABASE_POSTGRESQL_PASSWORD` |
+| `database.postgresql.port` | `SIGMA_DATABASE_POSTGRESQL_PORT` |
+| `database.postgresql.sslMode` | `SIGMA_DATABASE_POSTGRESQL_SSLMODE` |
+| `database.postgresql.username` | `SIGMA_DATABASE_POSTGRESQL_USERNAME` |
+| `database.sqlite3.path` | `SIGMA_DATABASE_SQLITE3_PATH` |
+| `database.turso.dsn` | `SIGMA_DATABASE_TURSO_DSN` |
+| `database.type` | `SIGMA_DATABASE_TYPE` |
+
+#### deploy
+
+| config path | environment variable |
+| --- | --- |
+| `deploy` | `SIGMA_DEPLOY` |
+
+#### http
+
+| config path | environment variable |
+| --- | --- |
+| `http.bodyLimit.blob` | `SIGMA_HTTP_BODYLIMIT_BLOB` |
+| `http.bodyLimit.default` | `SIGMA_HTTP_BODYLIMIT_DEFAULT` |
+| `http.bodyLimit.enabled` | `SIGMA_HTTP_BODYLIMIT_ENABLED` |
+| `http.bodyLimit.manifest` | `SIGMA_HTTP_BODYLIMIT_MANIFEST` |
+| `http.endpoint` | `SIGMA_HTTP_ENDPOINT` |
+| `http.internalDistributionEndpoint` | `SIGMA_HTTP_INTERNALDISTRIBUTIONENDPOINT` |
+| `http.internalEndpoint` | `SIGMA_HTTP_INTERNALENDPOINT` |
+| `http.timeout.idle` | `SIGMA_HTTP_TIMEOUT_IDLE` |
+| `http.timeout.read` | `SIGMA_HTTP_TIMEOUT_READ` |
+| `http.timeout.readHeader` | `SIGMA_HTTP_TIMEOUT_READHEADER` |
+| `http.timeout.write` | `SIGMA_HTTP_TIMEOUT_WRITE` |
+| `http.tls.certificate` | `SIGMA_HTTP_TLS_CERTIFICATE` |
+| `http.tls.enabled` | `SIGMA_HTTP_TLS_ENABLED` |
+| `http.tls.key` | `SIGMA_HTTP_TLS_KEY` |
+
+#### locker
+
+| config path | environment variable |
+| --- | --- |
+| `locker.prefix` | `SIGMA_LOCKER_PREFIX` |
+| `locker.type` | `SIGMA_LOCKER_TYPE` |
+
+#### log
+
+| config path | environment variable |
+| --- | --- |
+| `log.level` | `SIGMA_LOG_LEVEL` |
+| `log.proxyLevel` | `SIGMA_LOG_PROXYLEVEL` |
+
+#### namespace
+
+| config path | environment variable |
+| --- | --- |
+| `namespace.autoCreate` | `SIGMA_NAMESPACE_AUTOCREATE` |
+| `namespace.visibility` | `SIGMA_NAMESPACE_VISIBILITY` |
+
+#### proxy
+
+| config path | environment variable |
+| --- | --- |
+| `proxy.enabled` | `SIGMA_PROXY_ENABLED` |
+| `proxy.endpoint` | `SIGMA_PROXY_ENDPOINT` |
+| `proxy.password` | `SIGMA_PROXY_PASSWORD` |
+| `proxy.tlsVerify` | `SIGMA_PROXY_TLSVERIFY` |
+| `proxy.token` | `SIGMA_PROXY_TOKEN` |
+| `proxy.username` | `SIGMA_PROXY_USERNAME` |
+
+#### redis
+
+| config path | environment variable |
+| --- | --- |
+| `redis.addrs` | `SIGMA_REDIS_ADDRS` |
+| `redis.db` | `SIGMA_REDIS_DB` |
+| `redis.masterName` | `SIGMA_REDIS_MASTERNAME` |
+| `redis.maxRetries` | `SIGMA_REDIS_MAXRETRIES` |
+| `redis.minIdleConns` | `SIGMA_REDIS_MINIDLECONNS` |
+| `redis.password` | `SIGMA_REDIS_PASSWORD` |
+| `redis.poolSize` | `SIGMA_REDIS_POOLSIZE` |
+| `redis.url` | `SIGMA_REDIS_URL` |
+| `redis.username` | `SIGMA_REDIS_USERNAME` |
+
+#### storage
+
+| config path | environment variable |
+| --- | --- |
+| `storage.capacity` | `SIGMA_STORAGE_CAPACITY` |
+| `storage.cos.ak` | `SIGMA_STORAGE_COS_AK` |
+| `storage.cos.endpoint` | `SIGMA_STORAGE_COS_ENDPOINT` |
+| `storage.cos.forcePathStyle` | `SIGMA_STORAGE_COS_FORCEPATHSTYLE` |
+| `storage.cos.sk` | `SIGMA_STORAGE_COS_SK` |
+| `storage.filesystem.path` | `SIGMA_STORAGE_FILESYSTEM_PATH` |
+| `storage.oss.ak` | `SIGMA_STORAGE_OSS_AK` |
+| `storage.oss.bucket` | `SIGMA_STORAGE_OSS_BUCKET` |
+| `storage.oss.endpoint` | `SIGMA_STORAGE_OSS_ENDPOINT` |
+| `storage.oss.forcePathStyle` | `SIGMA_STORAGE_OSS_FORCEPATHSTYLE` |
+| `storage.oss.sk` | `SIGMA_STORAGE_OSS_SK` |
+| `storage.redirect` | `SIGMA_STORAGE_REDIRECT` |
+| `storage.rootDirectory` | `SIGMA_STORAGE_ROOTDIRECTORY` |
+| `storage.s3.ak` | `SIGMA_STORAGE_S3_AK` |
+| `storage.s3.bucket` | `SIGMA_STORAGE_S3_BUCKET` |
+| `storage.s3.checksumValidation` | `SIGMA_STORAGE_S3_CHECKSUMVALIDATION` |
+| `storage.s3.endpoint` | `SIGMA_STORAGE_S3_ENDPOINT` |
+| `storage.s3.forcePathStyle` | `SIGMA_STORAGE_S3_FORCEPATHSTYLE` |
+| `storage.s3.operateObjectWithoutMD5` | `SIGMA_STORAGE_S3_OPERATEOBJECTWITHOUTMD5` |
+| `storage.s3.region` | `SIGMA_STORAGE_S3_REGION` |
+| `storage.s3.sk` | `SIGMA_STORAGE_S3_SK` |
+| `storage.type` | `SIGMA_STORAGE_TYPE` |
+
+#### trace
+
+| config path | environment variable |
+| --- | --- |
+| `trace.enabled` | `SIGMA_TRACE_ENABLED` |
+| `trace.endpoint` | `SIGMA_TRACE_ENDPOINT` |
+| `trace.insecure` | `SIGMA_TRACE_INSECURE` |
+| `trace.protocol` | `SIGMA_TRACE_PROTOCOL` |
+| `trace.sampleRatio` | `SIGMA_TRACE_SAMPLERATIO` |
+| `trace.serviceName` | `SIGMA_TRACE_SERVICENAME` |
+
+#### workqueue
+
+| config path | environment variable |
+| --- | --- |
+| `workqueue.inmemory.concurrency` | `SIGMA_WORKQUEUE_INMEMORY_CONCURRENCY` |
+| `workqueue.inmemory.maxBacklog` | `SIGMA_WORKQUEUE_INMEMORY_MAXBACKLOG` |
+| `workqueue.redis.concurrency` | `SIGMA_WORKQUEUE_REDIS_CONCURRENCY` |
+| `workqueue.redis.maxBacklog` | `SIGMA_WORKQUEUE_REDIS_MAXBACKLOG` |
+| `workqueue.type` | `SIGMA_WORKQUEUE_TYPE` |
+
+### 示例
+
+```bash
+# 构建 daemon
+SIGMA_DAEMON_BUILDER_ENABLED=true
+SIGMA_DAEMON_BUILDER_TYPE=docker
+SIGMA_DAEMON_BUILDER_IMAGE=ghcr.io/go-sigma/sigma-builder:nightly-alpine
+SIGMA_DAEMON_BUILDER_TLSVERIFY=true
+SIGMA_DAEMON_BUILDER_EXTRA_HOSTS=host.docker.internal:host-gateway
+
+# 数据库与存储
+SIGMA_DATABASE_TYPE=postgresql
+SIGMA_DATABASE_POSTGRESQL_PASSWORD=change-me
+SIGMA_STORAGE_TYPE=s3
+SIGMA_STORAGE_S3_BUCKET=sigma
+SIGMA_STORAGE_S3_AK=sigma
+SIGMA_STORAGE_S3_SK=change-me
+
+# 列表与时长
+SIGMA_REDIS_ADDRS=redis-0:6379,redis-1:6379
+SIGMA_DAEMON_GC_RETENTION=48h
+```
+
+### 只能用配置文件设置的项
+
+`scm.providers` 与 `namespace.initialize` 是对象列表，单个变量无法表达，只能写在
+配置文件里；设置 `SIGMA_SCM_PROVIDERS` 或 `SIGMA_NAMESPACE_INITIALIZE` 会在日志中
+输出一条警告并被忽略。
+
+### 与配置无关的 `SIGMA_` 变量
+
+`SIGMA_SERVER`、`SIGMA_USERNAME`、`SIGMA_PASSWORD`、`SIGMA_CREDENTIALS_FILE` 属于
+`sigma` CLI（参见 [CLI](./cli.md)），不是服务端配置项，可以和上面的变量同时使用。
