@@ -17,6 +17,7 @@ package authz
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,37 @@ type Config struct {
 	Skipper Skipper
 	// Authorizer checks whether the user can access a resource.
 	Authorizer authz.Authorizer
+}
+
+// selfScopedPaths are the API paths any signed in user may call: they act on the caller's own
+// account, validate input or expose read-only metadata.
+var selfScopedPaths = []string{
+	"/api/v1/overview",
+	"/api/v1/activity/daily",
+	"/api/v1/builds/daily",
+	"/api/v1/users/logout",
+}
+
+// selfScopedPrefixes cover the routes below a self scoped path.
+var selfScopedPrefixes = []string{
+	"/api/v1/users/self",
+	"/api/v1/validators/",
+	"/api/v1/systems/",
+}
+
+// isSelfScoped reports whether the path is reachable without a namespace permission check.
+// The handlers of these routes still authorize the caller themselves when it matters.
+func isSelfScoped(path string) bool {
+	if slices.Contains(selfScopedPaths, path) {
+		return true
+	}
+	for _, prefix := range selfScopedPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	// The activity heatmap authorizes the profile owner (or an administrator) in its handler.
+	return strings.HasPrefix(path, "/api/v1/users/") && strings.HasSuffix(path, "/activity/heatmap")
 }
 
 // AuthzWithConfig returns an authorization middleware with config.
@@ -75,7 +107,12 @@ func AuthzWithConfig(config Config) gin.HandlerFunc {
 
 		// /api/v1/namespaces/ (list endpoint) is allowed for any authenticated
 		// user; the handler applies its own visibility-based filtering.
-		if requestUri == fmt.Sprintf("%s/namespaces/", consts.APIV1) {
+		// Compare the path, not the request URI: the list always carries pagination parameters.
+		if isSelfScoped(requester.URL.Path) {
+			c.Next()
+			return
+		}
+		if requester.URL.Path == fmt.Sprintf("%s/namespaces/", consts.APIV1) {
 			c.Next()
 			return
 		}
