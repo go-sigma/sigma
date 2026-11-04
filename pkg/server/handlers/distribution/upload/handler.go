@@ -62,9 +62,11 @@ func (f *factory) Prepare(digCon *dig.Container) error {
 // Initialize initializes the distribution upload handlers
 func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
-	uri := c.Request.RequestURI
+	// Route on the URL path only, since RequestURI also carries the query string and
+	// clients create uploads with ?digest= or cross-repository mount query parameters.
+	uri := strings.TrimSuffix(c.Request.URL.Path, "/")
 
-	if method == http.MethodPost && strings.HasSuffix(uri, "blobs/uploads/") {
+	if method == http.MethodPost && strings.HasSuffix(uri, "/blobs/uploads") {
 		f.handler.PostUpload(c)
 		return nil
 	}

@@ -62,10 +62,13 @@ func (f *factory) Prepare(digCon *dig.Container) error {
 // Initialize initializes the distribution base handlers
 func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
-	uri := c.Request.RequestURI
+	// Route on the request path only: RequestURI also carries the query string, so a
+	// request like /v2/_catalog?n=10 or /v2/<name>/tags/list?n=10&last=<tag> would not
+	// match any route.
+	uri := strings.TrimSuffix(c.Request.URL.Path, "/")
 	if method == http.MethodGet {
 		switch {
-		case uri == "/v2/":
+		case uri == "/v2":
 			f.handler.GetHealthy(c)
 			return nil
 		case uri == "/v2/_catalog":
