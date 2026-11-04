@@ -64,3 +64,50 @@ func TestPostUploadInvalidDigest(t *testing.T) {
 
 	require.Equal(t, http.StatusNotFound, recorder.Code)
 }
+
+const mountDigest = "sha256:fac304336cb8d9bcd2cbf47dbd4b6543677ee9c14bbe691621e76a07ad500b40"
+
+func TestPostUploadMount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	// The target and source namespaces are both "test" (repositories test/test and test/test2).
+	svc.EXPECT().GetNamespaceByName(gomock.Any(), "test").Return(&models.Namespace{ID: "namespace-1"}, nil).Times(2)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthRead).Return(true, nil)
+	svc.EXPECT().CanMountBlob(gomock.Any(), "test/test2", mountDigest).Return(true, nil)
+
+	recorder, c := newUploadContext(t, http.MethodPost, "/v2/test/test/blobs/uploads/?mount="+mountDigest+"&from=test/test2", nil)
+	c.Request.Host = "registry.example.com"
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
+
+	f := &factory{handler: handler{UploadSvc: svc, Authorizer: authorizer}}
+	require.NoError(t, f.Initialize(c))
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusCreated, recorder.Code)
+	require.Equal(t, "http://registry.example.com/v2/test/test/blobs/"+mountDigest, recorder.Header().Get(consts.HeaderLocation))
+	require.Equal(t, mountDigest, recorder.Header().Get(consts.ContentDigest))
+}
+
+func TestPostUploadMountFallback(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	svc.EXPECT().GetNamespaceByName(gomock.Any(), "test").Return(&models.Namespace{ID: "namespace-1"}, nil).Times(2)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthRead).Return(true, nil)
+	svc.EXPECT().CanMountBlob(gomock.Any(), "test/test2", mountDigest).Return(false, nil)
+	svc.EXPECT().PostUpload(gomock.Any(), "test/test/blobs/uploads", "", gomock.Any(), "").Return("upload-1", nil)
+
+	recorder, c := newUploadContext(t, http.MethodPost, "/v2/test/test/blobs/uploads/?mount="+mountDigest+"&from=test/test2", nil)
+	c.Request.Host = "registry.example.com"
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
+
+	f := &factory{handler: handler{UploadSvc: svc, Authorizer: authorizer}}
+	require.NoError(t, f.Initialize(c))
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusAccepted, recorder.Code)
+	require.Equal(t, "upload-1", recorder.Header().Get(consts.UploadUUID))
+}

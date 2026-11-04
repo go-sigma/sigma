@@ -42,6 +42,21 @@ func (m *MockDistributionUploadService) EXPECT() *MockDistributionUploadServiceM
 	return m.recorder
 }
 
+// CanMountBlob mocks base method.
+func (m *MockDistributionUploadService) CanMountBlob(ctx context.Context, sourceRepository, digestStr string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CanMountBlob", ctx, sourceRepository, digestStr)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CanMountBlob indicates an expected call of CanMountBlob.
+func (mr *MockDistributionUploadServiceMockRecorder) CanMountBlob(ctx, sourceRepository, digestStr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanMountBlob", reflect.TypeOf((*MockDistributionUploadService)(nil).CanMountBlob), ctx, sourceRepository, digestStr)
+}
+
 // DeleteUpload mocks base method.
 func (m *MockDistributionUploadService) DeleteUpload(ctx context.Context, uploadID string) error {
 	m.ctrl.T.Helper()
