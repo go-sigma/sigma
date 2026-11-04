@@ -181,7 +181,14 @@ auth:
     enabled: true
   admin:
     username: sigma
-    # leave empty to generate a random password on first start; it is printed in the logs
+    # Leave empty to generate a random password on the first start. The generated password is
+    # written to the server log exactly once, for example:
+    #   level=WARN msg="admin user created with an auto-generated password, please record it and
+    #   change it after login" username=sigma password=62AWdMKiKb
+    # Record that password, sign in with it, and change it right away: the login page asks for a
+    # new password before it lets an account that still uses a generated password into the app.
+    # Set a value here to pin the initial password instead (then no password is generated and no
+    # log line is printed).
     password: ""
     email: sigma@sigma.io
   token:
