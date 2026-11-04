@@ -19,9 +19,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"go.uber.org/dig"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
@@ -107,6 +109,10 @@ func (s *service) CreateRepository(ctx context.Context, userID string, req api.C
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		if checkErr := s.checkRepositoryQuota(ctx, tx, namespaceObj.ID); checkErr != nil {
+			slog.Error("check repository quota failed", "err", checkErr, "namespace_id", namespaceObj.ID)
+			return checkErr
+		}
 		err = repoRegistry.Create(ctx, repositoryObj)
 		if err != nil {
 			slog.Error("repository create failed", "err", err, "repositoryObj", repositoryObj)
@@ -195,6 +201,10 @@ func (s *service) UpdateRepository(ctx context.Context, userID string, req api.U
 		return errcode.HTTPErrCodeNotFound.Detail("Repository's namespace ref id not equal namespace id")
 	}
 
+	if req.SizeLimit != nil && sizeLimitDecreased(repositoryObj.SizeLimit, ptr.To(req.SizeLimit)) {
+		return errcode.HTTPErrCodeBadRequest.Detail("size_limit can only be increased; 0 means unlimited")
+	}
+
 	updates := make(map[string]any, 5)
 	if req.SizeLimit != nil {
 		updates[query.Repository.SizeLimit.ColumnName().String()] = ptr.To(req.SizeLimit)
@@ -253,7 +263,26 @@ func (s *service) DeleteRepository(ctx context.Context, userID, namespaceID, id 
 		return err
 	}
 	s.invalidateRepositoryCache(ctx, repositoryObj)
+	if err := s.RepoNs.UpdateByID(ctx, namespaceObj.ID, map[string]any{"size_dirty": true}); err != nil {
+		slog.Error("mark namespace size dirty after repository delete failed", "err", err, "namespace_id", namespaceObj.ID)
+	}
+	s.reconcileNamespaceSizeAsync(ctx, namespaceObj.ID)
 	return nil
+}
+
+func (s *service) reconcileNamespaceSizeAsync(ctx context.Context, namespaceID string) {
+	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	go func() {
+		defer cancel()
+		size, err := reporegistry.NewBlobAttributionRepository().SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID)
+		if err != nil {
+			slog.Error("reconcile namespace size failed", "err", err, "namespace_id", namespaceID)
+			return
+		}
+		if err = s.RepoNs.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
+			slog.Error("update namespace size failed", "err", err, "namespace_id", namespaceID)
+		}
+	}()
 }
 
 func (s *service) invalidateRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
@@ -286,4 +315,43 @@ func (s *service) produceRepositoryCreateWebhook(ctx context.Context, namespaceI
 		ResourceType: enums.WebhookResourceTypeRepository,
 		Payload:      utils.MustMarshal(repositoryObj),
 	})
+}
+
+// sizeLimitDecreased reports whether changing the size limit from oldLimit to
+// nextLimit reduces the allowed capacity. A zero limit means unlimited, so
+// unlimited -> finite is a decrease and finite -> unlimited is an increase.
+func sizeLimitDecreased(oldLimit, nextLimit int64) bool {
+	if oldLimit == nextLimit {
+		return false
+	}
+	if oldLimit == 0 {
+		return nextLimit != 0
+	}
+	if nextLimit == 0 {
+		return false
+	}
+	return nextLimit < oldLimit
+}
+
+// checkRepositoryQuota enforces the namespace repository count limit before a
+// new repository is created.
+func (s *service) checkRepositoryQuota(ctx context.Context, tx *query.Query, namespaceID string) error {
+	namespaceObj, err := tx.Namespace.WithContext(ctx).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where(tx.Namespace.ID.Eq(namespaceID)).
+		First()
+	if err != nil {
+		return err
+	}
+	if namespaceObj.RepositoryLimit <= 0 {
+		return nil
+	}
+	count, err := tx.Repository.WithContext(ctx).Where(tx.Repository.NamespaceID.Eq(namespaceID)).Count()
+	if err != nil {
+		return err
+	}
+	if count >= namespaceObj.RepositoryLimit {
+		return errcode.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
+	}
+	return nil
 }
