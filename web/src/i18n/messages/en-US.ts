@@ -1,4 +1,6 @@
 const enUS = {
+  "auth.sessionExpired": "Session expired",
+  "auth.sessionExpiredDescription": "Your sign in has expired. Please sign in again.",
   "common.about": "About",
   "common.action": "Action",
   "common.artifact": "Artifact",

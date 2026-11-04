@@ -26,6 +26,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n/useTranslation";
+import { resetSessionExpired } from "@/utils/session";
 import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "@/interfaces";
 
 export default function Login({ localServer }: { localServer: string }) {
@@ -49,6 +50,7 @@ export default function Login({ localServer }: { localServer: string }) {
           localStorage.setItem("refresh_token", resp.refresh_token);
           localStorage.setItem("user", resp.username);
           localStorage.setItem("email", resp.email);
+          resetSessionExpired();
           navigate("/namespaces");
         } else {
           const errorcode = response.data as IHTTPError;

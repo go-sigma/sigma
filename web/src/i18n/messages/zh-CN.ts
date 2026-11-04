@@ -1,6 +1,8 @@
 import enUS from "./en-US";
 
 const zhCN: Record<keyof typeof enUS, string> = {
+  "auth.sessionExpired": "登录已过期",
+  "auth.sessionExpiredDescription": "登录状态已失效，请重新登录。",
   "common.about": "关于",
   "common.action": "操作",
   "common.artifact": "制品",
