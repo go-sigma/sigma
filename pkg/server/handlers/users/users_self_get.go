@@ -47,9 +47,10 @@ func (h *handler) SelfGet(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, api.GetUserSelfResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    ptr.To(user.Email),
-		Role:     user.Role,
+		ID:                     user.ID,
+		Username:               user.Username,
+		Email:                  ptr.To(user.Email),
+		Role:                   user.Role,
+		PasswordChangeRequired: user.PasswordChangeRequired,
 	})
 }

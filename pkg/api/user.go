@@ -77,6 +77,9 @@ type PostUserLoginResponse struct {
 	ID           string `json:"id"`
 	Email        string `json:"email"`
 	Username     string `json:"username"`
+	// PasswordChangeRequired is set when the account still uses an auto-generated password and
+	// the login page should ask for a new one before entering the app.
+	PasswordChangeRequired bool `json:"password_change_required"`
 }
 
 // PostUserTokenResponse is the response returned after issuing an access token.
@@ -101,10 +104,11 @@ type PostUserSignupResponse struct {
 
 // GetUserSelfResponse is the response for the current user profile.
 type GetUserSelfResponse struct {
-	ID       string         `json:"id"`
-	Email    string         `json:"email"`
-	Username string         `json:"username"`
-	Role     enums.UserRole `json:"role"`
+	ID                     string         `json:"id"`
+	Email                  string         `json:"email"`
+	Username               string         `json:"username"`
+	Role                   enums.UserRole `json:"role"`
+	PasswordChangeRequired bool           `json:"password_change_required"`
 }
 
 // PostUserLogoutRequest is the request for logging out.
