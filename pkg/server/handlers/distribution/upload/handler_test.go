@@ -65,9 +65,10 @@ func TestFactory(t *testing.T) {
 }
 
 // TestFactoryPostUploadWithQuery ensures the route matcher ignores query parameters:
-// clients create an upload with ?digest=... or with cross-repository mount parameters
-// (?mount=...&from=...), and treating the raw RequestURI as the path made those requests
-// fall through to 405 Method Not Allowed.
+// clients create uploads with query parameters such as ?digest=... or the
+// cross-repository mount pair (?mount=...&from=...), and treating the raw RequestURI as
+// the path made those requests fall through to 405 Method Not Allowed. A neutral query
+// keeps this routing test independent of the mount handling exercised elsewhere.
 func TestFactoryPostUploadWithQuery(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
@@ -76,7 +77,7 @@ func TestFactoryPostUploadWithQuery(t *testing.T) {
 	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)
 	svc.EXPECT().PostUpload(gomock.Any(), "test/test/blobs/uploads", "", gomock.Any(), "application/octet-stream").Return("upload-1", nil)
 
-	recorder, c := newUploadContext(t, http.MethodPost, "/v2/test/test/blobs/uploads/?mount=sha256:fac304336cb8d9bcd2cbf47dbd4b6543677ee9c14bbe691621e76a07ad500b40&from=test/test2", nil)
+	recorder, c := newUploadContext(t, http.MethodPost, "/v2/test/test/blobs/uploads/?foo=bar", nil)
 	c.Request.Host = "registry.example.com"
 	c.Request.Header.Set(consts.HeaderContentType, "application/octet-stream")
 	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
