@@ -46,6 +46,9 @@ import (
 type Service interface {
 	// GetNamespaceByName gets a namespace by name (used by handler for auth check).
 	GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error)
+	// CanMountBlob reports whether the blob is referenced by an artifact in the source
+	// repository, so it can be mounted instead of uploaded again.
+	CanMountBlob(ctx context.Context, sourceRepository, digestStr string) (bool, error)
 	// PostUpload starts a new upload session. If digestStr is non-empty, performs a single-shot upload.
 	// Returns the upload ID.
 	PostUpload(ctx context.Context, repositoryName string, digestStr string, body io.Reader, contentType string) (string, error)
@@ -75,6 +78,19 @@ func NewService(params service) Service {
 // GetNamespaceByName gets a namespace by name.
 func (s *service) GetNamespaceByName(ctx context.Context, name string) (*models.Namespace, error) {
 	return s.RepoNs.GetByName(ctx, name)
+}
+
+// CanMountBlob reports whether the blob is referenced by an artifact in the source
+// repository, so it can be mounted instead of uploaded again.
+func (s *service) CanMountBlob(ctx context.Context, sourceRepository, digestStr string) (bool, error) {
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, sourceRepository)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return s.RepoBlob.ExistsInRepository(ctx, repositoryObj.ID, digestStr)
 }
 
 // PostUpload starts a new upload session. If digestStr is non-empty, performs a single-shot upload.

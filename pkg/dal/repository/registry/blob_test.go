@@ -124,6 +124,16 @@ func TestBlobRepository(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{blobOne.ID}, associatedIDs)
 
+	exists, err = blobRepository.ExistsInRepository(ctx, fixture.Repository.ID, blobOne.Digest)
+	require.NoError(t, err)
+	require.True(t, exists)
+	exists, err = blobRepository.ExistsInRepository(ctx, fixture.Repository.ID, blobTwo.Digest)
+	require.NoError(t, err)
+	require.False(t, exists)
+	exists, err = blobRepository.ExistsInRepository(ctx, uuid.NewV7String(), blobOne.Digest)
+	require.NoError(t, err)
+	require.False(t, exists)
+
 	require.NoError(t, blobRepository.Incr(ctx, blobOne.ID))
 	got, err = blobRepository.FindByDigest(ctx, blobOne.Digest)
 	require.NoError(t, err)
