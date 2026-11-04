@@ -156,7 +156,12 @@ export default function Login({ localServer }: { localServer: string }) {
                 mustChangePassword && "transform-[rotateY(180deg)]",
               )}
             >
-              <Card className={cn("backface-hidden", mustChangePassword && "pointer-events-none")}>
+              <Card
+                className={cn(
+                  "backface-hidden",
+                  mustChangePassword ? "pointer-events-none absolute inset-0" : "relative",
+                )}
+              >
                 <CardHeader>
                   <CardTitle>{t("login.cardTitle")}</CardTitle>
                   <CardDescription>{t("login.subtitle")}</CardDescription>
@@ -208,8 +213,8 @@ export default function Login({ localServer }: { localServer: string }) {
 
               <Card
                 className={cn(
-                  "absolute inset-0 backface-hidden transform-[rotateY(180deg)]",
-                  !mustChangePassword && "pointer-events-none",
+                  "backface-hidden transform-[rotateY(180deg)]",
+                  mustChangePassword ? "relative" : "pointer-events-none absolute inset-0",
                 )}
               >
                 <CardHeader>
