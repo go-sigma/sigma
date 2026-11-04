@@ -105,7 +105,7 @@ func (h *handler) PostUpload(c *gin.Context) {
 	}
 
 	c.Writer.Header().Set("Docker-Upload-UUID", uploadID)
-	c.Writer.Header().Set(consts.HeaderLocation, fmt.Sprintf("%s://%s%s%s", protocol, host, uri, uploadID))
+	c.Writer.Header().Set(consts.HeaderLocation, fmt.Sprintf("%s://%s%s/%s", protocol, host, strings.TrimSuffix(uri, "/"), uploadID))
 	c.Writer.Header().Set(consts.HeaderRange, "0-0")
 
 	c.Status(http.StatusAccepted)
