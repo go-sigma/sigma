@@ -147,11 +147,34 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 		}); err != nil {
 			return err
 		}
+		if len(repositories) > 0 {
+			if err := g.namespaceRepository.UpdateByID(ctx, namespaceID, map[string]any{
+				"size_dirty": true,
+			}); err != nil {
+				slog.Error("mark namespace size dirty after gc repository failed", "err", err, "namespace_id", namespaceID)
+			}
+			g.reconcileNamespaceSizeAsync(ctx, namespaceID)
+		}
 		if len(repositories) < g.config.Daemon.GC.BatchSize {
 			return nil
 		}
 		curIndex = repositories[len(repositories)-1].ID
 	}
+}
+
+func (g *gcRepository) reconcileNamespaceSizeAsync(ctx context.Context, namespaceID string) {
+	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	go func() {
+		defer cancel()
+		size, err := reporegistry.NewBlobAttributionRepository().SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID)
+		if err != nil {
+			slog.Error("reconcile namespace size after gc repository failed", "err", err, "namespace_id", namespaceID)
+			return
+		}
+		if err = g.namespaceRepository.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
+			slog.Error("update namespace size after gc repository failed", "err", err, "namespace_id", namespaceID)
+		}
+	}()
 }
 
 func (g *gcRepository) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcRepository {

@@ -155,16 +155,13 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 		}
 		deleteIDs := make([]string, 0, len(artifacts)+len(referrers))
 		records := make([]*models.DaemonGcRecord, 0, len(artifacts)+len(referrers))
-		var deletedBlobsSize int64
 		for _, artifactObj := range artifacts {
 			deleteIDs = append(deleteIDs, artifactObj.ID)
 			records = append(records, &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
-			deletedBlobsSize += artifactObj.BlobsSize
 		}
 		for _, artifactObj := range referrers {
 			deleteIDs = append(deleteIDs, artifactObj.ID)
 			records = append(records, &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
-			deletedBlobsSize += artifactObj.BlobsSize
 		}
 		if len(deleteIDs) > 0 {
 			if err := artifactRepository.DeleteByIDs(ctx, deleteIDs); err != nil {
@@ -175,16 +172,20 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 				g.failedCount += int64(len(records))
 			} else {
 				g.successCount += int64(len(records))
-				if deletedBlobsSize > 0 {
-					namespaceRepository := g.namespaceRepository
-					if err := namespaceRepository.DecrementSize(ctx, repositoryObj.NamespaceID, deletedBlobsSize); err != nil {
-						slog.Error("decrement namespace size after gc failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
-					}
-					repositoryRepository := g.repositoryRepository
-					if err := repositoryRepository.DecrementSize(ctx, repositoryObj.ID, deletedBlobsSize); err != nil {
-						slog.Error("decrement repository size after gc failed", "err", err, "repository_id", repositoryObj.ID)
-					}
+				// Deletion does not subtract synchronously: mark both scopes
+				// dirty and let the size reconciler remove the unreachable
+				// blob attributions.
+				if err := g.namespaceRepository.UpdateByID(ctx, repositoryObj.NamespaceID, map[string]any{
+					"size_dirty": true,
+				}); err != nil {
+					slog.Error("mark namespace size dirty after gc failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
 				}
+				if err := g.repositoryRepository.UpdateRepository(ctx, repositoryObj.ID, map[string]any{
+					"size_dirty": true,
+				}); err != nil {
+					slog.Error("mark repository size dirty after gc failed", "err", err, "repository_id", repositoryObj.ID)
+				}
+				g.reconcileScopeSizeAsync(ctx, repositoryObj.NamespaceID, repositoryObj.ID)
 			}
 			if err := daemonRepository.CreateGcRecords(ctx, records); err != nil {
 				slog.Error("create gc artifact record failed", "err", err)
@@ -195,6 +196,24 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 		}
 		artifactCurIndex = artifacts[len(artifacts)-1].ID
 	}
+}
+
+func (g *gcArtifact) reconcileScopeSizeAsync(ctx context.Context, namespaceID, repositoryID string) {
+	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	go func() {
+		defer cancel()
+		attributionRepository := reporegistry.NewBlobAttributionRepository()
+		if size, err := attributionRepository.SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
+			slog.Error("reconcile namespace size after gc failed", "err", err, "namespace_id", namespaceID)
+		} else if err = g.namespaceRepository.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
+			slog.Error("update namespace size after gc failed", "err", err, "namespace_id", namespaceID)
+		}
+		if size, err := attributionRepository.SyncAndSum(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID); err != nil {
+			slog.Error("reconcile repository size after gc failed", "err", err, "repository_id", repositoryID)
+		} else if err = g.repositoryRepository.UpdateSizeAndClearDirty(asyncCtx, repositoryID, size); err != nil {
+			slog.Error("update repository size after gc failed", "err", err, "repository_id", repositoryID)
+		}
+	}()
 }
 
 func (g *gcArtifact) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcArtifact {

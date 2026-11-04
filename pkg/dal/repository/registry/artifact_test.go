@@ -244,6 +244,21 @@ func TestArtifactRepositoryGetNamespaceSize(t *testing.T) {
 	artifactObj.BlobsSize = 321
 	require.NoError(t, fixture.ArtifactRepository.Create(ctx, artifactObj))
 
+	blobObj := &models.Blob{
+		ID:          uuid.NewV7String(),
+		Digest:      "sha256:size-blob",
+		Size:        321,
+		ContentType: "application/octet-stream",
+	}
+	require.NoError(t, fixture.BlobRepository.Create(ctx, blobObj))
+	require.NoError(t, fixture.ArtifactRepository.AssociateBlobs(ctx, artifactObj, []*models.Blob{blobObj}))
+
+	attributionRepository := reporegistry.NewBlobAttributionRepository()
+	_, err := attributionRepository.SyncAndSum(ctx, reporegistry.ScopeTypeNamespace, fixture.Namespace.ID)
+	require.NoError(t, err)
+	_, err = attributionRepository.SyncAndSum(ctx, reporegistry.ScopeTypeRepository, fixture.Repository.ID)
+	require.NoError(t, err)
+
 	namespaceSize, err := fixture.ArtifactRepository.GetNamespaceSize(ctx, fixture.Namespace.ID)
 	require.NoError(t, err)
 	require.Equal(t, int64(321), namespaceSize)

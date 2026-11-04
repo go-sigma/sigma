@@ -48,7 +48,8 @@ type reconcileParams struct {
 	Config               *config.Configuration
 	NamespaceRepository  reponamespace.NamespaceRepository
 	RepositoryRepository reporegistry.RepositoryRepository
-	ArtifactRepository   reporegistry.ArtifactRepository
+	BlobAttributionRepo  reporegistry.BlobAttributionRepository
+	QuotaUsageRepository reporegistry.QuotaUsageRepository
 	Locker               lock.Locker
 }
 
@@ -63,7 +64,8 @@ func sizeReconcileJob(digCon *dig.Container) error {
 	sizeTw.AddRunner(reconcileRunner{
 		namespaceRepository:  params.NamespaceRepository,
 		repositoryRepository: params.RepositoryRepository,
-		artifactRepository:   params.ArtifactRepository,
+		blobAttributionRepo:  params.BlobAttributionRepo,
+		quotaUsageRepository: params.QuotaUsageRepository,
 		locker:               params.Locker,
 		interval:             cfg.Interval,
 		batchSize:            cfg.BatchSize,
@@ -76,7 +78,8 @@ func sizeReconcileJob(digCon *dig.Container) error {
 type reconcileRunner struct {
 	namespaceRepository  reponamespace.NamespaceRepository
 	repositoryRepository reporegistry.RepositoryRepository
-	artifactRepository   reporegistry.ArtifactRepository
+	blobAttributionRepo  reporegistry.BlobAttributionRepository
+	quotaUsageRepository reporegistry.QuotaUsageRepository
 	locker               lock.Locker
 	interval             time.Duration
 	batchSize            int
@@ -98,6 +101,16 @@ func (r reconcileRunner) runner(ctx context.Context, _ timewheel.TimeWheel) {
 
 	r.reconcileNamespaces(lockCtx)
 	r.reconcileRepositories(lockCtx)
+	r.reconcileGlobal(lockCtx)
+}
+
+func (r reconcileRunner) reconcileGlobal(ctx context.Context) {
+	used, err := r.quotaUsageRepository.SyncGlobal(ctx)
+	if err != nil {
+		slog.Error("size reconcile: sync global usage failed", "err", err)
+		return
+	}
+	slog.Info("size reconcile: global usage", "used", used)
 }
 
 func (r reconcileRunner) reconcileNamespaces(ctx context.Context) {
@@ -110,7 +123,7 @@ func (r reconcileRunner) reconcileNamespaces(ctx context.Context) {
 			return
 		}
 		for _, ns := range namespaces {
-			actualSize, err := r.artifactRepository.GetNamespaceSize(ctx, ns.ID)
+			actualSize, err := r.blobAttributionRepo.SyncAndSum(ctx, reporegistry.ScopeTypeNamespace, ns.ID)
 			if err != nil {
 				slog.Error("size reconcile: get namespace size failed", "err", err, "namespace_id", ns.ID)
 				continue
@@ -150,7 +163,7 @@ func (r reconcileRunner) reconcileRepositories(ctx context.Context) {
 			return
 		}
 		for _, repo := range repositories {
-			actualSize, err := r.artifactRepository.GetRepositorySize(ctx, repo.ID)
+			actualSize, err := r.blobAttributionRepo.SyncAndSum(ctx, reporegistry.ScopeTypeRepository, repo.ID)
 			if err != nil {
 				slog.Error("size reconcile: get repository size failed", "err", err, "repository_id", repo.ID)
 				continue
