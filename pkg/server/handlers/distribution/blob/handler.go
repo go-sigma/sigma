@@ -62,7 +62,8 @@ func (f *factory) Prepare(digCon *dig.Container) error {
 // Initialize initializes the distribution blob handlers
 func (f *factory) Initialize(c *gin.Context) error {
 	method := c.Request.Method
-	uri := c.Request.RequestURI
+	// Route on the URL path only, since RequestURI also carries the query string.
+	uri := strings.TrimSuffix(c.Request.URL.Path, "/")
 	urix := uri[:strings.LastIndex(uri, "/")]
 	if strings.HasSuffix(urix, "/blobs") {
 		switch method {
@@ -71,6 +72,9 @@ func (f *factory) Initialize(c *gin.Context) error {
 			return nil
 		case http.MethodHead:
 			f.handler.HeadBlob(c)
+			return nil
+		case http.MethodDelete:
+			f.handler.DeleteBlob(c)
 			return nil
 		default:
 			c.String(http.StatusMethodNotAllowed, "Method Not Allowed")

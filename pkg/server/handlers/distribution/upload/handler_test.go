@@ -23,14 +23,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
+	"go.uber.org/mock/gomock"
 
+	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	repoaudit "github.com/go-sigma/sigma/pkg/dal/repository/audit"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
 	svcupload "github.com/go-sigma/sigma/pkg/service/distribution/upload"
+	uploadmocks "github.com/go-sigma/sigma/pkg/service/distribution/upload/mocks"
 	"github.com/go-sigma/sigma/pkg/storage"
 )
 
@@ -57,4 +62,52 @@ func TestFactory(t *testing.T) {
 	f := &factory{}
 	require.NoError(t, f.Prepare(digCon))
 	require.Equal(t, distribution.ErrNext, f.Initialize(c))
+}
+
+// TestFactoryPostUploadWithQuery ensures the route matcher ignores query parameters:
+// clients create uploads with query parameters such as ?digest=... or the
+// cross-repository mount pair (?mount=...&from=...), and treating the raw RequestURI as
+// the path made those requests fall through to 405 Method Not Allowed. A neutral query
+// keeps this routing test independent of the mount handling exercised elsewhere.
+func TestFactoryPostUploadWithQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	svc.EXPECT().GetNamespaceByName(gomock.Any(), "test").Return(&models.Namespace{ID: "namespace-1"}, nil)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)
+	svc.EXPECT().PostUpload(gomock.Any(), "test/test/blobs/uploads", "", gomock.Any(), "application/octet-stream").Return("upload-1", nil)
+
+	recorder, c := newUploadContext(t, http.MethodPost, "/v2/test/test/blobs/uploads/?foo=bar", nil)
+	c.Request.Host = "registry.example.com"
+	c.Request.Header.Set(consts.HeaderContentType, "application/octet-stream")
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
+
+	f := &factory{handler: handler{UploadSvc: svc, Authorizer: authorizer}}
+	require.NoError(t, f.Initialize(c))
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusAccepted, recorder.Code)
+	require.Equal(t, "upload-1", recorder.Header().Get(consts.UploadUUID))
+	require.Equal(t, "http://registry.example.com/v2/test/test/blobs/uploads/upload-1", recorder.Header().Get(consts.HeaderLocation))
+}
+
+// TestFactoryUploadSessionWithQuery ensures session routes still match when the client
+// appends query parameters, such as the digest on the final PUT.
+func TestFactoryUploadSessionWithQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := uploadmocks.NewMockDistributionUploadService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	svc.EXPECT().GetNamespaceByName(gomock.Any(), "library").Return(&models.Namespace{ID: "namespace-1"}, nil)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), "namespace-1", enums.AuthManage).Return(true, nil)
+
+	recorder, c := newUploadContext(t, http.MethodPut, "/v2/library/alpine/blobs/uploads/upload-1?digest=invalid", nil)
+	c.Set(consts.ContextUser, &models.User{ID: "user-1"})
+
+	f := &factory{handler: handler{UploadSvc: svc, Authorizer: authorizer}}
+	require.NoError(t, f.Initialize(c))
+	c.Writer.WriteHeaderNow()
+
+	// PutUpload reaches the digest validation and rejects the invalid digest, which proves
+	// the request was dispatched to the upload session handler.
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
 }

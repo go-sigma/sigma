@@ -49,3 +49,24 @@ func TestFactory(t *testing.T) {
 	require.NoError(t, f.Prepare(digCon))
 	require.Equal(t, distribution.ErrNext, f.Initialize(c))
 }
+
+const testBlobDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+// TestFactoryBlobRequestsWithQuery ensures blob routes match on the URL path and ignore
+// query parameters. Without a user in the context each dispatched handler answers 401,
+// which distinguishes a matched route from the 405 returned when no route matches.
+func TestFactoryBlobRequestsWithQuery(t *testing.T) {
+	for _, method := range []string{http.MethodGet, http.MethodHead, http.MethodDelete} {
+		t.Run(method, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(recorder)
+			c.Request = httptest.NewRequest(method, "/v2/library/alpine/blobs/"+testBlobDigest+"?foo=bar", nil)
+
+			f := &factory{}
+			require.NoError(t, f.Initialize(c))
+			c.Writer.WriteHeaderNow()
+
+			require.Equal(t, http.StatusUnauthorized, recorder.Code)
+		})
+	}
+}

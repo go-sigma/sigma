@@ -22,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
+	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/authz"
 	"github.com/go-sigma/sigma/pkg/config"
@@ -31,6 +32,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/server/handlers/distribution"
 	svcmanifest "github.com/go-sigma/sigma/pkg/service/distribution/manifest"
+	manifestmocks "github.com/go-sigma/sigma/pkg/service/distribution/manifest/mocks"
 	"github.com/go-sigma/sigma/pkg/storage"
 )
 
@@ -78,4 +80,23 @@ func TestFactory(t *testing.T) {
 	f := &factory{}
 	require.NoError(t, f.Prepare(digCon))
 	require.Equal(t, distribution.ErrNext, f.Initialize(c))
+}
+
+// TestFactoryReferrersWithQuery ensures the referrers route still matches when the
+// artifactType filter query parameter is present.
+func TestFactoryReferrersWithQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	svc := manifestmocks.NewMockDistributionManifestService(ctrl)
+	svc.EXPECT().GetReferrer(gomock.Any(), "library/alpine", referrerDigest, []string{"application/example"}).Return([]byte(`{"manifests":[]}`), nil)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/v2/library/alpine/referrers/"+referrerDigest+"?artifactType=application/example", nil)
+
+	f := &factory{handler: handler{ManifestSvc: svc}}
+	require.NoError(t, f.Initialize(c))
+	c.Writer.WriteHeaderNow()
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.JSONEq(t, `{"manifests":[]}`, recorder.Body.String())
 }
