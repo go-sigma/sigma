@@ -182,6 +182,11 @@ import { useTranslation } from "@/i18n/useTranslation";
 ### Configuration
 
 - Config is loaded from YAML (default `/etc/sigma/config.yaml`, override with `-c`). See `conf/config.yaml` for the full schema.
+- Every config leaf can be overridden by a `SIGMA_` environment variable after
+  YAML loading (`pkg/config/env.go`). The mapping is derived from the struct
+  `yaml` tags, so a new config field needs no extra wiring: `daemon.builder.tlsVerify`
+  is `SIGMA_DAEMON_BUILDER_TLSVERIFY`, and underscores inside a path segment are
+  optional. Structured lists (`scm.providers`, `namespace.initialize`) stay YAML-only.
 - Supports `sqlite3`, `turso`, `mysql`, `postgresql`; `redis` (none/external); cache (inmemory/redis); workqueue (inmemory/redis/database); locker (inmemory/redis); storage (filesystem/s3/cos/oss); `trace` (enabled/endpoint/protocol/insecure/sampleRatio/serviceName).
 
 ### Logging
