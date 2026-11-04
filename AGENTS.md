@@ -301,6 +301,7 @@ pkg/
 conf/                    Example config files & TLS certs
 deploy/sigma/            Helm chart
 build/                   Dockerfile and entrypoint for server/builder image targets
+architecture/            Cross-module design documents (index: architecture/README.md)
 docs/                    VitePress documentation site
 e2e/                     End-to-end test scripts
 tools/skill/             External AI/CLI agent skills and packaged API specs
