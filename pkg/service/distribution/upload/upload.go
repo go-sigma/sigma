@@ -28,10 +28,12 @@ import (
 	"go.uber.org/dig"
 	"gorm.io/gorm"
 
+	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
+	sigmareference "github.com/go-sigma/sigma/pkg/distribution/reference"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/storage"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -65,14 +67,66 @@ type Service interface {
 type service struct {
 	dig.In
 
+	Config       *config.Configuration
 	RepoBlob     reporegistry.BlobRepository
 	RepoRegistry reporegistry.RepositoryRepository
 	RepoNs       reponamespace.NamespaceRepository
+	QuotaUsage   reporegistry.QuotaUsageRepository
 	Storage      storage.StorageDriver
 }
 
 func NewService(params service) Service {
 	return &params
+}
+
+// globalCapacity returns the configured global physical capacity (0 = unlimited).
+func (s *service) globalCapacity() int64 {
+	if s.Config == nil {
+		return 0
+	}
+	return s.Config.Storage.Capacity
+}
+
+// reserveGlobal reserves delta bytes of the global physical capacity.
+func (s *service) reserveGlobal(ctx context.Context, delta int64) error {
+	if delta <= 0 || s.QuotaUsage == nil {
+		return nil
+	}
+	return s.QuotaUsage.ReserveGlobal(ctx, delta, s.globalCapacity())
+}
+
+// releaseGlobal releases delta bytes of the global physical capacity.
+func (s *service) releaseGlobal(ctx context.Context, delta int64) {
+	if delta <= 0 || s.QuotaUsage == nil {
+		return
+	}
+	releaseCtx := context.WithoutCancel(ctx)
+	if err := s.QuotaUsage.ReleaseGlobal(releaseCtx, delta); err != nil {
+		slog.Error("release global storage capacity failed", "err", err, "delta", delta)
+	}
+}
+
+// checkScopeAdmission performs a best-effort per-scope size check before the
+// blob is committed. The exact check happens on manifest push.
+func (s *service) checkScopeAdmission(ctx context.Context, repositoryName string, delta int64) error {
+	if delta <= 0 {
+		return nil
+	}
+	_, namespaceName, _, _, err := sigmareference.Parse(repositoryName)
+	if err == nil && s.RepoNs != nil {
+		namespaceObj, getErr := s.RepoNs.GetByName(ctx, namespaceName)
+		if getErr == nil && namespaceObj.SizeLimit > 0 && namespaceObj.Size+delta > namespaceObj.SizeLimit {
+			return errcode.GenDSErrCodeResourceSizeQuotaExceedNamespace(namespaceObj.Name, namespaceObj.Size, namespaceObj.SizeLimit, delta)
+		}
+	}
+	if s.RepoRegistry == nil {
+		return nil
+	}
+	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repositoryName)
+	if err == nil && repositoryObj.SizeLimit > 0 && repositoryObj.Size+delta > repositoryObj.SizeLimit {
+		return errcode.GenDSErrCodeResourceSizeQuotaExceedRepository(repositoryObj.Name, repositoryObj.Size, repositoryObj.SizeLimit, delta)
+	}
+	return nil
 }
 
 // GetNamespaceByName gets a namespace by name.
@@ -114,30 +168,52 @@ func (s *service) PostUpload(ctx context.Context, repositoryName string, digestS
 			slog.Error("upload blob failed", "err", err)
 			return "", errcode.DSErrCodeBlobUploadInvalid
 		}
-		destPath := utils.GenBlobPathByDigest(dgest)
-		err = s.Storage.Move(ctx, srcPath, destPath)
-		if err != nil {
-			slog.Error("move blob failed", "err", err)
-			return "", errcode.DSErrCodeUnknown
-		}
-
-		err = s.Storage.Delete(ctx, srcPath)
-		if err != nil {
-			slog.Error("delete blob upload failed", "err", err)
-			return "", errcode.DSErrCodeUnknown
-		}
-
 		size := countReader.Count()
 
-		err = s.RepoBlob.Create(ctx, &models.Blob{
-			ID:          uuid.NewV7String(),
-			Digest:      dgest.String(),
-			Size:        size,
-			ContentType: contentType,
-		})
-		if err != nil {
-			slog.Error("save blob record failed", "err", err)
+		exists, existErr := s.RepoBlob.Exists(ctx, dgest.String())
+		if existErr != nil {
+			slog.Error("check blob exist failed", "err", existErr, "digest", dgest.String())
+			_ = s.Storage.Delete(ctx, srcPath)
 			return "", errcode.DSErrCodeUnknown
+		}
+		if exists {
+			// Dedupe hit: no new physical bytes, only clean up the temp object.
+			if err = s.Storage.Delete(ctx, srcPath); err != nil {
+				slog.Error("delete blob upload failed", "err", err)
+				return "", errcode.DSErrCodeUnknown
+			}
+		} else {
+			if err = s.checkScopeAdmission(ctx, repositoryName, size); err != nil {
+				_ = s.Storage.Delete(ctx, srcPath)
+				return "", err
+			}
+			if err = s.reserveGlobal(ctx, size); err != nil {
+				_ = s.Storage.Delete(ctx, srcPath)
+				return "", err
+			}
+
+			destPath := utils.GenBlobPathByDigest(dgest)
+			if err = s.Storage.Move(ctx, srcPath, destPath); err != nil {
+				slog.Error("move blob failed", "err", err)
+				s.releaseGlobal(ctx, size)
+				return "", errcode.DSErrCodeUnknown
+			}
+			if err = s.Storage.Delete(ctx, srcPath); err != nil {
+				slog.Error("delete blob upload failed", "err", err)
+				s.releaseGlobal(ctx, size)
+				return "", errcode.DSErrCodeUnknown
+			}
+			err = s.RepoBlob.Create(ctx, &models.Blob{
+				ID:          uuid.NewV7String(),
+				Digest:      dgest.String(),
+				Size:        size,
+				ContentType: contentType,
+			})
+			if err != nil {
+				slog.Error("save blob record failed", "err", err)
+				s.releaseGlobal(ctx, size)
+				return "", errcode.DSErrCodeUnknown
+			}
 		}
 	}
 
@@ -251,6 +327,11 @@ func (s *service) PutUpload(ctx context.Context, uploadID string, digestStr stri
 	}
 
 	var sizeUploaded int64
+	if contentLength > 0 {
+		if err = s.checkScopeAdmission(ctx, repositoryName, sizeBefore+contentLength); err != nil {
+			return 0, 0, err
+		}
+	}
 	if contentLength != 0 {
 		counterReader := counter.NewCounter(body)
 		etag, err := s.Storage.UploadPart(ctx, srcPath, uploadObj.UploadID, uploadObj.PartNumber+1, counterReader)
@@ -276,25 +357,43 @@ func (s *service) PutUpload(ctx context.Context, uploadID string, digestStr stri
 		sizeUploaded = size
 	}
 
+	totalSize := sizeBefore + sizeUploaded
+	if totalSize == 0 && contentLength > 0 {
+		totalSize = sizeBefore + contentLength
+	}
+
+	if err = s.checkScopeAdmission(ctx, repositoryName, totalSize); err != nil {
+		_ = s.Storage.AbortUpload(ctx, srcPath, uploadObj.UploadID)
+		return 0, 0, err
+	}
+	if err = s.reserveGlobal(ctx, totalSize); err != nil {
+		_ = s.Storage.AbortUpload(ctx, srcPath, uploadObj.UploadID)
+		return 0, 0, err
+	}
+
 	slog.Info("committing upload", "uploadID", uploadID, "etags", etags)
 	err = s.Storage.CommitUpload(ctx, srcPath, uploadID, etags)
 	if err != nil {
 		slog.Error("commit upload failed", "err", err, "id", uploadID, "etags", etags)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
 	srcPathReader, err := s.Storage.Reader(ctx, srcPath)
 	if err != nil {
 		slog.Error("get blob upload failed", "err", err, "srcPath", srcPath)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 	srcPathHash, err := hash.Reader(srcPathReader, dgest.Algorithm().String())
 	if err != nil {
 		slog.Error("hash blob upload failed", "err", err, "srcPath", srcPath)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 	if fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash) != dgest.String() {
 		slog.Error("hash blob upload mismatch", "srcPath", srcPath, "srcPathHash", fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash), "targetHash", dgest.String())
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeBlobUploadDigestMismatch
 	}
 
@@ -302,30 +401,34 @@ func (s *service) PutUpload(ctx context.Context, uploadID string, digestStr stri
 	err = s.Storage.Move(ctx, srcPath, destPath)
 	if err != nil {
 		slog.Error("move blob failed", "err", err, "path", srcPath, "digest", dgest.String(), "dest", destPath)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
 	err = s.Storage.Delete(ctx, srcPath)
 	if err != nil {
 		slog.Error("delete blob upload failed", "err", err)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
 	err = s.RepoBlob.UploadDeleteByUploadID(ctx, uploadID)
 	if err != nil {
 		slog.Error("delete blob upload record failed", "err", err)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
 	err = s.RepoBlob.Create(ctx, &models.Blob{
 		ID:          uuid.NewV7String(),
 		Digest:      dgest.String(),
-		Size:        sizeBefore + contentLength,
+		Size:        totalSize,
 		ContentType: contentType,
 		PushedAt:    time.Now().UnixMilli(),
 	})
 	if err != nil {
 		slog.Error("create blob record failed", "err", err)
+		s.releaseGlobal(ctx, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 

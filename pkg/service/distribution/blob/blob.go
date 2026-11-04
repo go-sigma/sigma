@@ -63,11 +63,30 @@ type service struct {
 	RepoBlob     reporegistry.BlobRepository
 	RepoNs       reponamespace.NamespaceRepository
 	RepoRegistry reporegistry.RepositoryRepository
+	QuotaUsage   reporegistry.QuotaUsageRepository
 	Storage      storage.StorageDriver
 }
 
 func NewService(params service) Service {
 	return &params
+}
+
+// reserveGlobal reserves delta bytes of the global physical capacity.
+func (s *service) reserveGlobal(ctx context.Context, delta int64) error {
+	if delta <= 0 || s.QuotaUsage == nil || s.Config == nil {
+		return nil
+	}
+	return s.QuotaUsage.ReserveGlobal(ctx, delta, s.Config.Storage.Capacity)
+}
+
+// releaseGlobal releases delta bytes of the global physical capacity.
+func (s *service) releaseGlobal(ctx context.Context, delta int64) {
+	if delta <= 0 || s.QuotaUsage == nil {
+		return
+	}
+	if err := s.QuotaUsage.ReleaseGlobal(context.WithoutCancel(ctx), delta); err != nil {
+		slog.Error("release global storage capacity failed", "err", err, "delta", delta)
+	}
 }
 
 // GetNamespaceByName gets a namespace by name.
@@ -95,6 +114,19 @@ func (s *service) DeleteBlob(ctx context.Context, namespaceID string, digestStr 
 		slog.Error("blob associate with artifact", "digest", digestStr)
 		return errcode.DSErrCodeBlobAssociated
 	}
+	dgest, err := digest.Parse(digestStr)
+	if err != nil {
+		slog.Error("parse digest failed", "err", err, "digest", digestStr)
+		return errcode.DSErrCodeDigestInvalid
+	}
+	// Delete the physical object first, then release the global capacity and
+	// remove the DB row. The old implementation only soft-deleted the row,
+	// which leaked the object because blob GC only scans live rows.
+	if err = s.Storage.Delete(ctx, utils.GenBlobPathByDigest(dgest)); err != nil {
+		slog.Error("delete blob object failed", "err", err, "digest", digestStr)
+		return errcode.DSErrCodeUnknown
+	}
+	s.releaseGlobal(ctx, blobObj.Size)
 	err = s.RepoBlob.DeleteByID(ctx, blobObj.ID)
 	if err != nil {
 		slog.Error("delete blob failed", "err", err, "digest", digestStr)
@@ -174,6 +206,10 @@ func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr str
 				return nil, nil, "", errcode.DSErrCodeUnknown
 			}
 			slog.Info("proxy blob", "digest", digestStr, "length", blobSize)
+			if reserveErr := s.reserveGlobal(ctx, blobSize); reserveErr != nil {
+				_ = bodyReader.Close()
+				return nil, nil, "", reserveErr
+			}
 			pipeReader, pipeWriter := io.Pipe()
 			newBodyReader := io.TeeReader(bodyReader, pipeWriter)
 			go func() {
@@ -181,6 +217,7 @@ func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr str
 				uploadErr := s.Storage.Upload(uploadCtx, utils.GenBlobPathByDigest(dgest), io.LimitReader(pipeReader, blobSize))
 				if uploadErr != nil {
 					slog.Error("upload blob failed", "err", uploadErr, "digest", digestStr)
+					s.releaseGlobal(uploadCtx, blobSize)
 					return
 				}
 				// Note: the blob exist in the storage, but not in the database,
@@ -188,6 +225,7 @@ func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr str
 				createErr := s.RepoBlob.Create(uploadCtx, &models.Blob{ID: uuid.NewV7String(), Digest: digestStr, Size: blobSize, ContentType: contentType, PushedAt: time.Now().UnixMilli()})
 				if createErr != nil {
 					slog.Error("create blob failed", "err", createErr, "digest", digestStr)
+					s.releaseGlobal(uploadCtx, blobSize)
 					return
 				}
 			}()

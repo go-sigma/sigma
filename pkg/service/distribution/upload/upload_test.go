@@ -125,6 +125,7 @@ func TestPostUploadSingleShot(t *testing.T) {
 	dgest := digest.FromBytes(content).String()
 
 	storageDriver.EXPECT().Upload(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+	blobRepository.EXPECT().Exists(gomock.Any(), dgest).Return(false, nil)
 	storageDriver.EXPECT().Move(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	storageDriver.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
 	blobRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)

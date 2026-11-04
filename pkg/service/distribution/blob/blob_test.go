@@ -51,16 +51,19 @@ func TestGetNamespaceByName(t *testing.T) {
 func TestDeleteBlob(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
-	service := &service{RepoBlob: blobRepository}
+	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
+	service := &service{RepoBlob: blobRepository, Storage: storageDriver}
+	validDigest := digest.FromString("blob").String()
 	blobRepository.EXPECT().
-		FindByDigest(gomock.Any(), "sha256:digest").
-		Return(&models.Blob{ID: "blob-1"}, nil)
+		FindByDigest(gomock.Any(), validDigest).
+		Return(&models.Blob{ID: "blob-1", Size: 10}, nil)
 	blobRepository.EXPECT().
 		FindAssociateWithArtifact(gomock.Any(), []string{"blob-1"}).
 		Return(nil, nil)
+	storageDriver.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
 	blobRepository.EXPECT().DeleteByID(gomock.Any(), "blob-1").Return(nil)
 
-	require.NoError(t, service.DeleteBlob(t.Context(), "namespace-1", "sha256:digest", "user-1"))
+	require.NoError(t, service.DeleteBlob(t.Context(), "namespace-1", validDigest, "user-1"))
 
 	blobRepository.EXPECT().
 		FindByDigest(gomock.Any(), "sha256:failed").

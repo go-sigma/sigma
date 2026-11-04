@@ -170,6 +170,9 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 		if err := reporegistry.NewBlobRepository(tx).DeleteByID(ctx, blob.ID); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
+		if err := reporegistry.NewQuotaUsageRepository(tx).ReleaseGlobal(ctx, blob.Size); err != nil {
+			return err
+		}
 		return repodaemon.NewDaemonRepository(tx).UpdateGcStorageDeletionTask(ctx, task.ID, map[string]any{
 			"status": enums.TaskCommonStatusSuccess,
 		})
