@@ -26,14 +26,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n/useTranslation";
-import { resetSessionExpired } from "@/utils/session";
 import { IEndpoint, IHTTPError, IOauth2ClientID, ISystemConfig, IUserLoginResponse } from "@/interfaces";
+import { cn } from "@/lib/utils";
+import { resetSessionExpired } from "@/utils/session";
 
 export default function Login({ localServer }: { localServer: string }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  // mustChangePassword flips the card when the account still uses its generated password.
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const login = (user: string, secret: string, anonymous?: boolean) => {
     let headers: { [key: string]: any } = {
       "Authorization": "Basic " + btoa(user + ":" + secret),
@@ -51,6 +56,10 @@ export default function Login({ localServer }: { localServer: string }) {
           localStorage.setItem("user", resp.username);
           localStorage.setItem("email", resp.email);
           resetSessionExpired();
+          if (resp.password_change_required) {
+            setMustChangePassword(true);
+            return;
+          }
           navigate("/namespaces");
         } else {
           const errorcode = response.data as IHTTPError;
@@ -61,6 +70,37 @@ export default function Login({ localServer }: { localServer: string }) {
         Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
       })
   }
+
+  const changePassword = () => {
+    if (newPassword === "") {
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Notification({ level: "warning", title: t("login.passwordMismatch"), message: "" });
+      return;
+    }
+    axios.post(localServer + "/api/v1/validators/password", { password: newPassword }).then(response => {
+      if (response?.status !== 204) {
+        Notification({ level: "warning", title: t("login.passwordTooWeak"), message: "" });
+        return;
+      }
+      axios.put(localServer + "/api/v1/users/self/reset-password", { password: newPassword }).then(updateResponse => {
+        if (updateResponse?.status !== 204) {
+          const errorcode = updateResponse?.data as IHTTPError;
+          Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
+          return;
+        }
+        Notification({ level: "success", title: t("login.passwordChanged"), message: "" });
+        navigate("/namespaces");
+      }).catch(err => {
+        const errorcode = err.response?.data as IHTTPError;
+        Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
+      });
+    }).catch(err => {
+      const errorcode = err.response?.data as IHTTPError;
+      Notification({ level: "warning", title: errorcode?.title, message: errorcode?.description });
+    });
+  };
 
   const [endpoint, setEndpoint] = useState("");
 
@@ -109,55 +149,110 @@ export default function Login({ localServer }: { localServer: string }) {
             </span>
             <span className="text-xl">sigma</span>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("login.cardTitle")}</CardTitle>
-              <CardDescription>{t("login.subtitle")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  login(username, password);
-                }}
+          <div className="perspective-[1600px]">
+            <div
+              className={cn(
+                "relative transition-transform duration-700 ease-in-out transform-3d",
+                mustChangePassword && "transform-[rotateY(180deg)]",
+              )}
+            >
+              <Card className={cn("backface-hidden", mustChangePassword && "pointer-events-none")}>
+                <CardHeader>
+                  <CardTitle>{t("login.cardTitle")}</CardTitle>
+                  <CardDescription>{t("login.subtitle")}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      login(username, password);
+                    }}
+                  >
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel htmlFor="username">{t("common.username")}</FieldLabel>
+                        <Input
+                          id="username"
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor="password">{t("common.password")}</FieldLabel>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <Button type="submit">{t("common.signIn")}</Button>
+                        {config.anonymous && (
+                          <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => login("", "", true)}
+                          >
+                            {t("login.anonymous")}
+                          </Button>
+                        )}
+                        {config.oauth2.github && <GitHubButton localServer={localServer} endpoint={endpoint} />}
+                        {config.oauth2.gitlab && <GitLabButton localServer={localServer} endpoint={endpoint} />}
+                      </Field>
+                    </FieldGroup>
+                  </form>
+                </CardContent>
+              </Card>
+
+              <Card
+                className={cn(
+                  "absolute inset-0 backface-hidden transform-[rotateY(180deg)]",
+                  !mustChangePassword && "pointer-events-none",
+                )}
               >
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="username">{t("common.username")}</FieldLabel>
-                    <Input
-                      id="username"
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="password">{t("common.password")}</FieldLabel>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </Field>
-                  <Field>
-                    <Button type="submit">{t("common.signIn")}</Button>
-                    {config.anonymous && (
-                      <Button
-                        variant="outline"
-                        type="button"
-                        onClick={() => login("", "", true)}
-                      >
-                        {t("login.anonymous")}
-                      </Button>
-                    )}
-                    {config.oauth2.github && <GitHubButton localServer={localServer} endpoint={endpoint} />}
-                    {config.oauth2.gitlab && <GitLabButton localServer={localServer} endpoint={endpoint} />}
-                  </Field>
-                </FieldGroup>
-              </form>
-            </CardContent>
-          </Card>
+                <CardHeader>
+                  <CardTitle>{t("login.firstLoginTitle")}</CardTitle>
+                  <CardDescription>{t("login.firstLoginSubtitle")}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      changePassword();
+                    }}
+                  >
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel htmlFor="new-password">{t("login.newPassword")}</FieldLabel>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          autoComplete="new-password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor="confirm-password">{t("login.confirmPassword")}</FieldLabel>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          autoComplete="new-password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <Button type="submit">{t("login.changePassword")}</Button>
+                      </Field>
+                    </FieldGroup>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </>
