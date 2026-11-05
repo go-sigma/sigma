@@ -471,30 +471,14 @@ func (s *artifactRepository) UpdateVulnerability(ctx context.Context, artifactID
 	return err
 }
 
-// GetNamespaceSize gets the total artifact blob size in the specified namespace
+// GetNamespaceSize gets the total distinct blob size attributed to the specified namespace
 func (s *artifactRepository) GetNamespaceSize(ctx context.Context, namespaceID string) (int64, error) {
-	var res struct {
-		BlobsSize int64 `gorm:"column:blobs_size"`
-	}
-	err := s.tx.Artifact.WithContext(ctx).Select(s.tx.Artifact.BlobsSize.Sum().As("blobs_size")).
-		Where(s.tx.Artifact.NamespaceID.Eq(namespaceID)).Scan(&res)
-	if err != nil {
-		return 0, err
-	}
-	return res.BlobsSize, nil
+	return NewBlobAttributionRepository(s.tx).SumByScope(ctx, ScopeTypeNamespace, namespaceID)
 }
 
-// GetRepositorySize gets the total artifact blob size in the specified repository
+// GetRepositorySize gets the total distinct blob size attributed to the specified repository
 func (s *artifactRepository) GetRepositorySize(ctx context.Context, repositoryID string) (int64, error) {
-	var res struct {
-		BlobsSize int64 `gorm:"column:blobs_size"`
-	}
-	err := s.tx.Artifact.WithContext(ctx).Select(s.tx.Artifact.BlobsSize.Sum().As("blobs_size")).
-		Where(s.tx.Artifact.RepositoryID.Eq(repositoryID)).Scan(&res)
-	if err != nil {
-		return 0, err
-	}
-	return res.BlobsSize, nil
+	return NewBlobAttributionRepository(s.tx).SumByScope(ctx, ScopeTypeRepository, repositoryID)
 }
 
 // GetReferrers gets artifacts that refer to the specified subject digest.

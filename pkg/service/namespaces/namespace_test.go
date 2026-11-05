@@ -143,3 +143,21 @@ func TestNamespaceMemberQueries(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "member-1", member.ID)
 }
+
+func TestSizeLimitDecreased(t *testing.T) {
+	cases := []struct {
+		oldLimit  int64
+		nextLimit int64
+		want      bool
+	}{
+		{0, 0, false},
+		{0, 100, true},
+		{100, 0, false},
+		{100, 50, true},
+		{50, 100, false},
+		{100, 100, false},
+	}
+	for _, tc := range cases {
+		require.Equal(t, tc.want, sizeLimitDecreased(tc.oldLimit, tc.nextLimit))
+	}
+}

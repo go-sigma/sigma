@@ -26,6 +26,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	repodaemon "github.com/go-sigma/sigma/pkg/dal/repository/daemon"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
@@ -129,9 +130,19 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 		var mu sync.Mutex
 		if err := runWorkers(ctx, g.config.Daemon.GC.WorkerCount, repositories, func(ctx context.Context, repositoryObj *models.Repository) error {
 			record := &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: repositoryObj.Name, Status: enums.GcRecordStatusSuccess}
-			if err := repositoryRepository.DeleteByID(ctx, repositoryObj.ID); err != nil {
+			deleteErr := query.Q.Transaction(func(tx *query.Query) error {
+				// Mark the namespace dirty first: the push path locks namespace
+				// then repository, so doing the reverse here can deadlock.
+				if err := reponamespace.NewNamespaceRepository(tx).UpdateByID(ctx, namespaceID, map[string]any{
+					"size_dirty": true,
+				}); err != nil {
+					return err
+				}
+				return reporegistry.NewRepositoryRepository(tx).DeleteByID(ctx, repositoryObj.ID)
+			})
+			if deleteErr != nil {
 				record.Status = enums.GcRecordStatusFailed
-				record.Message = []byte(err.Error())
+				record.Message = []byte(deleteErr.Error())
 				mu.Lock()
 				g.failedCount++
 				mu.Unlock()
@@ -147,11 +158,35 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 		}); err != nil {
 			return err
 		}
+		if len(repositories) > 0 {
+			if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+				if err := invalidator.InvalidateNamespaceID(ctx, namespaceID); err != nil {
+					slog.Warn("invalidate namespace cache after gc repository failed", "err", err, "namespace_id", namespaceID)
+				}
+			}
+			g.reconcileNamespaceSizeAsync(ctx, namespaceID)
+		}
 		if len(repositories) < g.config.Daemon.GC.BatchSize {
 			return nil
 		}
 		curIndex = repositories[len(repositories)-1].ID
 	}
+}
+
+func (g *gcRepository) reconcileNamespaceSizeAsync(ctx context.Context, namespaceID string) {
+	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	go func() {
+		defer cancel()
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
+			slog.Error("reconcile namespace size after gc repository failed", "err", err, "namespace_id", namespaceID)
+			return
+		}
+		if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+			if err := invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+				slog.Warn("invalidate namespace cache after gc repository failed", "err", err, "namespace_id", namespaceID)
+			}
+		}
+	}()
 }
 
 func (g *gcRepository) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcRepository {

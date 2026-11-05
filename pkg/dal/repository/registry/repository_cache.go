@@ -279,6 +279,16 @@ func (r *cachedRepositoryRepository) InvalidateRepository(ctx context.Context, r
 }
 
 func (r *cachedRepositoryRepository) InvalidateRepositoryID(ctx context.Context, id string) error {
+	// The by-name entry holds a full copy of the repository, including its size
+	// counters. Resolve the name from the ID entry (read-through if needed) so
+	// both keys are removed instead of only the by-ID key.
+	repositoryObj, err := r.byID.Get(ctx, id)
+	if err == nil {
+		return r.InvalidateRepository(ctx, repositoryObj)
+	}
+	if !errors.Is(err, cache.ErrNotFound) {
+		return err
+	}
 	return r.byID.Del(ctx, id)
 }
 

@@ -48,7 +48,7 @@ type reconcileParams struct {
 	Config               *config.Configuration
 	NamespaceRepository  reponamespace.NamespaceRepository
 	RepositoryRepository reporegistry.RepositoryRepository
-	ArtifactRepository   reporegistry.ArtifactRepository
+	QuotaUsageRepository reporegistry.QuotaUsageRepository
 	Locker               lock.Locker
 }
 
@@ -63,7 +63,7 @@ func sizeReconcileJob(digCon *dig.Container) error {
 	sizeTw.AddRunner(reconcileRunner{
 		namespaceRepository:  params.NamespaceRepository,
 		repositoryRepository: params.RepositoryRepository,
-		artifactRepository:   params.ArtifactRepository,
+		quotaUsageRepository: params.QuotaUsageRepository,
 		locker:               params.Locker,
 		interval:             cfg.Interval,
 		batchSize:            cfg.BatchSize,
@@ -76,7 +76,7 @@ func sizeReconcileJob(digCon *dig.Container) error {
 type reconcileRunner struct {
 	namespaceRepository  reponamespace.NamespaceRepository
 	repositoryRepository reporegistry.RepositoryRepository
-	artifactRepository   reporegistry.ArtifactRepository
+	quotaUsageRepository reporegistry.QuotaUsageRepository
 	locker               lock.Locker
 	interval             time.Duration
 	batchSize            int
@@ -98,6 +98,16 @@ func (r reconcileRunner) runner(ctx context.Context, _ timewheel.TimeWheel) {
 
 	r.reconcileNamespaces(lockCtx)
 	r.reconcileRepositories(lockCtx)
+	r.reconcileGlobal(lockCtx)
+}
+
+func (r reconcileRunner) reconcileGlobal(ctx context.Context) {
+	used, err := r.quotaUsageRepository.SyncGlobal(ctx)
+	if err != nil {
+		slog.Error("size reconcile: sync global usage failed", "err", err)
+		return
+	}
+	slog.Info("size reconcile: global usage", "used", used)
 }
 
 func (r reconcileRunner) reconcileNamespaces(ctx context.Context) {
@@ -110,26 +120,19 @@ func (r reconcileRunner) reconcileNamespaces(ctx context.Context) {
 			return
 		}
 		for _, ns := range namespaces {
-			actualSize, err := r.artifactRepository.GetNamespaceSize(ctx, ns.ID)
+			actualSize, err := reporegistry.ReconcileScopeSize(ctx, reporegistry.ScopeTypeNamespace, ns.ID)
 			if err != nil {
-				slog.Error("size reconcile: get namespace size failed", "err", err, "namespace_id", ns.ID)
+				slog.Error("size reconcile: reconcile namespace size failed", "err", err, "namespace_id", ns.ID)
 				continue
+			}
+			if invalidator, ok := r.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+				if err = invalidator.InvalidateNamespaceID(ctx, ns.ID); err != nil {
+					slog.Warn("size reconcile: invalidate namespace cache failed", "err", err, "namespace_id", ns.ID)
+				}
 			}
 			if ns.Size != actualSize {
 				slog.Info("size reconcile: namespace size drift detected", "namespace_id", ns.ID, "recorded", ns.Size, "actual", actualSize)
-				err = r.namespaceRepository.UpdateSizeAndClearDirty(ctx, ns.ID, actualSize)
-				if err != nil {
-					slog.Error("size reconcile: update namespace size failed", "err", err, "namespace_id", ns.ID)
-					continue
-				}
 				reconciled++
-			} else {
-				// Size is consistent, just clear the dirty flag
-				err = r.namespaceRepository.ClearSizeDirty(ctx, ns.ID)
-				if err != nil {
-					slog.Error("size reconcile: clear namespace dirty failed", "err", err, "namespace_id", ns.ID)
-					continue
-				}
 			}
 		}
 		if len(namespaces) < r.batchSize {
@@ -150,26 +153,19 @@ func (r reconcileRunner) reconcileRepositories(ctx context.Context) {
 			return
 		}
 		for _, repo := range repositories {
-			actualSize, err := r.artifactRepository.GetRepositorySize(ctx, repo.ID)
+			actualSize, err := reporegistry.ReconcileScopeSize(ctx, reporegistry.ScopeTypeRepository, repo.ID)
 			if err != nil {
-				slog.Error("size reconcile: get repository size failed", "err", err, "repository_id", repo.ID)
+				slog.Error("size reconcile: reconcile repository size failed", "err", err, "repository_id", repo.ID)
 				continue
+			}
+			if invalidator, ok := r.repositoryRepository.(reporegistry.RepositoryCacheInvalidator); ok {
+				if err = invalidator.InvalidateRepositoryID(ctx, repo.ID); err != nil {
+					slog.Warn("size reconcile: invalidate repository cache failed", "err", err, "repository_id", repo.ID)
+				}
 			}
 			if repo.Size != actualSize {
 				slog.Info("size reconcile: repository size drift detected", "repository_id", repo.ID, "recorded", repo.Size, "actual", actualSize)
-				err = r.repositoryRepository.UpdateSizeAndClearDirty(ctx, repo.ID, actualSize)
-				if err != nil {
-					slog.Error("size reconcile: update repository size failed", "err", err, "repository_id", repo.ID)
-					continue
-				}
 				reconciled++
-			} else {
-				// Size is consistent, just clear the dirty flag
-				err = r.repositoryRepository.ClearSizeDirty(ctx, repo.ID)
-				if err != nil {
-					slog.Error("size reconcile: clear repository dirty failed", "err", err, "repository_id", repo.ID)
-					continue
-				}
 			}
 		}
 		if len(repositories) < r.batchSize {

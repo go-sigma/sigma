@@ -25,6 +25,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	repodaemon "github.com/go-sigma/sigma/pkg/dal/repository/daemon"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
@@ -155,36 +156,49 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 		}
 		deleteIDs := make([]string, 0, len(artifacts)+len(referrers))
 		records := make([]*models.DaemonGcRecord, 0, len(artifacts)+len(referrers))
-		var deletedBlobsSize int64
 		for _, artifactObj := range artifacts {
 			deleteIDs = append(deleteIDs, artifactObj.ID)
 			records = append(records, &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
-			deletedBlobsSize += artifactObj.BlobsSize
 		}
 		for _, artifactObj := range referrers {
 			deleteIDs = append(deleteIDs, artifactObj.ID)
 			records = append(records, &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: artifactObj.Digest, Status: enums.GcRecordStatusSuccess})
-			deletedBlobsSize += artifactObj.BlobsSize
 		}
 		if len(deleteIDs) > 0 {
-			if err := artifactRepository.DeleteByIDs(ctx, deleteIDs); err != nil {
+			deleteErr := query.Q.Transaction(func(tx *query.Query) error {
+				if err := reporegistry.NewArtifactRepository(tx).DeleteByIDs(ctx, deleteIDs); err != nil {
+					return err
+				}
+				// Keep the delete and the dirty markers in one transaction so a
+				// crash cannot leave the scope uninvalidated.
+				if err := reponamespace.NewNamespaceRepository(tx).UpdateByID(ctx, repositoryObj.NamespaceID, map[string]any{
+					"size_dirty": true,
+				}); err != nil {
+					return err
+				}
+				return reporegistry.NewRepositoryRepository(tx).UpdateRepository(ctx, repositoryObj.ID, map[string]any{
+					"size_dirty": true,
+				})
+			})
+			if deleteErr != nil {
 				for _, record := range records {
 					record.Status = enums.GcRecordStatusFailed
-					record.Message = []byte(err.Error())
+					record.Message = []byte(deleteErr.Error())
 				}
 				g.failedCount += int64(len(records))
 			} else {
 				g.successCount += int64(len(records))
-				if deletedBlobsSize > 0 {
-					namespaceRepository := g.namespaceRepository
-					if err := namespaceRepository.DecrementSize(ctx, repositoryObj.NamespaceID, deletedBlobsSize); err != nil {
-						slog.Error("decrement namespace size after gc failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
-					}
-					repositoryRepository := g.repositoryRepository
-					if err := repositoryRepository.DecrementSize(ctx, repositoryObj.ID, deletedBlobsSize); err != nil {
-						slog.Error("decrement repository size after gc failed", "err", err, "repository_id", repositoryObj.ID)
+				if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+					if err := invalidator.InvalidateNamespaceID(ctx, repositoryObj.NamespaceID); err != nil {
+						slog.Warn("invalidate namespace cache after gc failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
 					}
 				}
+				if invalidator, ok := g.repositoryRepository.(reporegistry.RepositoryCacheInvalidator); ok {
+					if err := invalidator.InvalidateRepositoryID(ctx, repositoryObj.ID); err != nil {
+						slog.Warn("invalidate repository cache after gc failed", "err", err, "repository_id", repositoryObj.ID)
+					}
+				}
+				g.reconcileScopeSizeAsync(ctx, repositoryObj.NamespaceID, repositoryObj.ID)
 			}
 			if err := daemonRepository.CreateGcRecords(ctx, records); err != nil {
 				slog.Error("create gc artifact record failed", "err", err)
@@ -195,6 +209,27 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 		}
 		artifactCurIndex = artifacts[len(artifacts)-1].ID
 	}
+}
+
+func (g *gcArtifact) reconcileScopeSizeAsync(ctx context.Context, namespaceID, repositoryID string) {
+	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	go func() {
+		defer cancel()
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
+			slog.Error("reconcile namespace size after gc failed", "err", err, "namespace_id", namespaceID)
+		} else if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+			if err = invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+				slog.Warn("invalidate namespace cache after gc failed", "err", err, "namespace_id", namespaceID)
+			}
+		}
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID); err != nil {
+			slog.Error("reconcile repository size after gc failed", "err", err, "repository_id", repositoryID)
+		} else if invalidator, ok := g.repositoryRepository.(reporegistry.RepositoryCacheInvalidator); ok {
+			if err = invalidator.InvalidateRepositoryID(asyncCtx, repositoryID); err != nil {
+				slog.Warn("invalidate repository cache after gc failed", "err", err, "repository_id", repositoryID)
+			}
+		}
+	}()
 }
 
 func (g *gcArtifact) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcArtifact {

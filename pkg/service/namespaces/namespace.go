@@ -179,8 +179,8 @@ func (s *service) UpdateNamespace(ctx context.Context, userID string, id string,
 		return errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	if req.SizeLimit != nil && namespaceObj.SizeLimit > ptr.To(req.SizeLimit) {
-		return errcode.HTTPErrCodeBadRequest.Detail("Namespace quota is less than the before limit")
+	if req.SizeLimit != nil && sizeLimitDecreased(namespaceObj.SizeLimit, ptr.To(req.SizeLimit)) {
+		return errcode.HTTPErrCodeBadRequest.Detail("size_limit can only be increased; 0 means unlimited")
 	}
 
 	updates := make(map[string]any, 5)
@@ -229,6 +229,22 @@ func (s *service) UpdateNamespace(ctx context.Context, userID string, id string,
 	}
 	s.invalidateNamespaceCache(ctx, namespaceObj)
 	return nil
+}
+
+// sizeLimitDecreased reports whether changing the size limit from oldLimit to
+// nextLimit reduces the allowed capacity. A zero limit means unlimited, so
+// unlimited -> finite is a decrease and finite -> unlimited is an increase.
+func sizeLimitDecreased(oldLimit, nextLimit int64) bool {
+	if oldLimit == nextLimit {
+		return false
+	}
+	if oldLimit == 0 {
+		return nextLimit != 0
+	}
+	if nextLimit == 0 {
+		return false
+	}
+	return nextLimit < oldLimit
 }
 
 func (s *service) DeleteNamespace(ctx context.Context, userID string, id string) error {

@@ -326,6 +326,31 @@ func GenDSErrCodeResourceCountQuotaExceedNamespaceTag(name string, limit int64) 
 	return c
 }
 
+// GenDSErrCodeStorageCapacityExceed builds a 507 Insufficient Storage error
+// reporting that the global physical blob capacity would be exceeded.
+func GenDSErrCodeStorageCapacityExceed(current, capacity, increase int64) ErrCode {
+	return ErrCode{
+		Code: "INSUFFICIENT_STORAGE",
+		Title: fmt.Sprintf("storage capacity is exceeded, used %s/%s, increasing size is %s",
+			humanize.BigIBytes(big.NewInt(current)),
+			humanize.BigIBytes(big.NewInt(capacity)),
+			humanize.BigIBytes(big.NewInt(increase))),
+		Description:    `The registry has no physical storage capacity left for the requested blob.`,
+		HTTPStatusCode: http.StatusInsufficientStorage,
+	}
+}
+
+// GenDSErrCodeManifestReferenced builds a 409 Conflict distribution error
+// reporting that the manifest is referenced by an index and cannot be deleted.
+func GenDSErrCodeManifestReferenced(digest string) ErrCode {
+	return ErrCode{
+		Code:           "MANIFEST_REFERENCED",
+		Title:          fmt.Sprintf("manifest(%s) is referenced by an index", digest),
+		Description:    `The manifest is referenced by an index and cannot be deleted.`,
+		HTTPStatusCode: http.StatusConflict,
+	}
+}
+
 // GenDSErrCodeResourceNotFound builds a RESOURCE_NOT_FOUND distribution error (404) whose title carries the given error's message.
 func GenDSErrCodeResourceNotFound(err error) ErrCode {
 	c := ErrCode{

@@ -44,6 +44,8 @@ func main() {
 		models.ArtifactVulnerability{},
 		models.Tag{},
 		models.Blob{},
+		models.BlobAttribution{},
+		models.QuotaUsage{},
 		models.BlobUpload{},
 		models.Webhook{},
 		models.WebhookLog{},

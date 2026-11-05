@@ -72,3 +72,9 @@ func TestToFixed(t *testing.T) {
 	assert.Equal(t, 1.5, toFixed(1.51, 1))
 	assert.Equal(t, 1.51, toFixed(1.511, 2))
 }
+
+func TestGenDSErrCodeManifestReferenced(t *testing.T) {
+	code := GenDSErrCodeManifestReferenced("sha256:abc")
+	assert.Equal(t, "manifest(sha256:abc) is referenced by an index", code.Title)
+	assert.Equal(t, 409, code.HTTPStatusCode)
+}

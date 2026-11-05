@@ -28,9 +28,12 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	storagemocks "github.com/go-sigma/sigma/pkg/storage/mocks"
+	"github.com/go-sigma/sigma/pkg/testkit"
+	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
 
 func TestUploadQueries(t *testing.T) {
@@ -117,23 +120,30 @@ func TestDeleteUpload(t *testing.T) {
 
 func TestPostUploadSingleShot(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
+	testkit.InitRepository(t)
+	blobRepository := reporegistry.NewBlobRepository()
 	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("hello world")
 	dgest := digest.FromBytes(content).String()
 
-	storageDriver.EXPECT().Upload(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+	storageDriver.EXPECT().Upload(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, _ string, body io.Reader) error {
+			_, _ = io.ReadAll(body)
+			return nil
+		})
 	storageDriver.EXPECT().Move(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	storageDriver.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
-	blobRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 	storageDriver.EXPECT().CreateUploadID(gomock.Any(), gomock.Any()).Return("upload-id-1", nil)
-	blobRepository.EXPECT().UploadCreate(gomock.Any(), gomock.Any()).Return(nil)
 
 	uploadID, err := svc.PostUpload(t.Context(), "library/alpine", dgest, bytes.NewReader(content), "application/octet-stream")
 	require.NoError(t, err)
 	require.Equal(t, "upload-id-1", uploadID)
+
+	blobObj, err := blobRepository.FindByDigest(t.Context(), dgest)
+	require.NoError(t, err)
+	require.Equal(t, int64(len(content)), blobObj.Size)
 }
 
 func TestPostUploadWithoutDigest(t *testing.T) {
@@ -237,53 +247,67 @@ func TestPutUploadInvalidRepositoryName(t *testing.T) {
 
 func TestPutUploadDigestMismatch(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
+	testkit.InitRepository(t)
+	blobRepository := reporegistry.NewBlobRepository()
 	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("actual content")
 	wrongDigest := digest.FromBytes([]byte("different content")).String()
-	upload := &models.BlobUpload{UploadID: "storage-upload-1", FileID: "file-1", PartNumber: 0}
-	blobRepository.EXPECT().UploadGetLastPart(gomock.Any(), "upload-1").Return(upload, nil)
-	blobRepository.EXPECT().Exists(gomock.Any(), wrongDigest).Return(false, nil)
-	blobRepository.EXPECT().UploadTotalEtagsByUploadID(gomock.Any(), "upload-1").Return([]string{"etag1"}, nil)
-	blobRepository.EXPECT().UploadTotalSizeByUploadID(gomock.Any(), "upload-1").Return(int64(10), nil)
-	storageDriver.EXPECT().CommitUpload(gomock.Any(), gomock.Any(), "upload-1", gomock.Any()).Return(nil)
+	require.NoError(t, blobRepository.UploadCreate(t.Context(), &models.BlobUpload{
+		ID:         uuid.NewV7String(),
+		UploadID:   "upload-1",
+		PartNumber: 0,
+		Etag:       "etag1",
+		Repository: "library/alpine",
+		FileID:     "file-1",
+		Size:       10,
+	}))
+	storageDriver.EXPECT().CommitUpload(gomock.Any(), gomock.Any(), "upload-1", []string{}).Return(nil)
 	storageDriver.EXPECT().Reader(gomock.Any(), gomock.Any()).Return(io.NopCloser(bytes.NewReader(content)), nil)
 
 	_, _, err := svc.PutUpload(t.Context(), "upload-1", wrongDigest, nil, "library/alpine", "application/octet-stream", 0)
 	require.Equal(t, errcode.DSErrCodeBlobUploadDigestMismatch, err)
+
+	_, err = blobRepository.FindByDigest(t.Context(), wrongDigest)
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
 }
 
 func TestPutUploadSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
+	testkit.InitRepository(t)
+	blobRepository := reporegistry.NewBlobRepository()
 	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	svc := &service{RepoBlob: blobRepository, Storage: storageDriver}
 
 	content := []byte("hello world")
 	dgest := digest.FromBytes(content).String()
-	upload := &models.BlobUpload{UploadID: "storage-upload-1", FileID: "file-1", PartNumber: 1}
-	blobRepository.EXPECT().UploadGetLastPart(gomock.Any(), "upload-1").Return(upload, nil)
-	blobRepository.EXPECT().Exists(gomock.Any(), dgest).Return(false, nil)
-	blobRepository.EXPECT().UploadTotalEtagsByUploadID(gomock.Any(), "upload-1").Return([]string{"etag1"}, nil)
-	blobRepository.EXPECT().UploadTotalSizeByUploadID(gomock.Any(), "upload-1").Return(int64(10), nil)
+	require.NoError(t, blobRepository.UploadCreate(t.Context(), &models.BlobUpload{
+		ID:         uuid.NewV7String(),
+		UploadID:   "upload-1",
+		PartNumber: 0,
+		Etag:       "etag1",
+		Repository: "library/alpine",
+		FileID:     "file-1",
+		Size:       10,
+	}))
 	storageDriver.EXPECT().
-		UploadPart(gomock.Any(), gomock.Any(), "storage-upload-1", int32(2), gomock.Any()).
+		UploadPart(gomock.Any(), gomock.Any(), "upload-1", int32(1), gomock.Any()).
 		DoAndReturn(func(_ context.Context, _, _ string, _ int32, body io.Reader) (string, error) {
 			_, _ = io.ReadAll(body)
 			return "etag2", nil
 		})
-	blobRepository.EXPECT().UploadCreate(gomock.Any(), gomock.Any()).Return(nil)
-	storageDriver.EXPECT().CommitUpload(gomock.Any(), gomock.Any(), "upload-1", []string{"etag1", "etag2"}).Return(nil)
+	storageDriver.EXPECT().CommitUpload(gomock.Any(), gomock.Any(), "upload-1", []string{"etag2"}).Return(nil)
 	storageDriver.EXPECT().Reader(gomock.Any(), gomock.Any()).Return(io.NopCloser(bytes.NewReader(content)), nil)
 	storageDriver.EXPECT().Move(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	storageDriver.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
-	blobRepository.EXPECT().UploadDeleteByUploadID(gomock.Any(), "upload-1").Return(nil)
-	blobRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 
 	sizeBefore, sizeUploaded, err := svc.PutUpload(t.Context(), "upload-1", dgest, bytes.NewReader(content), "library/alpine", "application/octet-stream", int64(len(content)))
 	require.NoError(t, err)
 	require.Equal(t, int64(10), sizeBefore)
 	require.Equal(t, int64(len(content)), sizeUploaded)
+
+	blobObj, err := blobRepository.FindByDigest(t.Context(), dgest)
+	require.NoError(t, err)
+	require.Equal(t, int64(10)+int64(len(content)), blobObj.Size)
 }

@@ -706,3 +706,14 @@ func TestGetArtifactTypeExtended(t *testing.T) {
 		fakeManifest{references: []distribution.Descriptor{{MediaType: sifConfigMediaType}}},
 	))
 }
+
+func TestAttributedBlobSize(t *testing.T) {
+	blobs := []*models.Blob{
+		{ID: "blob-a", Size: 100},
+		{ID: "blob-b", Size: 50},
+		{ID: "blob-a", Size: 100},
+		nil,
+	}
+	require.Equal(t, int64(150), attributedBlobSize(blobs))
+	require.Zero(t, attributedBlobSize(nil))
+}

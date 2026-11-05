@@ -21,6 +21,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/distribution/distribution/v3"
 	"github.com/distribution/distribution/v3/manifest/manifestlist"
@@ -29,6 +30,7 @@ import (
 	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"go.uber.org/dig"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
@@ -285,6 +287,10 @@ func (s *service) ensureRepository(ctx context.Context, userID string, namespace
 		}
 
 		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		if err := s.checkRepositoryQuota(ctx, tx, namespaceObj.ID); err != nil {
+			logWriteError(ctx, err, "check repository quota failed", "repository", repository)
+			return err
+		}
 		err = repoRegistry.Create(ctx, repositoryObj)
 		if err != nil {
 			slog.Error("create repository failed", "err", err, "repository", repository)
@@ -452,10 +458,11 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 
 	refs := manifestRefs{Tag: tagName, Digest: dgst}
 
+	var namespaceSizeDelta int64
 	if mediaType == manifestlist.MediaTypeManifestList ||
 		mediaType == imgspecv1.MediaTypeImageIndex {
 		artifactObj.Type = enums.ArtifactTypeImageIndex
-		err = s.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor, isNewArtifact)
+		err = s.putManifestIndex(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor, isNewArtifact, isNewTag)
 		if err != nil {
 			if e, ok := err.(errcode.ErrCode); ok {
 				return "", e
@@ -485,7 +492,7 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 		}
 
 		artifactObj.Type = s.getArtifactType(descriptor, manifest)
-		err = s.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor, isNewArtifact)
+		namespaceSizeDelta, err = s.putManifestManifest(ctx, digests, repositoryObj, artifactObj, refs, manifest, descriptor, isNewArtifact, isNewTag)
 		if err != nil {
 			if e, ok := err.(errcode.ErrCode); ok {
 				return "", e
@@ -501,8 +508,8 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 		ArtifactID:   artifactObj.ID,
 		Digest:       dgst.String(),
 	})
-	if isNewArtifact {
-		s.recordNamespaceSizeDelta(ctx, namespaceID, artifactObj.BlobsSize)
+	if namespaceSizeDelta > 0 {
+		s.recordNamespaceSizeDelta(ctx, namespaceID, namespaceSizeDelta)
 	}
 	if isNewTag {
 		s.recordNamespaceTagDelta(ctx, namespaceID, 1)
@@ -521,15 +528,17 @@ type manifestRefs struct {
 // support media type:
 // application/vnd.docker.distribution.manifest.v2+json
 // application/vnd.oci.image.manifest.v1+json
-func (s *service) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, manifest distribution.Manifest, descriptor distribution.Descriptor, isNewArtifact bool) error {
+func (s *service) putManifestManifest(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, manifest distribution.Manifest, descriptor distribution.Descriptor, isNewArtifact bool, isNewTag bool) (int64, error) {
 	blobObjs, err := s.RepoBlob.FindByDigests(ctx, digests)
 	if err != nil {
 		logWriteError(ctx, err, "find blobs failed", "digest", refs.Digest.String())
-		return errcode.DSErrCodeUnknown
+		return 0, errcode.DSErrCodeUnknown
 	}
 
 	artifactObj.Blobs = blobObjs
+	artifactObj.BlobsSize = attributedBlobSize(blobObjs)
 
+	var namespaceSizeDelta int64
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		artifactRepository := reporegistry.NewArtifactRepository(tx)
 		err = artifactRepository.Create(ctx, artifactObj)
@@ -545,6 +554,10 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 		// referrers that are still waiting for it.
 		s.resolveReferrers(ctx, artifactRepository, repositoryObj, artifactObj)
 		if refs.Tag != "" {
+			if err := s.checkTagQuota(ctx, tx, repositoryObj, isNewTag); err != nil {
+				logWriteError(ctx, err, "check tag quota failed", "tag", refs.Tag)
+				return err
+			}
 			tagRepository := reporegistry.NewTagRepository(tx)
 			err = tagRepository.Create(ctx, &models.Tag{
 				ID:           uuid.NewV7String(),
@@ -560,31 +573,21 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 				return errcode.DSErrCodeUnknown
 			}
 		}
-		if isNewArtifact {
-			namespaceRepository := reponamespace.NewNamespaceRepository(tx)
-			if err := namespaceRepository.IncrementSize(ctx, repositoryObj.NamespaceID, artifactObj.BlobsSize); err != nil {
-				logWriteError(ctx, err, "increment namespace size failed", "namespace_id", repositoryObj.NamespaceID)
-				if e, ok := err.(errcode.ErrCode); ok {
-					return e
-				}
-				return errcode.DSErrCodeUnknown
+		namespaceSizeDelta, err = s.applyScopeSizeDelta(ctx, tx, repositoryObj, blobObjs)
+		if err != nil {
+			logWriteError(ctx, err, "update size quota failed", "repository", repositoryObj.Name, "digest", refs.Digest.String())
+			if e, ok := err.(errcode.ErrCode); ok {
+				return e
 			}
-			repositoryRepository := reporegistry.NewRepositoryRepository(tx)
-			if err := repositoryRepository.IncrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
-				logWriteError(ctx, err, "increment repository size failed", "repository_id", repositoryObj.ID)
-				if e, ok := err.(errcode.ErrCode); ok {
-					return e
-				}
-				return errcode.DSErrCodeUnknown
-			}
+			return errcode.DSErrCodeUnknown
 		}
 		return nil
 	})
 	if err != nil {
 		if e, ok := err.(errcode.ErrCode); ok {
-			return e
+			return 0, e
 		}
-		return errcode.DSErrCodeUnknown
+		return 0, errcode.DSErrCodeUnknown
 	}
 	if isNewArtifact {
 		s.invalidateMetadataCache(ctx, repositoryObj)
@@ -594,7 +597,193 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 		s.putManifestAsyncTask(ctx, artifactObj, isNewArtifact)
 	}
 
+	return namespaceSizeDelta, nil
+}
+
+// attributedBlobSize returns the deduplicated size of the given blobs.
+func attributedBlobSize(blobs []*models.Blob) int64 {
+	seen := make(map[string]struct{}, len(blobs))
+	var total int64
+	for _, blob := range blobs {
+		if blob == nil {
+			continue
+		}
+		if _, ok := seen[blob.ID]; ok {
+			continue
+		}
+		seen[blob.ID] = struct{}{}
+		total += blob.Size
+	}
+	return total
+}
+
+// applyScopeSizeDelta records the blobs attributed to the repository and
+// namespace, then applies only the newly inserted bytes to their size
+// counters. The (scope_type, scope_id, blob_id) primary key makes the write
+// idempotent, so concurrent pushes cannot double count a shared blob.
+func (s *service) applyScopeSizeDelta(ctx context.Context, tx *query.Query, repositoryObj *models.Repository, blobs []*models.Blob) (int64, error) {
+	if len(blobs) == 0 {
+		return 0, nil
+	}
+
+	// Lock the scope rows before touching blob_attributions. ReconcileScopeSize
+	// takes the same rows first and then rewrites attributions; doing the
+	// opposite order here can deadlock on MySQL when both transactions touch an
+	// existing attribution row.
+	if _, err := tx.Namespace.WithContext(ctx).
+		Where(tx.Namespace.ID.Eq(repositoryObj.NamespaceID)).
+		UpdateColumns(map[string]any{"size_dirty": true}); err != nil {
+		return 0, err
+	}
+	if _, err := tx.Repository.WithContext(ctx).
+		Where(tx.Repository.ID.Eq(repositoryObj.ID)).
+		UpdateColumns(map[string]any{"size_dirty": true}); err != nil {
+		return 0, err
+	}
+
+	batchID := uuid.NewV7String()
+	attributionRepository := reporegistry.NewBlobAttributionRepository(tx)
+
+	scopes := []struct {
+		scopeType string
+		scopeID   string
+	}{
+		{reporegistry.ScopeTypeNamespace, repositoryObj.NamespaceID},
+		{reporegistry.ScopeTypeRepository, repositoryObj.ID},
+	}
+
+	var namespaceDelta int64
+	for _, scope := range scopes {
+		if err := attributionRepository.UpsertBatch(ctx, scope.scopeType, scope.scopeID, blobs, batchID); err != nil {
+			return 0, err
+		}
+		delta, err := attributionRepository.SumBatch(ctx, scope.scopeType, scope.scopeID, batchID)
+		if err != nil {
+			return 0, err
+		}
+		if delta == 0 {
+			continue
+		}
+		switch scope.scopeType {
+		case reporegistry.ScopeTypeNamespace:
+			if err := reponamespace.NewNamespaceRepository(tx).IncrementSize(ctx, scope.scopeID, delta); err != nil {
+				return 0, err
+			}
+			namespaceDelta = delta
+		case reporegistry.ScopeTypeRepository:
+			if err := reporegistry.NewRepositoryRepository(tx).IncrementSize(ctx, scope.scopeID, delta); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return namespaceDelta, nil
+}
+
+// checkTagQuota enforces the repository and namespace tag count limits before
+// a new tag is created. The parent rows are locked so concurrent pushes cannot
+// both pass the count check.
+func (s *service) checkTagQuota(ctx context.Context, tx *query.Query, repositoryObj *models.Repository, isNewTag bool) error {
+	if !isNewTag {
+		return nil
+	}
+
+	// Lock the namespace first, then the repository: this keeps the lock order
+	// consistent with applyScopeSizeDelta (namespace -> repository).
+	namespaceObj, err := tx.Namespace.WithContext(ctx).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where(tx.Namespace.ID.Eq(repositoryObj.NamespaceID)).
+		First()
+	if err != nil {
+		return err
+	}
+	repo, err := tx.Repository.WithContext(ctx).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where(tx.Repository.ID.Eq(repositoryObj.ID)).
+		First()
+	if err != nil {
+		return err
+	}
+
+	if repo.TagLimit > 0 {
+		count, err := tx.Tag.WithContext(ctx).Where(tx.Tag.RepositoryID.Eq(repo.ID)).Count()
+		if err != nil {
+			return err
+		}
+		if count >= repo.TagLimit {
+			return errcode.GenDSErrCodeResourceCountQuotaExceedRepository(repo.Name, repo.TagLimit)
+		}
+	}
+
+	if namespaceObj.TagLimit <= 0 {
+		return nil
+	}
+	var count int64
+	err = tx.UnderlyingDB().WithContext(ctx).
+		Table("tags").
+		Joins("JOIN repositories ON repositories.id = tags.repository_id").
+		Where("repositories.namespace_id = ? AND tags.deleted_at = 0 AND repositories.deleted_at = 0", repositoryObj.NamespaceID).
+		Count(&count).Error
+	if err != nil {
+		return err
+	}
+	if count >= namespaceObj.TagLimit {
+		return errcode.GenDSErrCodeResourceCountQuotaExceedNamespaceTag(namespaceObj.Name, namespaceObj.TagLimit)
+	}
 	return nil
+}
+
+// checkRepositoryQuota enforces the namespace repository count limit before a
+// new repository is created.
+func (s *service) checkRepositoryQuota(ctx context.Context, tx *query.Query, namespaceID string) error {
+	namespaceObj, err := tx.Namespace.WithContext(ctx).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where(tx.Namespace.ID.Eq(namespaceID)).
+		First()
+	if err != nil {
+		return err
+	}
+	if namespaceObj.RepositoryLimit <= 0 {
+		return nil
+	}
+	count, err := tx.Repository.WithContext(ctx).Where(tx.Repository.NamespaceID.Eq(namespaceID)).Count()
+	if err != nil {
+		return err
+	}
+	if count >= namespaceObj.RepositoryLimit {
+		return errcode.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
+	}
+	return nil
+}
+
+// reconcileScopeSizeAsync repairs and refreshes the scope size counters in the
+// background. Deletion only marks scopes dirty; this gives immediate release
+// instead of waiting for the periodic reconciler.
+func (s *service) reconcileScopeSizeAsync(ctx context.Context, namespaceID, repositoryID string) {
+	if namespaceID == "" && repositoryID == "" {
+		return
+	}
+	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	go func() {
+		defer cancel()
+		if namespaceID != "" {
+			if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
+				slog.Error("reconcile namespace size failed", "err", err, "namespace_id", namespaceID)
+			} else if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+				if err = invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+					slog.Warn("invalidate namespace cache failed", "err", err, "namespace_id", namespaceID)
+				}
+			}
+		}
+		if repositoryID != "" {
+			if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID); err != nil {
+				slog.Error("reconcile repository size failed", "err", err, "repository_id", repositoryID)
+			} else if invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator); ok {
+				if err = invalidator.InvalidateRepositoryID(asyncCtx, repositoryID); err != nil {
+					slog.Warn("invalidate repository cache failed", "err", err, "repository_id", repositoryID)
+				}
+			}
+		}
+	}()
 }
 
 // needScan reports whether the manifest references a scannable image config.
@@ -623,7 +812,7 @@ func needScan(manifest distribution.Manifest, _ distribution.Descriptor) bool {
 // support media type:
 // application/vnd.docker.distribution.manifest.list.v2+json
 // application/vnd.oci.image.index.v1+json
-func (s *service) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, _ distribution.Manifest, _ distribution.Descriptor, isNewArtifact bool) error {
+func (s *service) putManifestIndex(ctx context.Context, digests []string, repositoryObj *models.Repository, artifactObj *models.Artifact, refs manifestRefs, _ distribution.Manifest, _ distribution.Descriptor, isNewArtifact bool, isNewTag bool) error {
 	artifactObjs, err := s.RepoArtifact.GetByDigests(ctx, repositoryObj.Name, digests)
 	if err != nil {
 		logWriteError(ctx, err, "get artifacts failed", "repository", repositoryObj.Name, "digests", digests)
@@ -646,6 +835,10 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 		// referrers that are still waiting for it.
 		s.resolveReferrers(ctx, repoArtifact, repositoryObj, artifactObj)
 		if refs.Tag != "" {
+			if err := s.checkTagQuota(ctx, tx, repositoryObj, isNewTag); err != nil {
+				logWriteError(ctx, err, "check tag quota failed", "tag", refs.Tag)
+				return err
+			}
 			tagRepository := reporegistry.NewTagRepository(tx)
 			err = tagRepository.Create(ctx, &models.Tag{
 				ID:           uuid.NewV7String(),
@@ -655,24 +848,6 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 			})
 			if err != nil {
 				logWriteError(ctx, err, "create tag failed", "repository", repositoryObj.Name, "tag", refs.Tag)
-				if e, ok := err.(errcode.ErrCode); ok {
-					return e
-				}
-				return errcode.DSErrCodeUnknown
-			}
-		}
-		if isNewArtifact {
-			namespaceRepository := reponamespace.NewNamespaceRepository(tx)
-			if err := namespaceRepository.IncrementSize(ctx, repositoryObj.NamespaceID, artifactObj.BlobsSize); err != nil {
-				logWriteError(ctx, err, "increment namespace size failed", "namespace_id", repositoryObj.NamespaceID)
-				if e, ok := err.(errcode.ErrCode); ok {
-					return e
-				}
-				return errcode.DSErrCodeUnknown
-			}
-			repositoryRepository := reporegistry.NewRepositoryRepository(tx)
-			if err := repositoryRepository.IncrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
-				logWriteError(ctx, err, "increment repository size failed", "repository_id", repositoryObj.ID)
 				if e, ok := err.(errcode.ErrCode); ok {
 					return e
 				}
@@ -928,19 +1103,34 @@ func (s *service) DeleteManifest(ctx context.Context, namespaceID string, reposi
 			return errcode.DSErrCodeUnknown
 		}
 		repoArtifact := reporegistry.NewArtifactRepository(tx)
+		// A child manifest that is still referenced by an index must not be
+		// deleted: doing so would leave a broken index and release its size
+		// attribution early.
+		assocErr := repoArtifact.IsArtifactAssociatedWithArtifact(ctx, artifactObj.ID)
+		if assocErr == nil {
+			return errcode.GenDSErrCodeManifestReferenced(artifactObj.Digest)
+		}
+		if !errors.Is(assocErr, gorm.ErrRecordNotFound) {
+			slog.Error("check artifact association failed", "err", assocErr, "ArtifactID", artifactObj.ID)
+			return errcode.DSErrCodeUnknown
+		}
 		err = repoArtifact.DeleteByID(ctx, artifactObj.ID)
 		if err != nil {
 			slog.Error("delete artifact by id failed", "err", err, "ArtifactID", artifactObj.ID)
 			return errcode.DSErrCodeUnknown
 		}
-		namespaceRepository := reponamespace.NewNamespaceRepository(tx)
-		if err := namespaceRepository.DecrementSize(ctx, repositoryObj.NamespaceID, artifactObj.BlobsSize); err != nil {
-			slog.Error("decrement namespace size failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
+		// Deletion does not subtract synchronously: mark both scopes dirty and
+		// let the size reconciler remove the now unreachable attributions.
+		if err := reponamespace.NewNamespaceRepository(tx).UpdateByID(ctx, repositoryObj.NamespaceID, map[string]any{
+			"size_dirty": true,
+		}); err != nil {
+			slog.Error("mark namespace size dirty failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
 			return errcode.DSErrCodeUnknown
 		}
-		repoRegistry := reporegistry.NewRepositoryRepository(tx)
-		if err := repoRegistry.DecrementSize(ctx, repositoryObj.ID, artifactObj.BlobsSize); err != nil {
-			slog.Error("decrement repository size failed", "err", err, "repository_id", repositoryObj.ID)
+		if err := reporegistry.NewRepositoryRepository(tx).UpdateRepository(ctx, repositoryObj.ID, map[string]any{
+			"size_dirty": true,
+		}); err != nil {
+			slog.Error("mark repository size dirty failed", "err", err, "repository_id", repositoryObj.ID)
 			return errcode.DSErrCodeUnknown
 		}
 		return nil
@@ -952,6 +1142,7 @@ func (s *service) DeleteManifest(ctx context.Context, namespaceID string, reposi
 		return errcode.DSErrCodeUnknown
 	}
 	s.invalidateMetadataCache(ctx, repositoryObj)
+	s.reconcileScopeSizeAsync(ctx, repositoryObj.NamespaceID, repositoryObj.ID)
 	err = s.Storage.Delete(ctx, utils.GenManifestPathByDigest(refDigest))
 	if err != nil {
 		slog.Error("delete manifest failed", "err", err, "digest", refDigest.String())

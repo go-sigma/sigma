@@ -282,6 +282,31 @@ CREATE TABLE IF NOT EXISTS `artifact_blobs` (
 
 CREATE INDEX `artifact_blobs_idx_blob_artifact` ON `artifact_blobs` (`blob_id`, `artifact_id`);
 
+CREATE TABLE IF NOT EXISTS `blob_attributions` (
+  `scope_type` varchar(16) NOT NULL,
+  `scope_id` varchar(36) NOT NULL,
+  `blob_id` varchar(36) NOT NULL,
+  `size` bigint NOT NULL DEFAULT 0,
+  `batch_id` varchar(36) NOT NULL DEFAULT '',
+  `created_at` bigint NOT NULL,
+  PRIMARY KEY (`scope_type`, `scope_id`, `blob_id`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX `blob_attributions_idx_batch` ON `blob_attributions` (`batch_id`);
+
+CREATE INDEX `blob_attributions_idx_blob` ON `blob_attributions` (`blob_id`);
+
+CREATE TABLE IF NOT EXISTS `quota_usages` (
+  `scope_type` varchar(16) NOT NULL,
+  `scope_id` varchar(36) NOT NULL DEFAULT '',
+  `size` bigint NOT NULL DEFAULT 0,
+  `updated_at` bigint NOT NULL,
+  PRIMARY KEY (`scope_type`, `scope_id`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+INSERT INTO `quota_usages` (`scope_type`, `scope_id`, `size`, `updated_at`)
+VALUES ('global', '', 0, 0);
+
 CREATE TABLE IF NOT EXISTS `daemon_gc_rules` (
   `id` varchar(36) PRIMARY KEY,
   `type` varchar(64) NOT NULL,
@@ -518,6 +543,10 @@ DROP TABLE IF EXISTS `tags`;
 DROP TABLE IF EXISTS `blobs`;
 
 DROP TABLE IF EXISTS `blob_uploads`;
+
+DROP TABLE IF EXISTS `quota_usages`;
+
+DROP TABLE IF EXISTS `blob_attributions`;
 
 DROP TABLE IF EXISTS `artifact_blobs`;
 
