@@ -250,6 +250,13 @@ func (s *service) DeleteRepository(ctx context.Context, userID, namespaceID, id 
 
 	err = query.Q.Transaction(func(tx *query.Query) error {
 		repoRegistry := reporegistry.NewRepositoryRepository(tx)
+		// Mark the namespace dirty first: the push path locks namespace then
+		// repository, so doing the reverse here can deadlock.
+		if err := reponamespace.NewNamespaceRepository(tx).UpdateByID(ctx, namespaceObj.ID, map[string]any{
+			"size_dirty": true,
+		}); err != nil {
+			return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Mark namespace size dirty failed: %v", err))
+		}
 		err = repoRegistry.DeleteByID(ctx, id)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -263,8 +270,10 @@ func (s *service) DeleteRepository(ctx context.Context, userID, namespaceID, id 
 		return err
 	}
 	s.invalidateRepositoryCache(ctx, repositoryObj)
-	if err := s.RepoNs.UpdateByID(ctx, namespaceObj.ID, map[string]any{"size_dirty": true}); err != nil {
-		slog.Error("mark namespace size dirty after repository delete failed", "err", err, "namespace_id", namespaceObj.ID)
+	if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+		if err := invalidator.InvalidateNamespaceID(ctx, namespaceObj.ID); err != nil {
+			slog.Warn("invalidate namespace cache after repository delete failed", "err", err, "namespace_id", namespaceObj.ID)
+		}
 	}
 	s.reconcileNamespaceSizeAsync(ctx, namespaceObj.ID)
 	return nil

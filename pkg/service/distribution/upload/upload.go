@@ -100,18 +100,21 @@ func (s *service) createBlobAndReserve(ctx context.Context, blob *models.Blob) e
 	})
 }
 
-// cleanupBlobAndRelease removes a blob row whose object was never moved into
-// place and releases its global reservation in one transaction.
-func (s *service) cleanupBlobAndRelease(ctx context.Context, blobID string, size int64) {
+// deleteBlobObjectUnlessPresent removes the final object after a failed
+// reservation, unless a concurrent upload already committed a row for the same
+// digest (in which case the object belongs to that row).
+func (s *service) deleteBlobObjectUnlessPresent(ctx context.Context, dgest digest.Digest) {
 	cleanupCtx := context.WithoutCancel(ctx)
-	err := query.Q.Transaction(func(tx *query.Query) error {
-		if err := reporegistry.NewBlobRepository(tx).DeleteByID(cleanupCtx, blobID); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
-		}
-		return reporegistry.NewQuotaUsageRepository(tx).ReleaseGlobal(cleanupCtx, size)
-	})
+	exists, err := s.RepoBlob.Exists(cleanupCtx, dgest.String())
 	if err != nil {
-		slog.Error("cleanup blob reservation failed", "err", err, "blob_id", blobID, "size", size)
+		slog.Error("check blob before object cleanup failed", "err", err, "digest", dgest.String())
+		return
+	}
+	if exists {
+		return
+	}
+	if err = s.Storage.Delete(cleanupCtx, utils.GenBlobPathByDigest(dgest)); err != nil {
+		slog.Error("delete orphan blob object failed", "err", err, "digest", dgest.String())
 	}
 }
 
@@ -202,16 +205,19 @@ func (s *service) PostUpload(ctx context.Context, repositoryName string, digestS
 				Size:        size,
 				ContentType: contentType,
 			}
-			if err = s.createBlobAndReserve(ctx, blobObj); err != nil {
-				_ = s.Storage.Delete(ctx, srcPath)
-				return "", err
-			}
 
 			destPath := utils.GenBlobPathByDigest(dgest)
 			if err = s.Storage.Move(ctx, srcPath, destPath); err != nil {
 				slog.Error("move blob failed", "err", err)
-				s.cleanupBlobAndRelease(ctx, blobObj.ID, size)
+				_ = s.Storage.Delete(ctx, srcPath)
 				return "", errcode.DSErrCodeUnknown
+			}
+			// Create the row and reserve capacity only after the object is in
+			// place, so an in-flight upload cannot be mistaken for a ready blob
+			// by concurrent uploads or manifest pushes.
+			if err = s.createBlobAndReserve(ctx, blobObj); err != nil {
+				s.deleteBlobObjectUnlessPresent(ctx, dgest)
+				return "", err
 			}
 			if err = s.Storage.Delete(ctx, srcPath); err != nil {
 				// The blob is already at its final path and the row exists;
@@ -378,34 +384,26 @@ func (s *service) PutUpload(ctx context.Context, uploadID string, digestStr stri
 		ContentType: contentType,
 		PushedAt:    time.Now().UnixMilli(),
 	}
-	if err = s.createBlobAndReserve(ctx, blobObj); err != nil {
-		_ = s.Storage.AbortUpload(ctx, srcPath, uploadObj.UploadID)
-		return 0, 0, err
-	}
 
 	slog.Info("committing upload", "uploadID", uploadID, "etags", etags)
 	err = s.Storage.CommitUpload(ctx, srcPath, uploadID, etags)
 	if err != nil {
 		slog.Error("commit upload failed", "err", err, "id", uploadID, "etags", etags)
-		s.cleanupBlobAndRelease(ctx, blobObj.ID, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 
 	srcPathReader, err := s.Storage.Reader(ctx, srcPath)
 	if err != nil {
 		slog.Error("get blob upload failed", "err", err, "srcPath", srcPath)
-		s.cleanupBlobAndRelease(ctx, blobObj.ID, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 	srcPathHash, err := hash.Reader(srcPathReader, dgest.Algorithm().String())
 	if err != nil {
 		slog.Error("hash blob upload failed", "err", err, "srcPath", srcPath)
-		s.cleanupBlobAndRelease(ctx, blobObj.ID, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
 	}
 	if fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash) != dgest.String() {
 		slog.Error("hash blob upload mismatch", "srcPath", srcPath, "srcPathHash", fmt.Sprintf("%s:%s", dgest.Algorithm().String(), srcPathHash), "targetHash", dgest.String())
-		s.cleanupBlobAndRelease(ctx, blobObj.ID, totalSize)
 		return 0, 0, errcode.DSErrCodeBlobUploadDigestMismatch
 	}
 
@@ -413,8 +411,15 @@ func (s *service) PutUpload(ctx context.Context, uploadID string, digestStr stri
 	err = s.Storage.Move(ctx, srcPath, destPath)
 	if err != nil {
 		slog.Error("move blob failed", "err", err, "path", srcPath, "digest", dgest.String(), "dest", destPath)
-		s.cleanupBlobAndRelease(ctx, blobObj.ID, totalSize)
 		return 0, 0, errcode.DSErrCodeUnknown
+	}
+
+	// Create the row and reserve capacity only after the object is in place, so
+	// the blob is not visible to concurrent Exists/FindByDigests calls while it
+	// is still being uploaded.
+	if err = s.createBlobAndReserve(ctx, blobObj); err != nil {
+		s.deleteBlobObjectUnlessPresent(ctx, dgest)
+		return 0, 0, err
 	}
 
 	// The blob is at its final path and its row exists; failures after this

@@ -626,6 +626,21 @@ func (s *service) applyScopeSizeDelta(ctx context.Context, tx *query.Query, repo
 		return 0, nil
 	}
 
+	// Lock the scope rows before touching blob_attributions. ReconcileScopeSize
+	// takes the same rows first and then rewrites attributions; doing the
+	// opposite order here can deadlock on MySQL when both transactions touch an
+	// existing attribution row.
+	if _, err := tx.Namespace.WithContext(ctx).
+		Where(tx.Namespace.ID.Eq(repositoryObj.NamespaceID)).
+		UpdateColumns(map[string]any{"size_dirty": true}); err != nil {
+		return 0, err
+	}
+	if _, err := tx.Repository.WithContext(ctx).
+		Where(tx.Repository.ID.Eq(repositoryObj.ID)).
+		UpdateColumns(map[string]any{"size_dirty": true}); err != nil {
+		return 0, err
+	}
+
 	batchID := uuid.NewV7String()
 	attributionRepository := reporegistry.NewBlobAttributionRepository(tx)
 
