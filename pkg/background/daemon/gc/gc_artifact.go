@@ -202,16 +202,19 @@ func (g *gcArtifact) reconcileScopeSizeAsync(ctx context.Context, namespaceID, r
 	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	go func() {
 		defer cancel()
-		attributionRepository := reporegistry.NewBlobAttributionRepository()
-		if size, err := attributionRepository.SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
 			slog.Error("reconcile namespace size after gc failed", "err", err, "namespace_id", namespaceID)
-		} else if err = g.namespaceRepository.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
-			slog.Error("update namespace size after gc failed", "err", err, "namespace_id", namespaceID)
+		} else if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+			if err = invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+				slog.Warn("invalidate namespace cache after gc failed", "err", err, "namespace_id", namespaceID)
+			}
 		}
-		if size, err := attributionRepository.SyncAndSum(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID); err != nil {
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID); err != nil {
 			slog.Error("reconcile repository size after gc failed", "err", err, "repository_id", repositoryID)
-		} else if err = g.repositoryRepository.UpdateSizeAndClearDirty(asyncCtx, repositoryID, size); err != nil {
-			slog.Error("update repository size after gc failed", "err", err, "repository_id", repositoryID)
+		} else if invalidator, ok := g.repositoryRepository.(reporegistry.RepositoryCacheInvalidator); ok {
+			if err = invalidator.InvalidateRepositoryID(asyncCtx, repositoryID); err != nil {
+				slog.Warn("invalidate repository cache after gc failed", "err", err, "repository_id", repositoryID)
+			}
 		}
 	}()
 }

@@ -274,13 +274,14 @@ func (s *service) reconcileNamespaceSizeAsync(ctx context.Context, namespaceID s
 	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	go func() {
 		defer cancel()
-		size, err := reporegistry.NewBlobAttributionRepository().SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID)
-		if err != nil {
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
 			slog.Error("reconcile namespace size failed", "err", err, "namespace_id", namespaceID)
 			return
 		}
-		if err = s.RepoNs.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
-			slog.Error("update namespace size failed", "err", err, "namespace_id", namespaceID)
+		if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+			if err := invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+				slog.Warn("invalidate namespace cache failed", "err", err, "namespace_id", namespaceID)
+			}
 		}
 	}()
 }

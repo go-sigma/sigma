@@ -930,8 +930,10 @@ PR2 的全局容量和 per-scope 准入一起做，避免先上线一段“物�
 - 对账对 dirty scope 调 `SyncAndSum`；legacy `GetNamespaceSize` / `GetRepositorySize`
   也改为读归属表。
 - 删除路径置 `size_dirty`，并用 30s 的异步 goroutine（不是持久化 workqueue）立即对账。
-- `DeleteBlob` 先删 storage 对象、释放全局容量，再软删 DB 行。
-- 全局容量在 blob commit 预留、blob 删除时释放；`size` cronjob 会从 live blob 同步
-  `quota_usages('global')`。
+- `DeleteBlob` 先删 storage 对象，再在同一个 DB 事务里删行并释放全局容量。
+- 全局容量与 blob 行插入在同一个事务里预留（在 Move 之前）；失败时删行并释放。
+  `size` cronjob 在与预留相同的行锁下从 live blob 同步 `quota_usages('global')`。
+- 对账先锁 scope 行（用一次 no-op dirty update，兼容不支持 `FOR UPDATE` 的方言），
+  再在同一个事务里修复归属、写回 size 并清 dirty；sqlite3 使用 `_txlock=immediate`。
 - tag/repository 数量限制用 `COUNT(*)` + 行锁；`size_limit` 只能调大。
 - UI 文案把 size 标为“去重后”，首页存储标为物理用量。

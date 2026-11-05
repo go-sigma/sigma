@@ -31,6 +31,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/distribution/clients"
@@ -71,22 +72,25 @@ func NewService(params service) Service {
 	return &params
 }
 
-// reserveGlobal reserves delta bytes of the global physical capacity.
-func (s *service) reserveGlobal(ctx context.Context, delta int64) error {
+// checkGlobalAdmission performs a non-authoritative global capacity check
+// before proxying a blob. The authoritative reservation happens with the blob
+// row insert after the object is uploaded.
+func (s *service) checkGlobalAdmission(ctx context.Context, delta int64) error {
 	if delta <= 0 || s.QuotaUsage == nil || s.Config == nil {
 		return nil
 	}
-	return s.QuotaUsage.ReserveGlobal(ctx, delta, s.Config.Storage.Capacity)
-}
-
-// releaseGlobal releases delta bytes of the global physical capacity.
-func (s *service) releaseGlobal(ctx context.Context, delta int64) {
-	if delta <= 0 || s.QuotaUsage == nil {
-		return
+	capacity := s.Config.Storage.Capacity
+	if capacity <= 0 {
+		return nil
 	}
-	if err := s.QuotaUsage.ReleaseGlobal(context.WithoutCancel(ctx), delta); err != nil {
-		slog.Error("release global storage capacity failed", "err", err, "delta", delta)
+	current, err := s.QuotaUsage.GetGlobal(ctx)
+	if err != nil {
+		return err
 	}
+	if current+delta > capacity {
+		return errcode.GenDSErrCodeStorageCapacityExceed(current, capacity, delta)
+	}
+	return nil
 }
 
 // GetNamespaceByName gets a namespace by name.
@@ -119,15 +123,20 @@ func (s *service) DeleteBlob(ctx context.Context, namespaceID string, digestStr 
 		slog.Error("parse digest failed", "err", err, "digest", digestStr)
 		return errcode.DSErrCodeDigestInvalid
 	}
-	// Delete the physical object first, then release the global capacity and
-	// remove the DB row. The old implementation only soft-deleted the row,
-	// which leaked the object because blob GC only scans live rows.
+	// Delete the physical object first, then remove the DB row and release the
+	// global capacity in one transaction. The old implementation only
+	// soft-deleted the row, which leaked the object because blob GC only scans
+	// live rows.
 	if err = s.Storage.Delete(ctx, utils.GenBlobPathByDigest(dgest)); err != nil {
 		slog.Error("delete blob object failed", "err", err, "digest", digestStr)
 		return errcode.DSErrCodeUnknown
 	}
-	s.releaseGlobal(ctx, blobObj.Size)
-	err = s.RepoBlob.DeleteByID(ctx, blobObj.ID)
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		if err := reporegistry.NewBlobRepository(tx).DeleteByID(ctx, blobObj.ID); err != nil {
+			return err
+		}
+		return reporegistry.NewQuotaUsageRepository(tx).ReleaseGlobal(ctx, blobObj.Size)
+	})
 	if err != nil {
 		slog.Error("delete blob failed", "err", err, "digest", digestStr)
 		return errcode.DSErrCodeUnknown
@@ -206,9 +215,9 @@ func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr str
 				return nil, nil, "", errcode.DSErrCodeUnknown
 			}
 			slog.Info("proxy blob", "digest", digestStr, "length", blobSize)
-			if reserveErr := s.reserveGlobal(ctx, blobSize); reserveErr != nil {
+			if admissionErr := s.checkGlobalAdmission(ctx, blobSize); admissionErr != nil {
 				_ = bodyReader.Close()
-				return nil, nil, "", reserveErr
+				return nil, nil, "", admissionErr
 			}
 			pipeReader, pipeWriter := io.Pipe()
 			newBodyReader := io.TeeReader(bodyReader, pipeWriter)
@@ -217,16 +226,34 @@ func (s *service) GetBlob(ctx context.Context, namespaceID string, digestStr str
 				uploadErr := s.Storage.Upload(uploadCtx, utils.GenBlobPathByDigest(dgest), io.LimitReader(pipeReader, blobSize))
 				if uploadErr != nil {
 					slog.Error("upload blob failed", "err", uploadErr, "digest", digestStr)
-					s.releaseGlobal(uploadCtx, blobSize)
 					return
 				}
-				// Note: the blob exist in the storage, but not in the database,
-				// so gc should delete the file directly.
-				createErr := s.RepoBlob.Create(uploadCtx, &models.Blob{ID: uuid.NewV7String(), Digest: digestStr, Size: blobSize, ContentType: contentType, PushedAt: time.Now().UnixMilli()})
+				capacity := int64(0)
+				if s.Config != nil {
+					capacity = s.Config.Storage.Capacity
+				}
+				createErr := query.Q.Transaction(func(tx *query.Query) error {
+					if err := reporegistry.NewQuotaUsageRepository(tx).ReserveGlobal(uploadCtx, blobSize, capacity); err != nil {
+						return err
+					}
+					return reporegistry.NewBlobRepository(tx).Create(uploadCtx, &models.Blob{
+						ID:          uuid.NewV7String(),
+						Digest:      digestStr,
+						Size:        blobSize,
+						ContentType: contentType,
+						PushedAt:    time.Now().UnixMilli(),
+					})
+				})
 				if createErr != nil {
 					slog.Error("create blob failed", "err", createErr, "digest", digestStr)
-					s.releaseGlobal(uploadCtx, blobSize)
-					return
+					// The transaction rolled back both the row and the
+					// reservation. If no other row owns this digest, remove the
+					// cached object.
+					if exists, err := s.RepoBlob.Exists(uploadCtx, digestStr); err == nil && !exists {
+						if delErr := s.Storage.Delete(uploadCtx, utils.GenBlobPathByDigest(dgest)); delErr != nil {
+							slog.Error("delete orphan proxy blob failed", "err", delErr, "digest", digestStr)
+						}
+					}
 				}
 			}()
 			blob = &models.Blob{

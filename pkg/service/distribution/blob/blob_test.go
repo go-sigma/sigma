@@ -30,9 +30,11 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
+	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	storagemocks "github.com/go-sigma/sigma/pkg/storage/mocks"
+	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
 func TestGetNamespaceByName(t *testing.T) {
@@ -50,24 +52,23 @@ func TestGetNamespaceByName(t *testing.T) {
 
 func TestDeleteBlob(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	blobRepository := reporegistrymocks.NewMockBlobRepository(ctrl)
+	testkit.InitRepository(t)
+	blobRepository := reporegistry.NewBlobRepository()
 	storageDriver := storagemocks.NewMockStorageDriver(ctrl)
 	service := &service{RepoBlob: blobRepository, Storage: storageDriver}
 	validDigest := digest.FromString("blob").String()
-	blobRepository.EXPECT().
-		FindByDigest(gomock.Any(), validDigest).
-		Return(&models.Blob{ID: "blob-1", Size: 10}, nil)
-	blobRepository.EXPECT().
-		FindAssociateWithArtifact(gomock.Any(), []string{"blob-1"}).
-		Return(nil, nil)
+	require.NoError(t, blobRepository.Create(t.Context(), &models.Blob{
+		ID:          "blob-1",
+		Digest:      validDigest,
+		Size:        10,
+		ContentType: "application/octet-stream",
+	}))
 	storageDriver.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
-	blobRepository.EXPECT().DeleteByID(gomock.Any(), "blob-1").Return(nil)
 
 	require.NoError(t, service.DeleteBlob(t.Context(), "namespace-1", validDigest, "user-1"))
+	_, err := blobRepository.FindByDigest(t.Context(), validDigest)
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
 
-	blobRepository.EXPECT().
-		FindByDigest(gomock.Any(), "sha256:failed").
-		Return(nil, errors.New("lookup failed"))
 	require.Error(t, service.DeleteBlob(t.Context(), "namespace-1", "sha256:failed", "user-1"))
 }
 

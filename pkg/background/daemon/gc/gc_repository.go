@@ -166,13 +166,14 @@ func (g *gcRepository) reconcileNamespaceSizeAsync(ctx context.Context, namespac
 	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	go func() {
 		defer cancel()
-		size, err := reporegistry.NewBlobAttributionRepository().SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID)
-		if err != nil {
+		if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
 			slog.Error("reconcile namespace size after gc repository failed", "err", err, "namespace_id", namespaceID)
 			return
 		}
-		if err = g.namespaceRepository.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
-			slog.Error("update namespace size after gc repository failed", "err", err, "namespace_id", namespaceID)
+		if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+			if err := invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+				slog.Warn("invalidate namespace cache after gc repository failed", "err", err, "namespace_id", namespaceID)
+			}
 		}
 	}()
 }

@@ -1043,9 +1043,14 @@ guarantee of the current code.
   `GetRepositorySize` read the attribution table.
 - Delete paths mark `size_dirty` and trigger a 30s async goroutine (not a durable workqueue) to
   reconcile immediately.
-- `DeleteBlob` deletes the storage object, releases global capacity, then soft-deletes the row.
-- Global capacity is reserved at blob commit and released on blob deletion; the size cronjob
-  syncs `quota_usages('global')` from live blobs.
+- `DeleteBlob` deletes the storage object, then removes the row and releases global capacity in
+  one DB transaction.
+- Global capacity is reserved together with the blob row insert (before moving the object into
+  place); failures delete the row and release. The size cronjob syncs `quota_usages('global')`
+  from live blobs under the same row lock as reservations.
+- Reconciliation locks the scope row first (a no-op dirty update, so it also works where
+  `FOR UPDATE` is ignored), then repairs attributions and writes the size and dirty flag in one
+  transaction. sqlite3 uses `_txlock=immediate`.
 - Tag/repository count limits are enforced with `COUNT(*)` and row locks; `size_limit` can only
   increase.
 - UI copy labels size as deduplicated and home storage as physical.

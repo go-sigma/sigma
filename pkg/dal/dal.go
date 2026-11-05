@@ -197,9 +197,9 @@ func connectSqlite3(config *config.Configuration) (*gorm.DB, error) {
 	dbname := config.Database.Sqlite3.Path
 	dsn := "file:" + dbname
 	if strings.Contains(dbname, "?") {
-		dsn += "&_busy_timeout=30000"
+		dsn += "&_busy_timeout=30000&_txlock=immediate"
 	} else {
-		dsn += "?_busy_timeout=30000"
+		dsn += "?_busy_timeout=30000&_txlock=immediate"
 	}
 
 	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{

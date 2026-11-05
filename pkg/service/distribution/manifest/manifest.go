@@ -750,21 +750,22 @@ func (s *service) reconcileScopeSizeAsync(ctx context.Context, namespaceID, repo
 	asyncCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	go func() {
 		defer cancel()
-		attributionRepository := reporegistry.NewBlobAttributionRepository()
 		if namespaceID != "" {
-			size, err := attributionRepository.SyncAndSum(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID)
-			if err != nil {
+			if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeNamespace, namespaceID); err != nil {
 				slog.Error("reconcile namespace size failed", "err", err, "namespace_id", namespaceID)
-			} else if err = s.RepoNs.UpdateSizeAndClearDirty(asyncCtx, namespaceID, size); err != nil {
-				slog.Error("update namespace size failed", "err", err, "namespace_id", namespaceID)
+			} else if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+				if err = invalidator.InvalidateNamespaceID(asyncCtx, namespaceID); err != nil {
+					slog.Warn("invalidate namespace cache failed", "err", err, "namespace_id", namespaceID)
+				}
 			}
 		}
 		if repositoryID != "" {
-			size, err := attributionRepository.SyncAndSum(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID)
-			if err != nil {
+			if _, err := reporegistry.ReconcileScopeSize(asyncCtx, reporegistry.ScopeTypeRepository, repositoryID); err != nil {
 				slog.Error("reconcile repository size failed", "err", err, "repository_id", repositoryID)
-			} else if err = s.RepoRegistry.UpdateSizeAndClearDirty(asyncCtx, repositoryID, size); err != nil {
-				slog.Error("update repository size failed", "err", err, "repository_id", repositoryID)
+			} else if invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator); ok {
+				if err = invalidator.InvalidateRepositoryID(asyncCtx, repositoryID); err != nil {
+					slog.Warn("invalidate repository cache failed", "err", err, "repository_id", repositoryID)
+				}
 			}
 		}
 	}()

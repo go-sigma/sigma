@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/utils/uuid"
 )
@@ -93,4 +94,40 @@ func TestBlobAttributionRepository(t *testing.T) {
 	repositorySize, err = attributionRepository.SyncAndSum(ctx, reporegistry.ScopeTypeRepository, fixture.Repository.ID)
 	require.NoError(t, err)
 	require.Zero(t, repositorySize)
+}
+
+func TestReconcileScopeSize(t *testing.T) {
+	fixture := newRegistryFixture(t)
+	ctx := t.Context()
+
+	blobObj := &models.Blob{
+		ID:          uuid.NewV7String(),
+		Digest:      "sha256:reconcile-size",
+		Size:        100,
+		ContentType: "application/octet-stream",
+	}
+	require.NoError(t, fixture.BlobRepository.Create(ctx, blobObj))
+	artifactObj := newRegistryArtifact(fixture.Namespace.ID, fixture.Repository.ID, "sha256:reconcile-size-artifact")
+	require.NoError(t, fixture.ArtifactRepository.Create(ctx, artifactObj))
+	require.NoError(t, fixture.ArtifactRepository.AssociateBlobs(ctx, artifactObj, []*models.Blob{blobObj}))
+
+	size, err := reporegistry.ReconcileScopeSize(ctx, reporegistry.ScopeTypeNamespace, fixture.Namespace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(100), size)
+
+	namespaceObj, err := query.Q.Namespace.WithContext(ctx).Where(query.Q.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Equal(t, int64(100), namespaceObj.Size)
+	require.False(t, namespaceObj.SizeDirty)
+
+	size, err = reporegistry.ReconcileScopeSize(ctx, reporegistry.ScopeTypeRepository, fixture.Repository.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(100), size)
+
+	// After the artifact is soft-deleted, reconciliation removes the stale
+	// attribution rows and clears the counter.
+	require.NoError(t, fixture.ArtifactRepository.DeleteByID(ctx, artifactObj.ID))
+	size, err = reporegistry.ReconcileScopeSize(ctx, reporegistry.ScopeTypeNamespace, fixture.Namespace.ID)
+	require.NoError(t, err)
+	require.Zero(t, size)
 }

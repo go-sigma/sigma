@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
@@ -142,25 +143,61 @@ func (s *quotaUsageRepository) GetGlobal(ctx context.Context) (int64, error) {
 }
 
 // SyncGlobal recomputes the global usage from live blobs and stores it.
+//
+// The blob sum is scanned before taking the quota row lock to avoid blocking
+// uploads for the duration of the scan. The transaction then re-reads the
+// counter under the lock and skips the write when it changed, which means a
+// reservation or release happened concurrently and the scan is stale.
 func (s *quotaUsageRepository) SyncGlobal(ctx context.Context) (int64, error) {
-	var row struct {
-		Total int64
-	}
-	err := s.tx.UnderlyingDB().WithContext(ctx).
-		Table("blobs").
-		Select("COALESCE(SUM(size), 0) AS total").
-		Where("deleted_at = 0").
-		Scan(&row).Error
+	current, err := s.GetGlobal(ctx)
 	if err != nil {
 		return 0, err
 	}
-	err = s.tx.UnderlyingDB().WithContext(ctx).
-		Table(quotaUsageTable).
-		Where("scope_type = ? AND scope_id = ?", ScopeTypeGlobal, "").
-		Updates(map[string]any{
-			"size":       row.Total,
-			"updated_at": time.Now().UnixMilli(),
-		}).Error
+
+	var row struct {
+		Total int64
+	}
+	if err := s.tx.UnderlyingDB().WithContext(ctx).
+		Table("blobs").
+		Select("COALESCE(SUM(size), 0) AS total").
+		Where("deleted_at = 0").
+		Scan(&row).Error; err != nil {
+		return 0, err
+	}
+
+	err = s.tx.Transaction(func(tx *query.Query) error {
+		// Ensure the singleton row exists, then lock it before comparing the
+		// counter with the value observed before the scan.
+		if err := tx.QuotaUsage.WithContext(ctx).
+			Clauses(clause.OnConflict{DoNothing: true}).
+			Create(&models.QuotaUsage{ScopeType: ScopeTypeGlobal, ScopeID: ""}); err != nil {
+			return err
+		}
+		now := time.Now().UnixMilli()
+		if _, err := tx.QuotaUsage.WithContext(ctx).
+			Where(tx.QuotaUsage.ScopeType.Eq(ScopeTypeGlobal), tx.QuotaUsage.ScopeID.Eq("")).
+			UpdateColumn(tx.QuotaUsage.UpdatedAt, now); err != nil {
+			return err
+		}
+		latest, err := tx.QuotaUsage.WithContext(ctx).
+			Where(tx.QuotaUsage.ScopeType.Eq(ScopeTypeGlobal), tx.QuotaUsage.ScopeID.Eq("")).
+			First()
+		if err != nil {
+			return err
+		}
+		if latest.Size != current {
+			// A concurrent reservation/release changed the counter while the
+			// blob sum was scanned; leave the write to the next round.
+			return nil
+		}
+		_, err = tx.QuotaUsage.WithContext(ctx).
+			Where(tx.QuotaUsage.ScopeType.Eq(ScopeTypeGlobal), tx.QuotaUsage.ScopeID.Eq("")).
+			UpdateColumns(map[string]any{
+				"size":       row.Total,
+				"updated_at": now,
+			})
+		return err
+	})
 	if err != nil {
 		return 0, err
 	}
