@@ -257,6 +257,16 @@ func (r *cachedNamespaceRepository) InvalidateNamespace(ctx context.Context, nam
 }
 
 func (r *cachedNamespaceRepository) InvalidateNamespaceID(ctx context.Context, id string) error {
+	// The by-name entry holds a full copy of the namespace, including its size
+	// counters. Resolve the name from the ID entry (read-through if needed) so
+	// both keys are removed instead of only the by-ID key.
+	namespaceObj, err := r.byID.Get(ctx, id)
+	if err == nil {
+		return r.InvalidateNamespace(ctx, namespaceObj)
+	}
+	if !errors.Is(err, cache.ErrNotFound) {
+		return err
+	}
 	return r.byID.Del(ctx, id)
 }
 
