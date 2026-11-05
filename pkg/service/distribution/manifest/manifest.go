@@ -311,7 +311,10 @@ func (s *service) ensureRepository(ctx context.Context, userID string, namespace
 	}
 
 	if createNamespace {
+		namespaceObj.RepositoryCount++
 		s.seedNamespaceCache(ctx, namespaceObj)
+	} else {
+		s.invalidateNamespaceCache(ctx, namespaceObj.ID)
 	}
 	s.seedRepositoryCache(ctx, repositoryObj)
 	return repositoryObj, nil
@@ -589,7 +592,7 @@ func (s *service) putManifestManifest(ctx context.Context, digests []string, rep
 		}
 		return 0, errcode.DSErrCodeUnknown
 	}
-	if isNewArtifact {
+	if isNewArtifact || isNewTag {
 		s.invalidateMetadataCache(ctx, repositoryObj)
 	}
 
@@ -705,11 +708,7 @@ func (s *service) checkTagQuota(ctx context.Context, tx *query.Query, repository
 	}
 
 	if repo.TagLimit > 0 {
-		count, err := tx.Tag.WithContext(ctx).Where(tx.Tag.RepositoryID.Eq(repo.ID)).Count()
-		if err != nil {
-			return err
-		}
-		if count >= repo.TagLimit {
+		if repo.TagCount >= repo.TagLimit {
 			return errcode.GenDSErrCodeResourceCountQuotaExceedRepository(repo.Name, repo.TagLimit)
 		}
 	}
@@ -717,16 +716,7 @@ func (s *service) checkTagQuota(ctx context.Context, tx *query.Query, repository
 	if namespaceObj.TagLimit <= 0 {
 		return nil
 	}
-	var count int64
-	err = tx.UnderlyingDB().WithContext(ctx).
-		Table("tags").
-		Joins("JOIN repositories ON repositories.id = tags.repository_id").
-		Where("repositories.namespace_id = ? AND tags.deleted_at = 0 AND repositories.deleted_at = 0", repositoryObj.NamespaceID).
-		Count(&count).Error
-	if err != nil {
-		return err
-	}
-	if count >= namespaceObj.TagLimit {
+	if namespaceObj.TagCount >= namespaceObj.TagLimit {
 		return errcode.GenDSErrCodeResourceCountQuotaExceedNamespaceTag(namespaceObj.Name, namespaceObj.TagLimit)
 	}
 	return nil
@@ -745,11 +735,7 @@ func (s *service) checkRepositoryQuota(ctx context.Context, tx *query.Query, nam
 	if namespaceObj.RepositoryLimit <= 0 {
 		return nil
 	}
-	count, err := tx.Repository.WithContext(ctx).Where(tx.Repository.NamespaceID.Eq(namespaceID)).Count()
-	if err != nil {
-		return err
-	}
-	if count >= namespaceObj.RepositoryLimit {
+	if namespaceObj.RepositoryCount >= namespaceObj.RepositoryLimit {
 		return errcode.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
 	}
 	return nil
@@ -870,7 +856,7 @@ func (s *service) putManifestIndex(ctx context.Context, digests []string, reposi
 		}
 		return errcode.DSErrCodeUnknown
 	}
-	if isNewArtifact {
+	if isNewArtifact || isNewTag {
 		s.invalidateMetadataCache(ctx, repositoryObj)
 	}
 
@@ -1083,6 +1069,7 @@ func (s *service) DeleteManifest(ctx context.Context, namespaceID string, reposi
 			slog.Error("delete tag failed", "err", err, "Tag", tagName)
 			return errcode.DSErrCodeUnknown
 		}
+		s.invalidateMetadataCache(ctx, repositoryObj)
 		return nil
 	}
 
@@ -1155,14 +1142,18 @@ func (s *service) invalidateMetadataCache(ctx context.Context, repositoryObj *mo
 	if repositoryObj == nil {
 		return
 	}
-	if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
-		if err := invalidator.InvalidateNamespaceID(ctx, repositoryObj.NamespaceID); err != nil {
-			slog.Warn("invalidate namespace cache failed", "err", err, "namespace_id", repositoryObj.NamespaceID)
-		}
-	}
+	s.invalidateNamespaceCache(ctx, repositoryObj.NamespaceID)
 	if invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator); ok {
 		if err := invalidator.InvalidateRepository(ctx, repositoryObj); err != nil {
 			slog.Warn("invalidate repository cache failed", "err", err, "repository_id", repositoryObj.ID)
+		}
+	}
+}
+
+func (s *service) invalidateNamespaceCache(ctx context.Context, namespaceID string) {
+	if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+		if err := invalidator.InvalidateNamespaceID(ctx, namespaceID); err != nil {
+			slog.Warn("invalidate namespace cache failed", "err", err, "namespace_id", namespaceID)
 		}
 	}
 }

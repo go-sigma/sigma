@@ -98,7 +98,7 @@ func (s *tagRepository) Create(ctx context.Context, tag *models.Tag) error {
 		if err != nil {
 			return err
 		}
-		return nil
+		return incrementTagCount(ctx, s.tx, tag.RepositoryID, 1)
 	}
 	_, err = s.tx.Tag.WithContext(ctx).Where(
 		s.tx.Tag.RepositoryID.Eq(tag.RepositoryID),
@@ -176,14 +176,27 @@ func (s *tagRepository) DeleteByName(ctx context.Context, repositoryID string, t
 	if matched.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
-	return nil
+	return decrementTagCount(ctx, s.tx, tagObj.RepositoryID, 1)
 }
 
 // DeleteByArtifactID deletes tags with the specified artifact ID
 func (s *tagRepository) DeleteByArtifactID(ctx context.Context, artifactID string) error {
 	// sql: update tags set deleted_at = now() where artifact_id = ?
-	_, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ArtifactID.Eq(artifactID)).Delete()
-	return err
+	tagObjs, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ArtifactID.Eq(artifactID)).Find()
+	if err != nil {
+		return err
+	}
+	if len(tagObjs) == 0 {
+		return nil
+	}
+	matched, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ArtifactID.Eq(artifactID)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return nil
+	}
+	return decrementTagCount(ctx, s.tx, tagObjs[0].RepositoryID, matched.RowsAffected)
 }
 
 // Incr increases the tag pull count
@@ -254,6 +267,10 @@ func (s *tagRepository) ListTag(ctx context.Context, repositoryID string, name *
 
 // DeleteByID deletes the tag with the specified tag ID
 func (s *tagRepository) DeleteByID(ctx context.Context, id string) error {
+	tagObj, err := s.tx.Tag.WithContext(ctx).Where(s.tx.Tag.ID.Eq(id)).First()
+	if err != nil {
+		return err
+	}
 	t := &models.Tag{ID: id}
 	matched, err := s.tx.Tag.WithContext(ctx).Delete(t)
 	if err != nil {
@@ -262,7 +279,7 @@ func (s *tagRepository) DeleteByID(ctx context.Context, id string) error {
 	if matched.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
-	return nil
+	return decrementTagCount(ctx, s.tx, tagObj.RepositoryID, 1)
 }
 
 // CountByArtifact counts tags grouped by artifact ID

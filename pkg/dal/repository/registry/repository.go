@@ -96,7 +96,10 @@ func NewRepositoryRepository(txs ...*query.Query) RepositoryRepository {
 
 // Create creates a new repository
 func (s *repositoryRepository) Create(ctx context.Context, repositoryObj *models.Repository) error {
-	return s.tx.Repository.WithContext(ctx).Create(repositoryObj)
+	if err := s.tx.Repository.WithContext(ctx).Create(repositoryObj); err != nil {
+		return err
+	}
+	return incrementNamespaceCounts(ctx, s.tx, repositoryObj.NamespaceID, 0, 1)
 }
 
 // FindAll finds repositories in a namespace with cursor pagination
@@ -265,11 +268,18 @@ func (s *repositoryRepository) CountRepository(ctx context.Context, namespaceID 
 
 // DeleteByID deletes the repository with the specified repository ID
 func (s *repositoryRepository) DeleteByID(ctx context.Context, id string) error {
-	_, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).Delete()
+	repositoryObj, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).First()
 	if err != nil {
 		return err
 	}
-	return nil
+	matched, err := s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.Eq(id)).Delete()
+	if err != nil {
+		return err
+	}
+	if matched.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return decrementNamespaceCounts(ctx, s.tx, repositoryObj.NamespaceID, repositoryObj.TagCount, 1)
 }
 
 // CountByNamespace counts repositories grouped by namespace ID
@@ -306,15 +316,12 @@ func (s *repositoryRepository) DeleteEmpty(ctx context.Context, namespaceID *str
 	if err != nil {
 		return nil, err
 	}
-	IDs := make([]string, 0, len(repositoryObjs))
 	result := make([]string, 0, len(repositoryObjs))
-	for _, r := range repositoryObjs {
-		result = append(result, r.Name)
-		IDs = append(IDs, r.ID)
-	}
-	_, err = s.tx.Repository.WithContext(ctx).Where(s.tx.Repository.ID.In(IDs...)).Delete()
-	if err != nil {
-		return nil, err
+	for _, repositoryObj := range repositoryObjs {
+		if err := s.DeleteByID(ctx, repositoryObj.ID); err != nil {
+			return nil, err
+		}
+		result = append(result, repositoryObj.Name)
 	}
 	return result, nil
 }

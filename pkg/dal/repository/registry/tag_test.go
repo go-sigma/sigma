@@ -73,6 +73,13 @@ func TestTagRepository(t *testing.T) {
 	}
 	require.NoError(t, tagRepository.Create(ctx, tagObj))
 
+	namespaceObj, err := query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), namespaceObj.TagCount)
+	repositoryObj, err := query.Q.Repository.WithContext(ctx).Where(query.Repository.ID.Eq(fixture.Repository.ID)).First()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), repositoryObj.TagCount)
+
 	got, err := tagRepository.GetByID(ctx, tagObj.ID)
 	require.NoError(t, err)
 	require.Equal(t, tagObj.ID, got.ID)
@@ -128,10 +135,19 @@ func TestTagRepository(t *testing.T) {
 	got, err = tagRepository.GetByName(ctx, fixture.Repository.ID, "latest")
 	require.NoError(t, err)
 	require.Equal(t, artifactTwo.ID, got.ArtifactID)
+	repositoryObj, err = query.Q.Repository.WithContext(ctx).Where(query.Repository.ID.Eq(fixture.Repository.ID)).First()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), repositoryObj.TagCount)
 
 	require.NoError(t, tagRepository.DeleteByArtifactID(ctx, artifactTwo.ID))
 	_, err = tagRepository.GetByName(ctx, fixture.Repository.ID, "latest")
 	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+	repositoryObj, err = query.Q.Repository.WithContext(ctx).Where(query.Repository.ID.Eq(fixture.Repository.ID)).First()
+	require.NoError(t, err)
+	require.Zero(t, repositoryObj.TagCount)
+	namespaceObj, err = query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Zero(t, namespaceObj.TagCount)
 
 	tagByID := &models.Tag{
 		ID:           uuid.NewV7String(),
@@ -143,6 +159,12 @@ func TestTagRepository(t *testing.T) {
 	require.NoError(t, tagRepository.DeleteByID(ctx, tagByID.ID))
 	err = tagRepository.DeleteByID(ctx, uuid.NewV7String())
 	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+	repositoryObj, err = query.Q.Repository.WithContext(ctx).Where(query.Repository.ID.Eq(fixture.Repository.ID)).First()
+	require.NoError(t, err)
+	require.Zero(t, repositoryObj.TagCount)
+	namespaceObj, err = query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Zero(t, namespaceObj.TagCount)
 }
 
 func TestTagRepositoryFindWithDayCursor(t *testing.T) {

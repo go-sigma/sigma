@@ -28,6 +28,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
@@ -140,9 +141,21 @@ func (s *service) DeleteTag(ctx context.Context, namespaceID, repositoryID, id s
 		return errcode.HTTPErrCodeNotFound.Detail("Repository's namespace ref id not equal namespace id")
 	}
 
-	err = s.RepoTag.DeleteByID(ctx, id)
+	err = query.Q.Transaction(func(tx *query.Query) error {
+		return reporegistry.NewTagRepository(tx).DeleteByID(ctx, id)
+	})
 	if err != nil {
 		return errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Delete tag failed: %v", err))
+	}
+	if invalidator, ok := s.RepoRegistry.(reporegistry.RepositoryCacheInvalidator); ok {
+		if err = invalidator.InvalidateRepositoryID(ctx, repositoryObj.ID); err != nil {
+			slog.Warn("invalidate repository cache after tag delete failed", "err", err, "repository_id", repositoryObj.ID)
+		}
+	}
+	if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+		if err = invalidator.InvalidateNamespaceID(ctx, namespaceObj.ID); err != nil {
+			slog.Warn("invalidate namespace cache after tag delete failed", "err", err, "namespace_id", namespaceObj.ID)
+		}
 	}
 	return nil
 }

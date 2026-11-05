@@ -27,6 +27,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
 	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/dal/query"
 	repodaemon "github.com/go-sigma/sigma/pkg/dal/repository/daemon"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
 	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
@@ -145,7 +146,7 @@ func (g *gcTag) deleteTagsInNamespace(ctx context.Context, daemonRepository repo
 			return fmt.Errorf("list repository failed: %v", err)
 		}
 		for _, repositoryObj := range repositories {
-			if err := g.deleteTagsInRepository(ctx, daemonRepository, tagRepository, repositoryObj.ID, pattern); err != nil {
+			if err := g.deleteTagsInRepository(ctx, daemonRepository, tagRepository, namespaceID, repositoryObj.ID, pattern); err != nil {
 				return err
 			}
 		}
@@ -156,7 +157,7 @@ func (g *gcTag) deleteTagsInNamespace(ctx context.Context, daemonRepository repo
 	}
 }
 
-func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository repodaemon.DaemonRepository, tagRepository reporegistry.TagRepository, repositoryID string, pattern *regexp.Regexp) error {
+func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository repodaemon.DaemonRepository, tagRepository reporegistry.TagRepository, namespaceID, repositoryID string, pattern *regexp.Regexp) error {
 	var tagCurIndex string
 	for {
 		var tags []*models.Tag
@@ -171,20 +172,25 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 			return fmt.Errorf("find deletable tag failed: %v", err)
 		}
 		var mu sync.Mutex
+		var deletedInBatch int64
 		if err := runWorkers(ctx, g.config.Daemon.GC.WorkerCount, tags, func(ctx context.Context, tagObj *models.Tag) error {
 			if pattern != nil && !pattern.MatchString(tagObj.Name) {
 				return nil
 			}
 			record := &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: g.runnerObj.ID, Resource: tagObj.Name, Status: enums.GcRecordStatusSuccess}
-			if err := tagRepository.DeleteByID(ctx, tagObj.ID); err != nil {
+			deleteErr := query.Q.Transaction(func(tx *query.Query) error {
+				return reporegistry.NewTagRepository(tx).DeleteByID(ctx, tagObj.ID)
+			})
+			if deleteErr != nil {
 				record.Status = enums.GcRecordStatusFailed
-				record.Message = []byte(err.Error())
+				record.Message = []byte(deleteErr.Error())
 				mu.Lock()
 				g.failedCount++
 				mu.Unlock()
 			} else {
 				mu.Lock()
 				g.successCount++
+				deletedInBatch++
 				mu.Unlock()
 			}
 			if err := daemonRepository.CreateGcRecords(ctx, []*models.DaemonGcRecord{record}); err != nil {
@@ -193,6 +199,21 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 			return nil
 		}); err != nil {
 			return err
+		}
+		mu.Lock()
+		deleted := deletedInBatch
+		mu.Unlock()
+		if deleted > 0 {
+			if invalidator, ok := g.repositoryRepository.(reporegistry.RepositoryCacheInvalidator); ok {
+				if err := invalidator.InvalidateRepositoryID(ctx, repositoryID); err != nil {
+					slog.Warn("invalidate repository cache after gc tag failed", "err", err, "repository_id", repositoryID)
+				}
+			}
+			if invalidator, ok := g.namespaceRepository.(reponamespace.NamespaceCacheInvalidator); ok {
+				if err := invalidator.InvalidateNamespaceID(ctx, namespaceID); err != nil {
+					slog.Warn("invalidate namespace cache after gc tag failed", "err", err, "namespace_id", namespaceID)
+				}
+			}
 		}
 		if len(tags) < g.config.Daemon.GC.BatchSize {
 			return nil

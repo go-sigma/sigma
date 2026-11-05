@@ -129,6 +129,11 @@ func (s *service) CreateRepository(ctx context.Context, userID string, req api.C
 		return nil, err
 	}
 	s.seedRepositoryCache(ctx, repositoryObj)
+	if invalidator, ok := s.RepoNs.(reponamespace.NamespaceCacheInvalidator); ok {
+		if err := invalidator.InvalidateNamespaceID(ctx, namespaceObj.ID); err != nil {
+			slog.Warn("invalidate namespace cache after repository create failed", "err", err, "namespace_id", namespaceObj.ID)
+		}
+	}
 	return repositoryObj, nil
 }
 
@@ -356,11 +361,7 @@ func (s *service) checkRepositoryQuota(ctx context.Context, tx *query.Query, nam
 	if namespaceObj.RepositoryLimit <= 0 {
 		return nil
 	}
-	count, err := tx.Repository.WithContext(ctx).Where(tx.Repository.NamespaceID.Eq(namespaceID)).Count()
-	if err != nil {
-		return err
-	}
-	if count >= namespaceObj.RepositoryLimit {
+	if namespaceObj.RepositoryCount >= namespaceObj.RepositoryLimit {
 		return errcode.GenDSErrCodeResourceCountQuotaExceedNamespaceRepository(namespaceObj.Name, namespaceObj.RepositoryLimit)
 	}
 	return nil

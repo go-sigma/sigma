@@ -118,19 +118,61 @@ func TestRepositoryRepository(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(1), countByNamespace[fixture.Namespace.ID])
 
+	countedRepository := &models.Repository{
+		ID:          uuid.NewV7String(),
+		NamespaceID: fixture.Namespace.ID,
+		Name:        fixture.Namespace.Name + "/counted",
+	}
+	require.NoError(t, repositoryRepository.Create(ctx, countedRepository))
+	namespaceObj, err := query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), namespaceObj.RepositoryCount)
+	require.NoError(t, repositoryRepository.DeleteByID(ctx, countedRepository.ID))
+	namespaceObj, err = query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Zero(t, namespaceObj.RepositoryCount)
+
+	require.NoError(t, repositoryRepository.DeleteByID(ctx, fixture.Repository.ID))
+	_, err = repositoryRepository.Get(ctx, fixture.Repository.ID)
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+}
+
+func TestRepositoryDeleteEmptyMaintainsNamespaceCount(t *testing.T) {
+	fixture := newRegistryFixture(t)
+	ctx := t.Context()
+	repositoryRepository := fixture.RepositoryRepository
+
+	// Keep the fixture repository out of the empty-repository result.
+	artifactObj := &models.Artifact{
+		ID:           uuid.NewV7String(),
+		NamespaceID:  fixture.Namespace.ID,
+		RepositoryID: fixture.Repository.ID,
+		Digest:       "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
+	require.NoError(t, query.Q.Artifact.WithContext(ctx).Create(artifactObj))
+	require.NoError(t, query.Q.Tag.WithContext(ctx).Create(&models.Tag{
+		ID:           uuid.NewV7String(),
+		RepositoryID: fixture.Repository.ID,
+		ArtifactID:   artifactObj.ID,
+		Name:         "latest",
+	}))
+
 	emptyRepository := &models.Repository{
 		ID:          uuid.NewV7String(),
 		NamespaceID: fixture.Namespace.ID,
 		Name:        fixture.Namespace.Name + "/empty",
 	}
 	require.NoError(t, repositoryRepository.Create(ctx, emptyRepository))
+	namespaceObj, err := query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), namespaceObj.RepositoryCount)
+
 	deletedNames, err := repositoryRepository.DeleteEmpty(ctx, &fixture.Namespace.ID)
 	require.NoError(t, err)
 	require.Contains(t, deletedNames, emptyRepository.Name)
-
-	require.NoError(t, repositoryRepository.DeleteByID(ctx, fixture.Repository.ID))
-	_, err = repositoryRepository.Get(ctx, fixture.Repository.ID)
-	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+	namespaceObj, err = query.Q.Namespace.WithContext(ctx).Where(query.Namespace.ID.Eq(fixture.Namespace.ID)).First()
+	require.NoError(t, err)
+	require.Zero(t, namespaceObj.RepositoryCount)
 }
 
 func TestRepositoryRepositorySizeDirty(t *testing.T) {

@@ -29,7 +29,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
-	reporegistry "github.com/go-sigma/sigma/pkg/dal/repository/registry"
 	"github.com/go-sigma/sigma/pkg/infra/workq"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/utils"
@@ -73,8 +72,6 @@ type service struct {
 
 	RepoNs       reponamespace.NamespaceRepository
 	RepoNsMember reponamespace.NamespaceMemberRepository
-	RepoRegistry reporegistry.RepositoryRepository
-	RepoTag      reporegistry.TagRepository
 
 	Producer workq.Producer
 }
@@ -157,17 +154,7 @@ func (s *service) GetNamespace(ctx context.Context, id string) (*models.Namespac
 		return nil, 0, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
 	}
 
-	repositoryMapCount, err := s.RepoRegistry.CountByNamespace(ctx, []string{namespaceObj.ID})
-	if err != nil {
-		return nil, 0, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
-	}
-
-	tagMapCount, err := s.RepoTag.CountByNamespace(ctx, []string{namespaceObj.ID})
-	if err != nil {
-		return nil, 0, 0, errcode.HTTPErrCodeInternalError.Detail(err.Error())
-	}
-
-	return namespaceObj, repositoryMapCount[namespaceObj.ID], tagMapCount[namespaceObj.ID], nil
+	return namespaceObj, namespaceObj.RepositoryCount, namespaceObj.TagCount, nil
 }
 
 func (s *service) UpdateNamespace(ctx context.Context, userID string, id string, req api.UpdateNamespaceRequest) error {
