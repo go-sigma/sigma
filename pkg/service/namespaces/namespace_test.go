@@ -15,7 +15,6 @@
 package namespaces
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -26,7 +25,6 @@ import (
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
-	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 )
 
@@ -48,42 +46,16 @@ func TestListNamespaces(t *testing.T) {
 func TestGetNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
-	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
-	tagRepository := reporegistrymocks.NewMockTagRepository(ctrl)
-	service := &service{
-		RepoNs:       namespaceRepository,
-		RepoRegistry: repositoryRepository,
-		RepoTag:      tagRepository,
-	}
+	service := &service{RepoNs: namespaceRepository}
 	namespaceRepository.EXPECT().
 		Get(gomock.Any(), "namespace-1").
-		Return(&models.Namespace{ID: "namespace-1"}, nil)
-	repositoryRepository.EXPECT().
-		CountByNamespace(gomock.Any(), []string{"namespace-1"}).
-		Return(map[string]int64{"namespace-1": 2}, nil)
-	tagRepository.EXPECT().
-		CountByNamespace(gomock.Any(), []string{"namespace-1"}).
-		Return(map[string]int64{"namespace-1": 3}, nil)
+		Return(&models.Namespace{ID: "namespace-1", RepositoryCount: 2, TagCount: 3}, nil)
 
 	namespace, repositoryCount, tagCount, err := service.GetNamespace(t.Context(), "namespace-1")
 	require.NoError(t, err)
 	require.Equal(t, "namespace-1", namespace.ID)
 	require.Equal(t, int64(2), repositoryCount)
 	require.Equal(t, int64(3), tagCount)
-}
-
-func TestGetNamespaceMapsRepositoryCountFailure(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	namespaceRepository := reponamespacemocks.NewMockNamespaceRepository(ctrl)
-	repositoryRepository := reporegistrymocks.NewMockRepositoryRepository(ctrl)
-	service := &service{RepoNs: namespaceRepository, RepoRegistry: repositoryRepository}
-	namespaceRepository.EXPECT().Get(gomock.Any(), "namespace-1").Return(&models.Namespace{ID: "namespace-1"}, nil)
-	repositoryRepository.EXPECT().CountByNamespace(gomock.Any(), []string{"namespace-1"}).Return(nil, errors.New("database unavailable"))
-
-	_, _, _, err := service.GetNamespace(t.Context(), "namespace-1")
-	code, ok := errcode.AsType[errcode.ErrCode](err)
-	require.True(t, ok)
-	require.Equal(t, "INTERNAL_ERROR", code.Code)
 }
 
 func TestUpdateNamespaceRejectsQuotaReduction(t *testing.T) {

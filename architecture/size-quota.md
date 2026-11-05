@@ -112,7 +112,8 @@ to the new definition.
   nothing downstream returns that error.
 - Neither `CreateRepository` (`pkg/service/repositories/repositories.go:74-127`) nor
   `ensureRepository` (`manifest.go:240-312`) checks `namespace.repository_limit`.
-- `tag_count` / `repository_count` are never maintained; list pages do a live `COUNT(*)`.
+- `tag_count` / `repository_count` are maintained by the tag and repository write
+  paths, and the list pages read the stored counters directly.
 
 ### 2.5 Existing Error Codes
 
@@ -188,8 +189,8 @@ to the new definition.
 1. **A missing referenced blob does not return `BLOB_UNKNOWN`**
     - `FindByDigests` (`blob.go:210-213`) silently returns the subset that exists, while size is
       still counted from the declared values.
-2. `tag_count` / `repository_count` are dead fields; implementing limits requires deciding
-    between "counters + reconciliation" and "in-transaction COUNT + row lock".
+2. `tag_count` / `repository_count` are maintained counters; quota checks and list
+    pages read them directly instead of running a live `COUNT(*)`.
 3. `storage.capacity` (`pkg/config/configuration.go:570-573`) is only displayed on the home
     page; it is not enforced.
 
@@ -500,10 +501,9 @@ Handling:
 
 First decide "counters" vs "live COUNT":
 
-- the fields already exist (`tag_count`, `repository_count`), but **phase 1 uses live
-  `COUNT(*)` + a row lock**; it is the smallest change and cannot miss delete paths. Switch to
-  counters when push volume grows.
-- The counter design is recorded as future work only.
+- the fields already exist (`tag_count`, `repository_count`) and are now maintained as
+  O(1) counters: tag and repository writes update the owning rows in the same transaction,
+  and quota checks / list pages read the counters directly.
 
 #### tag limit (repository level + namespace level)
 
@@ -972,7 +972,8 @@ locks.
     - `finite → 0`: increase → allow
     - `finite → smaller finite`: reject
     See 5.7.1 for the exact rules.
-2. **`tag_count` / `repository_count` use live `COUNT(*)` + row lock in phase 1**.
+2. **`tag_count` / `repository_count` are maintained O(1) counters, updated in the same
+    transaction as the tag/repository row write**.
 
 #### Delete semantics
 
@@ -1003,7 +1004,6 @@ locks.
 
 - Counting manifest JSON (`artifact.size`) toward size.
 - Writing per-scope attribution on blob push (counting orphan blobs in namespace/repository).
-- Turning `tag_count` / `repository_count` into O(1) counters.
 - Making delete synchronous and exact (namespace row lock).
 - Moving global capacity to a Redis counter / stronger consistency and multi-replica support.
 - A separate quota for orphan blobs.

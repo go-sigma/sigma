@@ -99,7 +99,7 @@ namespace/repository size”的逻辑，同样使用这两个函数。它注册�
 - `manifest.go:557`、`:658` 的注释写着 “maybe got exceed tag quota error”，但下游不会返回该错误。
 - `CreateRepository`（`pkg/service/repositories/repositories.go:74-127`）和
   `ensureRepository`（`manifest.go:240-312`）都不检查 `namespace.repository_limit`。
-- `tag_count` / `repository_count` 字段从未维护；列表页都是实时 `COUNT(*)`。
+- `tag_count` / `repository_count` 由 tag 和 repository 的写入路径维护，列表页直接读取存储的计数字段。
 
 ### 2.5 现有错误码
 
@@ -164,7 +164,7 @@ namespace/repository size”的逻辑，同样使用这两个函数。它注册�
 
 1. **manifest 引用的 blob 不存在时不报 `BLOB_UNKNOWN`**
     - `FindByDigests`（`blob.go:210-213`）静默返回存在的子集，size 仍按声明值计入。
-2. `tag_count` / `repository_count` 字段是死字段；要做 limit 需要决定“计数器 + 对账”还是“事务内 COUNT + 行锁”。
+2. `tag_count` / `repository_count` 是维护中的计数器；quota 校验和列表页直接读取，不再实时 `COUNT(*)`。
 3. `storage.capacity`（`pkg/config/configuration.go:570-573`）只在首页展示，不校验。
 
 ---
@@ -432,9 +432,8 @@ delete × push 什么时候会少计（仅同步精确删除时）：
 
 先明确“计数器”还是“实时 COUNT”：
 
-- 字段已经存在（`tag_count`、`repository_count`），但**第一期确定用实时 `COUNT(*)` + 行锁**，
-  改动最小、不会漏删除路径；push 量大了再换成计数器。
-- 计数器方案只作为后续优化记录。
+- 字段已经存在（`tag_count`、`repository_count`），并且按 O(1) 计数器维护：
+  tag / repository 的写入在同一事务内更新所属行，quota 校验和列表页直接读取计数器。
 
 #### tag limit（仓库级 + namespace 级）
 
@@ -865,7 +864,7 @@ PR2 的全局容量和 per-scope 准入一起做，避免先上线一段“物�
     - `有限值 → 0`：调大 → 允许
     - 有限值 → 更小的有限值：拒绝
     具体判定见 5.7.1。
-2. **`tag_count` / `repository_count` 第一期用实时 `COUNT(*)` + 行锁**。
+2. **`tag_count` / `repository_count` 采用 O(1) 计数器，与 tag/repository 行写入在同一事务内更新**。
 
 #### 删除语义
 
@@ -893,7 +892,6 @@ PR2 的全局容量和 per-scope 准入一起做，避免先上线一段“物�
 
 - 把 manifest JSON（`artifact.size`）计入 size。
 - blob push 时写 per-scope 归属（把孤儿 blob 计入 namespace/repository）。
-- `tag_count` / `repository_count` 改成 O(1) 计数器。
 - 删除路径改成同步精确（namespace 行锁）。
 - 全局容量改用 Redis 计数 / 更强的一致性与多副本方案。
 - 给孤儿 blob 做单独的 quota。
