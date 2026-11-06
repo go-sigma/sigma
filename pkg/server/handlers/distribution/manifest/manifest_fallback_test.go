@@ -14,94 +14,50 @@
 
 package manifest
 
-// import (
-// 	"encoding/json/v2"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	dtspecv1 "github.com/opencontainers/distribution-spec/specs-go/v1"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-// 	"github.com/go-sigma/sigma/pkg/config"
-// 	"github.com/go-sigma/sigma/pkg/api"
-// 	"github.com/go-sigma/sigma/pkg/api/enums"
-// )
+	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/consts"
+)
 
-// func TestFallbackProxy(t *testing.T) {
-// 	var wwwAuthenticate string
+func TestFallbackProxy(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	mux.HandleFunc("/v2/_catalog", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set(consts.HeaderContentType, "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(`{"repositories":["library/alpine"]}`))
+		require.NoError(t, err)
+	})
 
-// 	cUsername := "sigma"
-// 	cPassword := "sigma"
-// 	token := "sigma"
-// 	service := "registry.docker.io"
-// 	scope := "repository:library/alpine:pull"
-// 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		switch r.URL.Path {
-// 		case "/v2/":
-// 			if r.Header.Get("Authorization") == "Bearer "+token {
-// 				w.WriteHeader(http.StatusOK)
-// 				return
-// 			}
-// 			w.Header().Set("Www-Authenticate", wwwAuthenticate)
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 		case "/user/token":
-// 			username, password, ok := r.BasicAuth()
-// 			if ok {
-// 				if username == cUsername && password == cPassword {
-// 					query := r.URL.Query()
-// 					svc := query.Get("service")
-// 					so := query.Get("scope")
-// 					if svc != service || so != scope {
-// 						t.Error("service or scope not match")
-// 					}
-// 					w.WriteHeader(http.StatusOK)
-// 					err := json.MarshalWrite(w, api.PostUserTokenResponse{Token: token})
-// 					assert.NoError(t, err)
-// 					return
-// 				}
-// 			}
-// 		case "/v2/_catalog":
-// 			if r.Header.Get("Authorization") == "Bearer "+token {
-// 				w.WriteHeader(http.StatusOK)
-// 				w.Header().Set("Content-Type", "application/json")
-// 				err := json.MarshalWrite(w, dtspecv1.RepositoryList{Repositories: []string{"library/alpine"}})
-// 				assert.NoError(t, err)
-// 				return
-// 			}
-// 			w.Header().Set("Www-Authenticate", wwwAuthenticate)
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 		}
-// 	}))
-// 	defer srv.Close()
+	upstream := httptest.NewServer(mux)
+	defer upstream.Close()
 
-// 	wwwAuthenticate = fmt.Sprintf(`Bearer realm="%s",service="%s",scope="%s"`, srv.URL+"/user/token", "registry.docker.io", "repository:library/alpine:pull")
+	h := &handler{Config: &config.Configuration{Proxy: config.ConfigurationProxy{Endpoint: upstream.URL}}}
+	_, c := newManifestContext(t, http.MethodGet, "/v2/_catalog", nil)
 
-// 	req := httptest.NewRequest(http.MethodGet, "/v2/_catalog", nil)
-// 	rec := httptest.NewRecorder()
-// 	e := echo.New()
-// 	c := e.NewContext(req, rec)
+	statusCode, _, body, err := h.fallbackProxy(c)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, statusCode)
+	require.JSONEq(t, `{"repositories":["library/alpine"]}`, string(body))
+}
 
-// 	h := handler{
-// 		config: &config.Configuration{
-// 			Log: config.ConfigurationLog{
-// 				ProxyLevel: enums.LogLevelDebug,
-// 			},
-// 			Proxy: config.ConfigurationProxy{
-// 				Endpoint:  srv.URL,
-// 				TlsVerify: true,
-// 				Username:  cUsername,
-// 				Password:  cPassword,
-// 			},
-// 		},
-// 	}
-// 	statusCode, _, bodyBytes, err := h.fallbackProxy(c)
-// 	assert.NoError(t, err)
+func TestFallbackProxyUpstreamError(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer upstream.Close()
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, statusCode)
-// 	assert.Equal(t, `{"repositories":["library/alpine"]}`, strings.TrimSpace(string(bodyBytes)))
-// }
+	h := &handler{Config: &config.Configuration{Proxy: config.ConfigurationProxy{Endpoint: upstream.URL}}}
+	_, c := newManifestContext(t, http.MethodGet, "/v2/_catalog", nil)
+
+	_, _, _, err := h.fallbackProxy(c)
+	require.Error(t, err)
+}
