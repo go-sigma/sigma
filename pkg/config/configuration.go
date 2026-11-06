@@ -356,9 +356,8 @@ type ConfigurationNamespaceInit struct {
 	Visibility enums.Visibility `yaml:"visibility"`
 }
 
-// ConfigurationNamespace controls whether namespaces are created automatically on push and the visibility assigned to them.
+// ConfigurationNamespace controls the default namespace visibility and the namespaces created at startup.
 type ConfigurationNamespace struct {
-	AutoCreate bool                         `yaml:"autoCreate"`
 	Visibility enums.Visibility             `yaml:"visibility"`
 	Initialize []ConfigurationNamespaceInit `yaml:"initialize"`
 }

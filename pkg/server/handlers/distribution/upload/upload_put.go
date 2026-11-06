@@ -60,8 +60,8 @@ func (h *handler) PutUpload(c *gin.Context) {
 	}
 	namespaceObj, err := h.UploadSvc.GetNamespaceByName(ctx, namespace)
 	if err != nil {
-		slog.Error("get repository by name failed", "err", err, "repository", repository)
-		errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
+		slog.Error("get namespace by name failed", "err", err, "repository", repository)
+		errcode.NewDSError(c, errcode.DSErrCodeNameUnknown)
 		return
 	}
 	if !(validators.ValidateNamespaceRaw(namespace) && validators.ValidateRepositoryRaw(repository)) { // nolint: staticcheck

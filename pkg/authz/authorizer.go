@@ -150,7 +150,7 @@ func (a *authorizer) Authorize(ctx context.Context, userID string, isAnonymous b
 	if !found {
 		// Namespace does not exist (typical on first push to a new repo).
 		// Anonymous users are denied; authenticated users are allowed to
-		// proceed so the handler can auto-create the namespace or return 404.
+		// proceed so the handler can return a not-found response.
 		return !isAnonymous, nil
 	}
 
