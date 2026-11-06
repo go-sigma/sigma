@@ -17,6 +17,7 @@ package manifest
 import (
 	"context"
 	"encoding/json/v2"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,9 +27,32 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/server/errcode"
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
+
+const (
+	testNamespaceID         = "namespace-1"
+	testNamespaceName       = "test"
+	testRepositoryName      = "test/busybox"
+	testTagName             = "latest"
+	testUserID              = "user-1"
+	testManifestDigest      = "sha256:2776ee23722eaabcffed77dafd22b7a1da734971bf268a323b6819926dfe1ebd"
+	testManifestContentType = "application/vnd.oci.image.manifest.v1+json"
+)
+
+// newManifestContext builds a gin context carrying an authenticated user, as the
+// distribution middleware would for a registry request.
+func newManifestContext(t *testing.T, method, target string, body io.Reader) (*httptest.ResponseRecorder, *gin.Context) {
+	t.Helper()
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(method, target, body)
+	c.Set(consts.ContextUser, &models.User{ID: testUserID, Username: "tester"})
+	return recorder, c
+}
 
 func TestParseRef(t *testing.T) {
 	h := &handler{}

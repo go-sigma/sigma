@@ -14,174 +14,219 @@
 
 package manifest
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"log/slog"
-// 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 
-// 	"github.com/go-sigma/sigma/pkg/config"
-// 	"github.com/go-sigma/sigma/pkg/consts"
-// 	"github.com/go-sigma/sigma/pkg/dal"
-// 	"github.com/go-sigma/sigma/pkg/dal/repository/registry"
-// 	"github.com/go-sigma/sigma/pkg/dal/models"
-// 	"github.com/go-sigma/sigma/pkg/logger"
-// 	"github.com/go-sigma/sigma/pkg/testkit"
-// 	"github.com/go-sigma/sigma/pkg/api/enums"
-// 	"github.com/go-sigma/sigma/pkg/utils/ptr"
-// )
+	"github.com/go-sigma/sigma/pkg/api/enums"
+	"github.com/go-sigma/sigma/pkg/authz"
+	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
+	manifestmocks "github.com/go-sigma/sigma/pkg/service/distribution/manifest/mocks"
+)
 
-// func TestHeadManifestFallbackProxy(t *testing.T) {
-// 	mux := http.NewServeMux()
+func TestHeadManifest(t *testing.T) {
+	tests := []struct {
+		name      string
+		reference string
+		tag       *models.Tag
+	}{
+		{
+			name:      "by tag",
+			reference: testTagName,
+			tag:       &models.Tag{Artifact: &models.Artifact{Digest: testManifestDigest}},
+		},
+		{
+			name:      "by digest",
+			reference: testManifestDigest,
+		},
+	}
 
-// 	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
-// 		w.WriteHeader(http.StatusOK)
-// 	})
-// 	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", func(w http.ResponseWriter, _ *http.Request) {
-// 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.index.v1+json")
-// 		w.WriteHeader(http.StatusOK)
-// 	})
-// 	mux.HandleFunc("/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", func(w http.ResponseWriter, _ *http.Request) {
-// 		w.Header().Add(echo.HeaderContentType, "application/vnd.oci.image.index.v1+json")
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			svc := manifestmocks.NewMockDistributionManifestService(ctrl)
+			authorizer := authz.NewMockAuthorizer(ctrl)
 
-// 	s := httptest.NewServer(mux)
-// 	defer s.Close()
+			body := []byte(`{"schemaVersion":2}`)
+			svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).
+				Return(&models.Namespace{ID: testNamespaceID, Name: testNamespaceName}, nil)
+			authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(true, nil)
+			svc.EXPECT().HeadManifest(gomock.Any(), testNamespaceID, testRepositoryName, tt.reference).
+				Return(body, testManifestContentType, tt.tag, nil)
 
-// 	handler := &handler{
-// 		config: &config.Configuration{
-// 			Log: config.ConfigurationLog{
-// 				ProxyLevel: enums.LogLevelDebug,
-// 			},
-// 			Proxy: config.ConfigurationProxy{
-// 				Endpoint:  s.URL,
-// 				TlsVerify: true,
-// 			},
-// 		},
-// 	}
+			recorder, c := newManifestContext(t, http.MethodHead, "/v2/"+testRepositoryName+"/manifests/"+tt.reference, nil)
+			h := &handler{Config: &config.Configuration{}, ManifestSvc: svc, Authorizer: authorizer}
+			h.HeadManifest(c)
+			c.Writer.WriteHeaderNow()
 
-// 	req := httptest.NewRequest(http.MethodHead, "/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0157", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := echo.New().NewContext(req, rec)
-// 	err := handler.headManifestFallbackProxy(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, rec.Code)
+			require.Equal(t, http.StatusOK, recorder.Code)
+			require.Equal(t, testManifestContentType, recorder.Header().Get(consts.HeaderContentType))
+			require.Equal(t, strconv.Itoa(len(body)), recorder.Header().Get(consts.HeaderContentLength))
+			require.Equal(t, testManifestDigest, recorder.Header().Get(consts.ContentDigest))
+			require.Empty(t, recorder.Body.String())
+		})
+	}
+}
 
-// 	req = httptest.NewRequest(http.MethodHead, "/v2/library/busybox/manifest/sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151", nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = echo.New().NewContext(req, rec)
-// 	err = handler.headManifestFallbackProxy(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-// }
+func TestHeadManifestErrors(t *testing.T) {
+	namespace := &models.Namespace{ID: testNamespaceID, Name: testNamespaceName}
 
-// func TestHeadManifestFallbackProxyAuthError(t *testing.T) {
-// 	mux := http.NewServeMux()
+	tests := []struct {
+		name       string
+		target     string
+		setup      func(*manifestmocks.MockDistributionManifestService, *authz.MockAuthorizer)
+		wantStatus int
+	}{
+		{
+			name:   "namespace not found",
+			target: "/v2/" + testRepositoryName + "/manifests/" + testTagName,
+			setup: func(svc *manifestmocks.MockDistributionManifestService, _ *authz.MockAuthorizer) {
+				svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).Return(nil, gorm.ErrRecordNotFound)
+			},
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:   "authorization denied",
+			target: "/v2/" + testRepositoryName + "/manifests/" + testTagName,
+			setup: func(svc *manifestmocks.MockDistributionManifestService, authorizer *authz.MockAuthorizer) {
+				svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).Return(namespace, nil)
+				authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(false, nil)
+			},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:   "authorization lookup error",
+			target: "/v2/" + testRepositoryName + "/manifests/" + testTagName,
+			setup: func(svc *manifestmocks.MockDistributionManifestService, authorizer *authz.MockAuthorizer) {
+				svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).Return(namespace, nil)
+				authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(false, gorm.ErrRecordNotFound)
+			},
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:   "invalid reference",
+			target: "/v2/" + testRepositoryName + "/manifests/*&invalid-tag",
+			setup: func(svc *manifestmocks.MockDistributionManifestService, authorizer *authz.MockAuthorizer) {
+				svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).Return(namespace, nil)
+				authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(true, nil)
+			},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "manifest unknown",
+			target: "/v2/" + testRepositoryName + "/manifests/" + testTagName,
+			setup: func(svc *manifestmocks.MockDistributionManifestService, authorizer *authz.MockAuthorizer) {
+				svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).Return(namespace, nil)
+				authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(true, nil)
+				svc.EXPECT().HeadManifest(gomock.Any(), testNamespaceID, testRepositoryName, testTagName).
+					Return(nil, "", nil, errcode.DSErrCodeManifestUnknown)
+			},
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:   "service error",
+			target: "/v2/" + testRepositoryName + "/manifests/" + testTagName,
+			setup: func(svc *manifestmocks.MockDistributionManifestService, authorizer *authz.MockAuthorizer) {
+				svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).Return(namespace, nil)
+				authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(true, nil)
+				svc.EXPECT().HeadManifest(gomock.Any(), testNamespaceID, testRepositoryName, testTagName).
+					Return(nil, "", nil, errors.New("db error"))
+			},
+			wantStatus: http.StatusInternalServerError,
+		},
+	}
 
-// 	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			svc := manifestmocks.NewMockDistributionManifestService(ctrl)
+			authorizer := authz.NewMockAuthorizer(ctrl)
+			tt.setup(svc, authorizer)
 
-// 	s := httptest.NewServer(mux)
-// 	defer s.Close()
+			recorder, c := newManifestContext(t, http.MethodHead, tt.target, nil)
+			h := &handler{Config: &config.Configuration{}, ManifestSvc: svc, Authorizer: authorizer}
+			h.HeadManifest(c)
+			c.Writer.WriteHeaderNow()
 
-// 	h := &handler{}
+			require.Equal(t, tt.wantStatus, recorder.Code)
+		})
+	}
+}
 
-// 	// test about proxy server auth internal server error
-// 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/v2/library/busybox/manifests/%s", "sha256:f7d81d5be30e617068bf53a9b136400b13d91c0f54d097a72bf91127f43d0151"), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := echo.New().NewContext(req, rec)
-// 	err := h.headManifestFallbackProxy(c)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
-// }
+func TestHeadManifestFallbackProxy(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v2/", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	mux.HandleFunc("/v2/"+testRepositoryName+"/manifests/"+testTagName, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set(consts.HeaderContentType, testManifestContentType)
+		w.WriteHeader(http.StatusOK)
+	})
 
-// func TestHeadManifest(t *testing.T) {
-// 	logger.SetLevel("debug")
-// 	assert.NoError(t, testkit.Initialize(t))
-// 	assert.NoError(t, testkit.DB.Init())
-// 	defer func() {
-// 		conn, err := dal.DB.DB()
-// 		assert.NoError(t, err)
-// 		assert.NoError(t, conn.Close())
-// 		assert.NoError(t, testkit.DB.DeInit())
-// 	}()
+	upstream := httptest.NewServer(mux)
+	defer upstream.Close()
 
-// 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	svc := manifestmocks.NewMockDistributionManifestService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).
+		Return(&models.Namespace{ID: testNamespaceID, Name: testNamespaceName}, nil)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(true, nil)
+	svc.EXPECT().HeadManifest(gomock.Any(), testNamespaceID, testRepositoryName, testTagName).
+		Return(nil, "", nil, errcode.DSErrCodeManifestUnknown)
 
-// 	const (
-// 		namespaceName  = "test"
-// 		repositoryName = "test/busybox"
-// 		digestName     = "sha256:2776ee23722eaabcffed77dafd22b7a1da734971bf268a323b6819926dfe1ebd" // nolint: gosec
-// 		tagName        = "latest"
-// 	)
+	recorder, c := newManifestContext(t, http.MethodHead, "/v2/"+testRepositoryName+"/manifests/"+testTagName, nil)
+	h := &handler{
+		Config: &config.Configuration{
+			Proxy: config.ConfigurationProxy{Enabled: true, Endpoint: upstream.URL},
+		},
+		ManifestSvc: svc,
+		Authorizer:  authorizer,
+	}
+	h.HeadManifest(c)
+	c.Writer.WriteHeaderNow()
 
-// 	userObj := &models.User{Username: "head-manifest", Password: ptr.Of("test"), Role: enums.UserRoleRoot, Email: ptr.Of("test@gmail.com")}
-// 	assert.NoError(t, repouser.NewUserRepository().Create(ctx, userObj))
-// 	namespaceObj := &models.Namespace{Name: namespaceName, Visibility: enums.VisibilityPrivate}
-// 	assert.NoError(t, reponamespace.NewNamespaceRepository().Create(ctx, namespaceObj))
-// 	repositoryObj := &models.Repository{NamespaceID: namespaceObj.ID, Name: repositoryName}
-// 	assert.NoError(t, reporegistry.NewRepositoryRepository().Create(ctx, repositoryObj, reporegistry.AutoCreateNamespace{UserID: userObj.ID}))
-// 	artifactObj := &models.Artifact{NamespaceID: namespaceObj.ID, RepositoryID: repositoryObj.ID, Digest: digestName, Size: 123, ContentType: "application/vnd.oci.image.manifest.v1+json", Raw: []byte(`{"schemaVersion":2,"config":{"mediaType":"application/vnd.cncf.helm.config.v1+json","digest":"sha256:a61fd63bebd559934a60e30d1e7b832a136ac6bae3a11ca97ade20bfb3645796","size":800},"layers":[{"mediaType":"application/vnd.cncf.helm.chart.content.v1.tar+gzip","digest":"sha256:e45dd3e880e94bdb52cc88d6b4e0fbaec6876856f39a1a89f76e64d0739c2904","size":37869}],"annotations":{"category":"Infrastructure","licenses":"Apache-2.0","org.opencontainers.image.authors":"VMware, Inc.","org.opencontainers.image.description":"NGINX Open Source is a web server that can be also used as a reverse proxy, load balancer, and HTTP cache. Recommended for high-demanding sites due to its ability to provide faster content.","org.opencontainers.image.source":"https://github.com/bitnami/charts/tree/main/bitnami/nginx","org.opencontainers.image.title":"nginx","org.opencontainers.image.url":"https://bitnami.com","org.opencontainers.image.version":"15.0.2"}}`)}
-// 	assert.NoError(t, reporegistry.NewArtifactRepository().Create(ctx, artifactObj))
-// 	tagObj := &models.Tag{RepositoryID: repositoryObj.ID, ArtifactID: artifactObj.ID, Name: tagName}
-// 	assert.NoError(t, reporegistry.NewTagRepository().Create(ctx, tagObj))
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, testManifestContentType, recorder.Header().Get(consts.HeaderContentType))
+}
 
-// 	mux := http.NewServeMux()
+func TestHeadManifestFallbackProxyError(t *testing.T) {
+	// The upstream registry answers the /v2/ ping with an error, so building the
+	// proxy client fails and the handler reports an unknown distribution error.
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer upstream.Close()
 
-// 	s := httptest.NewServer(mux)
-// 	defer s.Close()
+	ctrl := gomock.NewController(t)
+	svc := manifestmocks.NewMockDistributionManifestService(ctrl)
+	authorizer := authz.NewMockAuthorizer(ctrl)
+	svc.EXPECT().GetNamespaceByName(gomock.Any(), testNamespaceName).
+		Return(&models.Namespace{ID: testNamespaceID, Name: testNamespaceName}, nil)
+	authorizer.EXPECT().Namespace(gomock.Any(), gomock.Any(), testNamespaceID, enums.AuthRead).Return(true, nil)
+	svc.EXPECT().HeadManifest(gomock.Any(), testNamespaceID, testRepositoryName, testTagName).
+		Return(nil, "", nil, errcode.DSErrCodeManifestUnknown)
 
-// 	handler := handlerNew()
-// 	assert.NotNil(t, handler)
+	recorder, c := newManifestContext(t, http.MethodHead, "/v2/"+testRepositoryName+"/manifests/"+testTagName, nil)
+	h := &handler{
+		Config: &config.Configuration{
+			Proxy: config.ConfigurationProxy{Enabled: true, Endpoint: upstream.URL},
+		},
+		ManifestSvc: svc,
+		Authorizer:  authorizer,
+	}
+	h.HeadManifest(c)
+	c.Writer.WriteHeaderNow()
 
-// 	req := httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, digestName), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec := httptest.NewRecorder()
-// 	c := echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, handler.HeadManifest(c))
-// 	assert.Equal(t, http.StatusOK, rec.Code)
-
-// 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, handler.HeadManifest(c))
-// 	assert.Equal(t, http.StatusOK, rec.Code)
-
-// 	// test about get artifact by invalid reference
-// 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, "*&invalid-tag"), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, handler.HeadManifest(c))
-// 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-
-// 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName+"-none-exist", tagName), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, handler.HeadManifest(c))
-// 	assert.Equal(t, http.StatusNotFound, rec.Code)
-
-// 	req = httptest.NewRequest(http.MethodHead, fmt.Sprintf("/v2/%s/manifests/%s", repositoryName, tagName+"-none-exist"), nil)
-// 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-// 	rec = httptest.NewRecorder()
-// 	c = echo.New().NewContext(req, rec)
-// 	c.Set(consts.ContextUser, userObj)
-// 	assert.NoError(t, handler.HeadManifest(c))
-// 	assert.Equal(t, http.StatusNotFound, rec.Code)
-// }
+	require.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
