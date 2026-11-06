@@ -58,8 +58,8 @@ func (h *handler) HeadManifest(c *gin.Context) {
 	}
 	namespaceObj, err := h.ManifestSvc.GetNamespaceByName(ctx, namespace)
 	if err != nil {
-		slog.Error("get repository by name failed", "err", err, "Name", repository)
-		errcode.NewDSError(c, errcode.DSErrCodeBlobUnknown)
+		slog.Error("get namespace by name failed", "err", err, "Name", repository)
+		errcode.NewDSError(c, errcode.DSErrCodeNameUnknown)
 		return
 	}
 

@@ -57,9 +57,7 @@ locker:
   redis: {}
 
 namespace:
-  # push image to registry, if namespace not exist, it will be created automatically
-  autoCreate: false
-  # the automatic created namespace visibility, available: public, private
+  # the default namespace visibility, available: public, private
   visibility: public
 
 http:

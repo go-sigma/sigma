@@ -96,7 +96,6 @@ func TestApplyEnvOverridesEnablesEverySection(t *testing.T) {
 		"SIGMA_WORKQUEUE_TYPE=database",
 		"SIGMA_WORKQUEUE_INMEMORY_CONCURRENCY=8",
 		"SIGMA_LOCKER_TYPE=redis",
-		"SIGMA_NAMESPACE_AUTOCREATE=true",
 		"SIGMA_NAMESPACE_VISIBILITY=public",
 		"SIGMA_HTTP_ENDPOINT=https://registry.example.com",
 		"SIGMA_HTTP_TIMEOUT_READ=90s",
@@ -143,7 +142,6 @@ func TestApplyEnvOverridesEnablesEverySection(t *testing.T) {
 	require.Equal(t, enums.WorkQueueTypeDatabase, cfg.WorkQueue.Type)
 	require.Equal(t, 8, cfg.WorkQueue.Inmemory.Concurrency)
 	require.Equal(t, enums.LockerTypeRedis, cfg.Locker.Type)
-	require.True(t, cfg.Namespace.AutoCreate)
 	require.Equal(t, enums.VisibilityPublic, cfg.Namespace.Visibility)
 	require.Equal(t, "https://registry.example.com", cfg.HTTP.Endpoint)
 	require.Equal(t, 90*time.Second, cfg.HTTP.Timeout.ReadTimeout())

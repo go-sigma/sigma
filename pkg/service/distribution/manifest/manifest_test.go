@@ -31,7 +31,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
-	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	reponamespacemocks "github.com/go-sigma/sigma/pkg/dal/repository/namespace/mocks"
 	reporegistrymocks "github.com/go-sigma/sigma/pkg/dal/repository/registry/mocks"
@@ -497,10 +496,8 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 		name          string
 		namespaceID   string
 		namespaceName string
-		cfg           *config.Configuration
 		setup         func(*gomock.Controller) *service
 		wantID        string
-		wantCreate    bool
 		wantErrCode   string
 	}{
 		{
@@ -547,20 +544,8 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 			wantID: "ns-1",
 		},
 		{
-			name:          "by_name_autocreate",
+			name:          "by_name_not_found",
 			namespaceName: "sigma",
-			cfg:           &config.Configuration{Namespace: config.ConfigurationNamespace{AutoCreate: true, Visibility: enums.VisibilityPublic}},
-			setup: func(ctrl *gomock.Controller) *service {
-				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
-				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound)
-				return &service{RepoNs: repoNs}
-			},
-			wantCreate: true,
-		},
-		{
-			name:          "by_name_autocreate_disabled",
-			namespaceName: "sigma",
-			cfg:           &config.Configuration{},
 			setup: func(ctrl *gomock.Controller) *service {
 				repoNs := reponamespacemocks.NewMockNamespaceRepository(ctrl)
 				repoNs.EXPECT().GetByName(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound)
@@ -574,18 +559,13 @@ func TestResolveRepositoryNamespace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			svc := tt.setup(ctrl)
-			svc.Config = tt.cfg
-			if svc.Config == nil {
-				svc.Config = &config.Configuration{}
-			}
 
-			got, create, err := svc.resolveRepositoryNamespace(ctx, tt.namespaceID, tt.namespaceName)
+			got, err := svc.resolveRepositoryNamespace(ctx, tt.namespaceID, tt.namespaceName)
 			if tt.wantErrCode != "" {
 				requireErrCode(t, err, tt.wantErrCode)
 				return
 			}
 			require.NoError(t, err)
-			require.Equal(t, tt.wantCreate, create)
 			if tt.wantID != "" {
 				require.Equal(t, tt.wantID, got.ID)
 			} else {
@@ -601,7 +581,7 @@ func TestEnsureRepositoryAlreadyExists(t *testing.T) {
 	existing := &models.Repository{ID: "repo-1", NamespaceID: "ns-1", Name: "sigma/alpine"}
 	repoRegistry.EXPECT().GetByName(gomock.Any(), "sigma/alpine").Return(existing, nil)
 
-	got, err := (&service{RepoRegistry: repoRegistry}).ensureRepository(t.Context(), "user-1", "ns-1", "sigma/alpine")
+	got, err := (&service{RepoRegistry: repoRegistry}).ensureRepository(t.Context(), "ns-1", "sigma/alpine")
 	require.NoError(t, err)
 	require.Equal(t, "repo-1", got.ID)
 }
@@ -639,7 +619,7 @@ func TestEnsureRepositoryErrorMapping(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			_, err := tt.setup(ctrl).ensureRepository(ctx, "user-1", "", tt.repo)
+			_, err := tt.setup(ctrl).ensureRepository(ctx, "", tt.repo)
 			requireErrCode(t, err, tt.wantErrCode)
 		})
 	}

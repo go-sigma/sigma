@@ -34,7 +34,6 @@ import (
 
 	"github.com/go-sigma/sigma/pkg/api"
 	"github.com/go-sigma/sigma/pkg/api/enums"
-	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal/models"
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	reponamespace "github.com/go-sigma/sigma/pkg/dal/repository/namespace"
@@ -89,7 +88,6 @@ type Service interface {
 type service struct {
 	dig.In
 
-	Config       *config.Configuration
 	RepoArtifact reporegistry.ArtifactRepository
 	RepoBlob     reporegistry.BlobRepository
 	RepoTag      reporegistry.TagRepository
@@ -239,7 +237,7 @@ func (s *service) recordNamespaceTagDelta(ctx context.Context, namespaceID strin
 	}
 }
 
-func (s *service) ensureRepository(ctx context.Context, userID string, namespaceID string, repository string) (*models.Repository, error) {
+func (s *service) ensureRepository(ctx context.Context, namespaceID string, repository string) (*models.Repository, error) {
 	repositoryObj, err := s.RepoRegistry.GetByName(ctx, repository)
 	if err == nil {
 		return repositoryObj, nil
@@ -255,7 +253,7 @@ func (s *service) ensureRepository(ctx context.Context, userID string, namespace
 		return nil, errcode.DSErrCodeManifestWithNamespace
 	}
 
-	namespaceObj, createNamespace, err := s.resolveRepositoryNamespace(ctx, namespaceID, namespaceName)
+	namespaceObj, err := s.resolveRepositoryNamespace(ctx, namespaceID, namespaceName)
 	if err != nil {
 		return nil, err
 	}
@@ -266,26 +264,6 @@ func (s *service) ensureRepository(ctx context.Context, userID string, namespace
 		Name:        repository,
 	}
 	err = query.Q.Transaction(func(tx *query.Query) error {
-		if createNamespace {
-			namespaceRepository := reponamespace.NewNamespaceRepository(tx)
-			err = namespaceRepository.Create(ctx, namespaceObj)
-			if err != nil {
-				slog.Error("create namespace failed", "err", err, "namespace", namespaceObj.Name)
-				return errcode.DSErrCodeUnknown
-			}
-			namespaceMemberRepository := reponamespace.NewNamespaceMemberRepository(tx)
-			_, err = namespaceMemberRepository.AddNamespaceMember(ctx, userID, *namespaceObj, enums.NamespaceRoleAdmin)
-			if err != nil {
-				slog.Error("add namespace member failed", "err", err, "namespace", namespaceObj.Name, "user_id", userID)
-				return errcode.DSErrCodeUnknown
-			}
-			err = s.produceNamespaceCreateWebhook(ctx, namespaceObj)
-			if err != nil {
-				slog.Error("webhook event produce failed", "err", err)
-				return errcode.DSErrCodeUnknown
-			}
-		}
-
 		repoRegistry := reporegistry.NewRepositoryRepository(tx)
 		if err := s.checkRepositoryQuota(ctx, tx, namespaceObj.ID); err != nil {
 			logWriteError(ctx, err, "check repository quota failed", "repository", repository)
@@ -310,66 +288,38 @@ func (s *service) ensureRepository(ctx context.Context, userID string, namespace
 		return nil, errcode.DSErrCodeUnknown
 	}
 
-	if createNamespace {
-		namespaceObj.RepositoryCount++
-		s.seedNamespaceCache(ctx, namespaceObj)
-	} else {
-		s.invalidateNamespaceCache(ctx, namespaceObj.ID)
-	}
+	s.invalidateNamespaceCache(ctx, namespaceObj.ID)
 	s.seedRepositoryCache(ctx, repositoryObj)
 	return repositoryObj, nil
 }
 
-func (s *service) resolveRepositoryNamespace(ctx context.Context, namespaceID string, namespaceName string) (*models.Namespace, bool, error) {
+func (s *service) resolveRepositoryNamespace(ctx context.Context, namespaceID string, namespaceName string) (*models.Namespace, error) {
 	if namespaceID != "" {
 		namespaceObj, err := s.RepoNs.Get(ctx, namespaceID)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, false, errcode.DSErrCodeNameUnknown
+				return nil, errcode.DSErrCodeNameUnknown
 			}
 			slog.Error("get namespace failed", "err", err, "namespace_id", namespaceID)
-			return nil, false, errcode.DSErrCodeUnknown
+			return nil, errcode.DSErrCodeUnknown
 		}
 		if namespaceObj.Name != namespaceName {
 			slog.Error("repository namespace does not match request namespace", "repository_namespace", namespaceName, "namespace_id", namespaceID)
-			return nil, false, errcode.DSErrCodeNameUnknown
+			return nil, errcode.DSErrCodeNameUnknown
 		}
-		return namespaceObj, false, nil
+		return namespaceObj, nil
 	}
 
 	namespaceObj, err := s.RepoNs.GetByName(ctx, namespaceName)
 	if err == nil {
-		return namespaceObj, false, nil
+		return namespaceObj, nil
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		slog.Error("get namespace failed", "err", err, "namespace", namespaceName)
-		return nil, false, errcode.DSErrCodeUnknown
+		return nil, errcode.DSErrCodeUnknown
 	}
-	if !s.Config.Namespace.AutoCreate {
-		return nil, false, errcode.DSErrCodeNameUnknown
-	}
-	visibility := s.Config.Namespace.Visibility
-	if !visibility.IsValid() {
-		visibility = enums.VisibilityPrivate
-	}
-	return &models.Namespace{
-		ID:         uuid.NewV7String(),
-		Name:       namespaceName,
-		Visibility: visibility,
-	}, true, nil
-}
-
-func (s *service) produceNamespaceCreateWebhook(ctx context.Context, namespaceObj *models.Namespace) error {
-	if s.Producer == nil {
-		return nil
-	}
-	namespaceID := namespaceObj.ID
-	return s.Producer.Produce(ctx, enums.DaemonWebhook, api.DaemonWebhookPayload{
-		NamespaceID:  &namespaceID,
-		Action:       enums.WebhookActionCreate,
-		ResourceType: enums.WebhookResourceTypeNamespace,
-		Payload:      utils.MustMarshal(namespaceObj),
-	})
+	slog.Error("cannot find namespace", "namespace", namespaceName)
+	return nil, errcode.DSErrCodeNameUnknown
 }
 
 func (s *service) produceRepositoryCreateWebhook(ctx context.Context, namespaceID string, repositoryObj *models.Repository) error {
@@ -389,7 +339,7 @@ func (s *service) PutManifest(ctx context.Context, userID string, namespaceID st
 	tagName, refDigest := parseManifestRef(reference)
 	_ = refDigest // digest is computed from the body below
 
-	repositoryObj, err := s.ensureRepository(ctx, userID, namespaceID, repository)
+	repositoryObj, err := s.ensureRepository(ctx, namespaceID, repository)
 	if err != nil {
 		if e, ok := errcode.AsType[errcode.ErrCode](err); ok {
 			return "", e

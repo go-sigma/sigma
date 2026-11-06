@@ -76,9 +76,7 @@ locker:
   redis: {}
 
 namespace:
-  # push image to registry, if namespace not exist, it will be created automatically
-  autoCreate: false
-  # the automatic created namespace visibility, available: public, private
+  # the default namespace visibility, available: public, private
   visibility: public
   # namespaces created at startup; each entry is created when missing,
   # and each entry may set its own visibility (public or private)
@@ -463,7 +461,6 @@ audit:
 
 | config path | environment variable |
 | --- | --- |
-| `namespace.autoCreate` | `SIGMA_NAMESPACE_AUTOCREATE` |
 | `namespace.visibility` | `SIGMA_NAMESPACE_VISIBILITY` |
 
 #### proxy

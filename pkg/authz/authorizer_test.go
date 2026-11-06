@@ -281,7 +281,7 @@ func TestAuthorizer(t *testing.T) {
 		{name: "nsadmin-write-namespace-meta", userID: "300", isAnonymous: false, uri: "/api/v1/namespaces/1", method: http.MethodPut, wantPass: true},
 		{name: "nsadmin-write-manifest", userID: "300", isAnonymous: false, uri: "/v2/library/nginx/manifests/v1", method: http.MethodDelete, wantPass: true},
 
-		// Authenticated on non-existent namespace: allowed (handler auto-creates).
+		// Authenticated on non-existent namespace: allowed (handler returns NAME_UNKNOWN).
 		{name: "auth-newns", userID: "100", isAnonymous: false, uri: "/v2/newns/nginx/manifests/v1", method: http.MethodPut, wantPass: true},
 	}
 
