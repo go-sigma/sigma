@@ -1108,14 +1108,6 @@ func (s *service) invalidateNamespaceCache(ctx context.Context, namespaceID stri
 	}
 }
 
-func (s *service) seedNamespaceCache(ctx context.Context, namespaceObj *models.Namespace) {
-	if seeder, ok := s.RepoNs.(reponamespace.NamespaceCacheSeeder); ok {
-		if err := seeder.SeedNamespace(ctx, namespaceObj); err != nil {
-			slog.Warn("seed namespace cache failed", "err", err, "namespace_id", namespaceObj.ID)
-		}
-	}
-}
-
 func (s *service) seedRepositoryCache(ctx context.Context, repositoryObj *models.Repository) {
 	if seeder, ok := s.RepoRegistry.(reporegistry.RepositoryCacheSeeder); ok {
 		if err := seeder.SeedRepository(ctx, repositoryObj); err != nil {
