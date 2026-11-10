@@ -1,3 +1,13 @@
+{{- $adminPassword := .Values.config.auth.admin.password | default "" }}
+{{- if not $adminPassword }}
+{{- /* Reuse the password stored by a previous release so upgrades keep it stable. */}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace (include "sigma.secret" .) }}
+{{- if and $existing $existing.data (index $existing.data "SIGMA_AUTH_ADMIN_PASSWORD") }}
+{{- $adminPassword = index $existing.data "SIGMA_AUTH_ADMIN_PASSWORD" | b64dec }}
+{{- else }}
+{{- $adminPassword = randAlphaNum 16 }}
+{{- end }}
+{{- end }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -6,6 +16,7 @@ metadata:
   labels:
     {{- include "sigma.labels" . | nindent 4 }}
 data:
+  SIGMA_AUTH_ADMIN_PASSWORD: {{ $adminPassword | b64enc | quote }}
   AUTH_USER_PASSWORD: {{ (trimPrefix "sigma:" (htpasswd "sigma" (.Values.config.auth.user.password | default "sigma")))  | b64enc | quote }}
   SIGMA_DATABASE_MYSQL_PASSWORD: {{ .Values.external.mysql.password | default "" | toString | b64enc | quote }}
   SIGMA_DATABASE_POSTGRESQL_PASSWORD: {{ ternary .Values.postgresql.auth.password .Values.external.postgresql.password .Values.postgresql.enabled | default "" | toString | b64enc | quote }}

@@ -1,0 +1,53 @@
+{{- $secretName := include "sigma.secret" . }}
+{{- $adminUser := .Values.config.auth.admin.username | default "sigma" }}
+{{- $portForward := printf "kubectl -n %s port-forward svc/%s 8080:80" .Release.Namespace (include "sigma.web" .) }}
+{{- $passwordCmd := printf "kubectl -n %s get secret %s -o jsonpath='{.data.SIGMA_AUTH_ADMIN_PASSWORD}' | base64 -d" .Release.Namespace $secretName }}
+Thank you for installing {{ .Chart.Name }}.
+
+1. Administrator account
+   Username: {{ $adminUser }}
+{{- if .Values.config.auth.admin.password }}
+   Password: the value configured in config.auth.admin.password
+{{- else }}
+   The password is generated during the install and stored in the release Secret
+   (it no longer depends on the container logs). Read it with:
+
+     {{ $passwordCmd }}
+{{- end }}
+
+2. Open the web UI
+{{- if .Values.gateway.enabled }}
+   http://{{ .Values.gateway.hostname | default "sigma.local" }}/
+{{- if .Values.gateway.create }}
+   Make sure the Gateway is reachable (for minikube run `minikube tunnel` and map
+   the hostname to the gateway address in /etc/hosts).
+{{- end }}
+{{- else }}
+
+     {{ $portForward }}
+
+   Then open http://localhost:8080/
+{{- end }}
+
+3. Docker login and push
+   Start a port-forward for the web service (it proxies /v2/ to the registry):
+
+     {{ $portForward }}
+
+   Then log in and push:
+
+     docker login localhost:8080 -u {{ $adminUser }}
+     docker tag <image> localhost:8080/<namespace>/<repository>:<tag>
+     docker push localhost:8080/<namespace>/<repository>:<tag>
+
+   The login password is the administrator password from step 1.
+
+{{- if .Values.gateway.enabled }}
+
+4. Registry through the gateway
+   The registry is also reachable as {{ .Values.gateway.hostname | default "sigma.local" }}. Because it is
+   served over plain HTTP and is not localhost, add that host to Docker's
+   "insecure-registries" before running:
+
+     docker login {{ .Values.gateway.hostname | default "sigma.local" }} -u {{ $adminUser }}
+{{- end }}

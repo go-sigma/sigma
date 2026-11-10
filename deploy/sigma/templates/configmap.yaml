@@ -132,10 +132,11 @@ data:
       anonymous:
         enabled: true
       admin:
-        username: "sigma"
-        # Leave empty to generate a random password on first start; it is printed in the logs.
+        username: {{ .Values.config.auth.admin.username | default "sigma" | quote }}
+        # Leave empty to generate a random password on first start; it is stored
+        # in the release Secret and injected as SIGMA_AUTH_ADMIN_PASSWORD.
         password: {{ .Values.config.auth.admin.password | default "" | quote }}
-        email: "sigma@sigma.io"
+        email: {{ .Values.config.auth.admin.email | default "sigma@sigma.io" | quote }}
       token:
         realm: ""
         service: ""
