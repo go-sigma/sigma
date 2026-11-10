@@ -59,7 +59,9 @@ spec:
             periodSeconds: 10
           volumeMounts:
             - name: data
-              mountPath: /var/lib/postgresql/data
+              # postgres 18+ keeps PGDATA under /var/lib/postgresql/<major>/docker,
+              # so the volume must be mounted at the parent directory.
+              mountPath: /var/lib/postgresql
           resources:
             {{- toYaml .Values.postgresql.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
