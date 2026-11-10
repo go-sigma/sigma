@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -158,11 +159,11 @@ func Serve(digCon *dig.Container) error {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server with a
-	// single shared 30s budget covering HTTP drain + shutdown hooks.
-	// Use a buffered channel to avoid missing signals as recommended for signal.Notify
+	// Wait for SIGINT or SIGTERM (sent by Kubernetes on pod deletion) to
+	// gracefully shutdown the server with a single shared 30s budget covering
+	// HTTP drain + shutdown hooks.
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
 	// Flip readiness to 503 and give the load balancer a moment to stop
