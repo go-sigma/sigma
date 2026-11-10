@@ -3,9 +3,9 @@
 # =============================================================
 ARG ALPINE_VERSION=3.24
 ARG GOLANG_VERSION=1.27-alpine3.24
-ARG BUN_VERSION=1.4.2-alpine
+ARG BUN_VERSION=1.4.4-alpine
 ARG BUILDKIT_VERSION=v0.34.1-rootless
-ARG SWAGGER_UI_VERSION=5.33.2
+ARG SWAGGER_UI_VERSION=5.34.1
 
 # =============================================================
 # base stages  (originally Dockerfile.base)
