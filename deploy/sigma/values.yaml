@@ -8,13 +8,18 @@ image:
   ## main image contain all of the sigma logic
   repository: go-sigma/sigma
   tag: latest
-  ## web image contain a static server nginx serve for fontend files
+  ## the web image reuses the server image and runs nginx to serve the built frontend files
   web:
     repository: go-sigma/sigma
     tag: latest
     command:
       - nginx
     args:
+      # -e writes the pre-config error log to stderr; without it nginx tries the
+      # compiled-in /var/lib/nginx/logs/error.log, which is not writable by the
+      # non-root sigma user and logs a harmless "permission denied" alert.
+      - -e
+      - /dev/stderr
       - -g
       - daemon off;
   pullPolicy: IfNotPresent
