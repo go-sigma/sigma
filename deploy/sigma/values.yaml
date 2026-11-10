@@ -230,7 +230,9 @@ config:
       password: internal-sigma
     admin:
       username: sigma
-      # Leave empty to generate a random password on first start; it is printed in the logs.
+      # Leave empty to generate a random password and store it in the release
+      # Secret; read it with:
+      #   kubectl -n <namespace> get secret sigma-secret -o jsonpath='{.data.SIGMA_AUTH_ADMIN_PASSWORD}' | base64 -d
       password: ""
       email: sigma@sigma.io
     token:
