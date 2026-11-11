@@ -1,0 +1,70 @@
+{{- if .Values.middlewareCheck.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-middleware-check" (include "sigma.fullname" .) | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+    app.kubernetes.io/component: middleware-check
+  annotations:
+    # post-install covers the first install because the in-chart middlewares do
+    # not exist yet when pre-install hooks run. Upgrades check the dependencies
+    # before the deployments roll.
+    helm.sh/hook: post-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "sigma.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: middleware-check
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: middleware-check
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- include "sigma.secretEnvFrom" . | nindent 10 }}
+          command:
+            - sigma
+          args:
+            - tools
+            - middleware-checker
+            - --wait-timeout={{ .Values.middlewareCheck.waitTimeout }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/sigma/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+      volumes:
+        - name: config
+          configMap:
+            name: {{ printf "%s-config" (include "sigma.fullname" .) | quote }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

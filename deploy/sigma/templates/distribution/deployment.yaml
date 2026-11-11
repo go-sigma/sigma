@@ -29,16 +29,6 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      initContainers:
-        - name: check-middlewares
-          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- include "sigma.secretEnvFrom" . | nindent 10 }}
-          command:
-            - sigma
-          args:
-            - tools
-            - middleware-checker
       containers:
         - name: {{ printf "%s-distribution" ( include "sigma.fullname" . ) | quote }}
           securityContext:

@@ -32,16 +32,6 @@ spec:
       {{- if and .Values.config.daemon.builder.enabled (eq .Values.config.daemon.builder.type "kubernetes") }}
       serviceAccountName: {{ include "sigma.serviceAccountName" . | quote }}
       {{- end }}
-      initContainers:
-        - name: check-middlewares
-          image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.repository .Values.image.tag | quote }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- include "sigma.secretEnvFrom" . | nindent 10 }}
-          command:
-            - sigma
-          args:
-            - tools
-            - middleware-checker
       containers:
         - name: {{ include "sigma.worker" . | quote }}
           securityContext:
