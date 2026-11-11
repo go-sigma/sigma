@@ -60,6 +60,11 @@ gateway:
   annotations: {}
   hostname: "test.sigma.io"
   parentRefs: []
+  # Only rendered for className "nginx" (NGINX Gateway Fabric). Sets the
+  # client_max_body_size of the gateway data plane; the NGINX default of 1m
+  # rejects blob uploads with 413, so 0 (unlimited) matches the web image.
+  # Set to "" to leave it unmanaged.
+  clientMaxBodySize: "0"
   paths:
     - name: server
       path: /api/v1/

@@ -1,0 +1,16 @@
+{{- if and .Values.gateway.enabled (eq .Values.gateway.className "nginx") .Values.gateway.clientMaxBodySize }}
+apiVersion: gateway.nginx.org/v1alpha1
+kind: ClientSettingsPolicy
+metadata:
+  name: {{ include "sigma.fullname" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: {{ include "sigma.fullname" . | quote }}
+  body:
+    maxSize: {{ .Values.gateway.clientMaxBodySize | quote }}
+{{- end }}
