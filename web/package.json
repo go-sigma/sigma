@@ -34,7 +34,7 @@
     "dayjs": "^1.11.23",
     "human-format": "^1.4.0",
     "lodash-es": "^4.18.1",
-    "lucide-react": "^1.70.0",
+    "lucide-react": "^1.71.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-helmet-async": "^3.0.0",
@@ -64,6 +64,6 @@
     "postcss-import": "^17.0.1",
     "postcss-nesting": "^14.0.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.7"
+    "vite": "^8.3.8"
   }
 }
