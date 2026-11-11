@@ -66,9 +66,9 @@ lint-dockerfile: ## Lint Dockerfiles
 lint-go: ## Run golangci-lint
 	@golangci-lint run --timeout=10m --build-tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp"
 
-## Docker:
-.PHONY: docker-build
-docker-build: ## Build sigma Docker images
+## Image:
+.PHONY: image-build
+image-build: ## Build sigma Docker images
 	docker buildx build --file ./build/Dockerfile --target sigma-server \
 		--platform $(DOCKER_PLATFORMS) \
 		--build-arg USE_MIRROR=$(USE_MIRROR) \

@@ -52,7 +52,7 @@ jobs:
           echo $DOCKER_HOST
 
           docker buildx create --use
-          make docker-build REPOSITORY=sigma TAG=latest DOCKER_PLATFORMS=linux/amd64
+          make image-build REPOSITORY=sigma TAG=latest DOCKER_PLATFORMS=linux/amd64
       - name: Run sigma
         run: |
           docker run --name sigma -v /var/run/docker.sock:/var/run/docker.sock -d -p 3000:3000 sigma:latest
