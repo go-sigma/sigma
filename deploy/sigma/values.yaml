@@ -117,6 +117,12 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 1
 
+middlewareCheck:
+  ## @param middlewareCheck.enabled Run one hook job that waits for the middlewares instead of one init container per pod
+  enabled: true
+  ## @param middlewareCheck.waitTimeout Maximum time the hook job waits for the middlewares to become ready
+  waitTimeout: 120s
+
 terminationGracePeriods:
   server: 45
   worker: 45
