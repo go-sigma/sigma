@@ -14,7 +14,7 @@ on:
 jobs:
   local-build:
     name: local-build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
         go: ["1.27"]

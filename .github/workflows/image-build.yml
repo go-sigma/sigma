@@ -22,10 +22,10 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            runner: ubuntu-24.04
+            runner: ubuntu-26.04
             platform: linux/amd64
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
             platform: linux/arm64
     steps:
       # Android, .NET and Haskell tooling ship with the runner and nothing here
@@ -77,7 +77,7 @@ jobs:
           outputs: "${{ github.event_name == 'push' && 'type=registry,force-compression=true,oci-mediatypes=true' || '' }}"
   merge-multi-arch:
     name: merge-multi-arch
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [image-build]
     if: github.event_name == 'push'
     steps:
