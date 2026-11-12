@@ -46,3 +46,14 @@ func Initialize(digCon *dig.Container) error {
 	}
 	return nil
 }
+
+// tolerateConcurrentCreate reports whether a failed create lost a race with
+// another replica. Bootstrap tasks run in every replica at the same time, so
+// the loser of a check-then-create race hits the unique constraint even though
+// the row it wanted exists. mustExist checks for that row.
+func tolerateConcurrentCreate(err error, mustExist func() error) bool {
+	if err == nil {
+		return false
+	}
+	return mustExist() == nil
+}

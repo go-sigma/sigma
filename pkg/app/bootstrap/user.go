@@ -16,6 +16,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -23,6 +24,7 @@ import (
 
 	passwordgenerator "github.com/sethvargo/go-password/password"
 	"go.uber.org/dig"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
@@ -91,27 +93,23 @@ func initUserWithParams(params initUserParams) error {
 	config := params.Config
 	pwdSvc := params.PasswordSvc
 	userSvc := params.UserRepository
-	userCount, err := userSvc.Count(ctx)
-	if err != nil {
-		return err
-	}
-	if userCount > 0 {
-		return nil
-	}
-	err = userSvc.Create(ctx, &models.User{
+
+	// Do not stop when the users table is not empty: a replica can die after
+	// creating some of the bootstrap accounts, and the missing ones must still
+	// be created on the next start. ensureUser is idempotent per username.
+	var err error
+	if _, err = ensureUser(ctx, userSvc, &models.User{
 		ID:       uuid.NewV7String(),
 		Username: consts.UserInternal,
 		Role:     enums.UserRoleRoot,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
-	err = userSvc.Create(ctx, &models.User{
+	if _, err = ensureUser(ctx, userSvc, &models.User{
 		ID:       uuid.NewV7String(),
 		Username: consts.UserAnonymous,
 		Role:     enums.UserRoleAnonymous,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
@@ -143,14 +141,48 @@ func initUserWithParams(params initUserParams) error {
 		// one before the account enters the app.
 		PasswordChangeRequired: generatedPassword,
 	}
-	err = userSvc.Create(ctx, adminUser)
+	created, err := ensureUser(ctx, userSvc, adminUser)
 	if err != nil {
 		return err
 	}
-	if generatedPassword {
+	// Only the replica that inserted the admin user knows the password in use.
+	// A tolerated create error still may mean the insert was applied and only
+	// its acknowledgement was lost, so compare the stored row instead of
+	// trusting the error alone.
+	if generatedPassword && !created {
+		if stored, getErr := userSvc.GetByUsername(ctx, adminUserUsername); getErr == nil {
+			created = stored.ID == adminUser.ID
+		}
+	}
+	if generatedPassword && created {
 		slog.Warn("admin user created with an auto-generated password, please record it and change it after login",
 			"username", adminUserUsername, "password", adminUserPassword)
 	}
 
 	return nil
+}
+
+// ensureUser creates user unless another replica created the same username
+// first, and reports whether this replica performed the insert.
+func ensureUser(ctx context.Context, userRepository repouser.UserRepository, user *models.User) (bool, error) {
+	_, err := userRepository.GetByUsername(ctx, user.Username)
+	if err == nil {
+		return false, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, err
+	}
+
+	err = userRepository.Create(ctx, user)
+	if err == nil {
+		return true, nil
+	}
+	if tolerateConcurrentCreate(err, func() error {
+		_, getErr := userRepository.GetByUsername(ctx, user.Username)
+		return getErr
+	}) {
+		slog.Info("user already created by another replica", "username", user.Username)
+		return false, nil
+	}
+	return false, err
 }

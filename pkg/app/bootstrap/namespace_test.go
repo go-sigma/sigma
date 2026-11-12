@@ -16,6 +16,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -77,6 +78,50 @@ func TestInitNamespaces(t *testing.T) {
 				require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return mock }))
 				return digCon
 			},
+		},
+		{
+			// Another replica can create the namespace between our lookup and
+			// insert; the duplicate key must not fail startup.
+			name: "created by another replica",
+			namespace: config.ConfigurationNamespace{
+				Initialize: []config.ConfigurationNamespaceInit{
+					{Name: "library", Visibility: enums.VisibilityPublic},
+				},
+			},
+			genDigCon: func(t *testing.T, _ *config.Configuration) *dig.Container {
+				ctrl := gomock.NewController(t)
+				mock := reponamespacemocks.NewMockNamespaceRepository(ctrl)
+				gomock.InOrder(
+					mock.EXPECT().GetByName(gomock.Any(), "library").Return(nil, gorm.ErrRecordNotFound),
+					mock.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("duplicate key value violates unique constraint")),
+					mock.EXPECT().GetByName(gomock.Any(), "library").Return(&models.Namespace{ID: "namespace-1", Name: "library"}, nil),
+				)
+				digCon := dig.New()
+				require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return mock }))
+				return digCon
+			},
+		},
+		{
+			// A create failure that did not race with anyone is a real error.
+			name: "create error without existing row",
+			namespace: config.ConfigurationNamespace{
+				Initialize: []config.ConfigurationNamespaceInit{
+					{Name: "library", Visibility: enums.VisibilityPublic},
+				},
+			},
+			genDigCon: func(t *testing.T, _ *config.Configuration) *dig.Container {
+				ctrl := gomock.NewController(t)
+				mock := reponamespacemocks.NewMockNamespaceRepository(ctrl)
+				gomock.InOrder(
+					mock.EXPECT().GetByName(gomock.Any(), "library").Return(nil, gorm.ErrRecordNotFound),
+					mock.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("disk full")),
+					mock.EXPECT().GetByName(gomock.Any(), "library").Return(nil, gorm.ErrRecordNotFound),
+				)
+				digCon := dig.New()
+				require.NoError(t, digCon.Provide(func() reponamespace.NamespaceRepository { return mock }))
+				return digCon
+			},
+			wantErr: true,
 		},
 		{
 			name: "get error",
