@@ -57,7 +57,11 @@ spec:
             httpGet:
               path: /readyz
               port: {{ .Values.service.distribution.port }}
-            failureThreshold: 30
+            # Must cover dal's 2m database connect retry, the first migration
+            # and the bootstrap tasks, plus app.StartupTimeout (60s). A shorter
+            # budget lets the kubelet kill a process that is still waiting for
+            # its database, turning the wait into restarts.
+            failureThreshold: 120
             periodSeconds: 2
           lifecycle:
             preStop:

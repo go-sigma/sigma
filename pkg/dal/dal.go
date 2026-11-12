@@ -17,11 +17,15 @@ package dal
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/dig"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -35,8 +39,29 @@ import (
 	"github.com/go-sigma/sigma/pkg/dal/query"
 	"github.com/go-sigma/sigma/pkg/infra/lock"
 	"github.com/go-sigma/sigma/pkg/logger"
+	"github.com/go-sigma/sigma/pkg/server/errcode"
 
 	_ "turso.tech/database/tursogo"
+)
+
+const (
+	// connectRetryBudget bounds how long Initialize waits for a database that
+	// is not accepting connections yet. Containers are started before their
+	// database is ready (fresh install, database pod restart, namespace
+	// re-creation); failing on the first refused connection turns that race
+	// into a CrashLoopBackOff. Kubernetes startup probes must allow at least
+	// this budget plus app.StartupTimeout before restarting the container.
+	connectRetryBudget = 2 * time.Minute
+	connectRetryDelay  = 500 * time.Millisecond
+	// connectRetryMaxDelay caps the exponential backoff between attempts.
+	connectRetryMaxDelay = 5 * time.Second
+	// connectDialTimeout bounds a single dial and handshake. Without it a
+	// dropped SYN (node gone behind a ClusterIP, DROP policy) blocks until the
+	// OS TCP timeout, so the retry budget would stop being an upper bound.
+	connectDialTimeout = 10 * time.Second
+	// pgerrDatabaseStartingUp is the PostgreSQL SQLSTATE returned while the
+	// server is still performing recovery; the port is already accepting TCP.
+	pgerrDatabaseStartingUp = "57P03"
 )
 
 // Initialize initializes the database connection
@@ -46,7 +71,7 @@ func Initialize(digCon *dig.Container) error {
 		return err
 	}
 
-	db, err := connectDatabase(cfg)
+	db, err := connectDatabaseWithRetry(cfg)
 	if err != nil {
 		return err
 	}
@@ -100,6 +125,72 @@ func Initialize(digCon *dig.Container) error {
 	return nil
 }
 
+// connectDatabaseWithRetry connects to the database, retrying while the
+// database is unreachable so that a database that is still booting does not
+// kill the process. Errors that retrying cannot fix, such as an unknown
+// database type or malformed credentials, are returned immediately.
+func connectDatabaseWithRetry(cfg *config.Configuration) (*gorm.DB, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), connectRetryBudget)
+	defer cancel()
+
+	var db *gorm.DB
+	var lastErr error
+	err := retryConnect(ctx, func() error {
+		connected, err := connectDatabase(cfg)
+		if err != nil {
+			lastErr = err
+			return err
+		}
+		db = connected
+		return nil
+	})
+	if err != nil {
+		if lastErr == nil {
+			return nil, err
+		}
+		// Report the database error rather than a bare deadline, but only claim
+		// the budget elapsed when it did: non-retryable failures (bad
+		// credentials, unknown database type) return on the first attempt.
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil, fmt.Errorf("database unreachable after %s: %w", connectRetryBudget, lastErr)
+		}
+		return nil, lastErr
+	}
+	return db, nil
+}
+
+// retryConnect runs fn until it succeeds, returns a non-retryable error, or
+// ctx is done.
+func retryConnect(ctx context.Context, fn func() error) error {
+	return retry.Do(fn,
+		retry.Context(ctx),
+		retry.Attempts(0),
+		retry.Delay(connectRetryDelay),
+		retry.MaxDelay(connectRetryMaxDelay),
+		retry.LastErrorOnly(true),
+		retry.RetryIf(isRetryableConnectError),
+		retry.OnRetry(func(n uint, err error) {
+			slog.Warn("database is not ready, retrying connection", "attempt", n+1, "err", err)
+		}),
+	)
+}
+
+// isRetryableConnectError reports whether err describes a database that is
+// temporarily unreachable rather than a configuration mistake.
+func isRetryableConnectError(err error) bool {
+	// Both pgx (postgres) and go-sql-driver (mysql) wrap a refused or sluggish
+	// dial in *net.OpError.
+	if _, ok := errcode.AsType[*net.OpError](err); ok {
+		return true
+	}
+	if _, ok := errcode.AsType[*net.DNSError](err); ok {
+		return true
+	}
+	// PostgreSQL accepts TCP connections before it finishes recovery.
+	pgErr, ok := errcode.AsType[*pgconn.PgError](err)
+	return ok && pgErr.Code == pgerrDatabaseStartingUp
+}
+
 func connectDatabase(cfg *config.Configuration) (*gorm.DB, error) {
 	switch cfg.Database.Type {
 	case enums.DatabaseMysql:
@@ -138,9 +229,10 @@ func closeDatabase(db *gorm.DB) error {
 }
 
 func connectMysql(config *config.Configuration) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&loc=UTC",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&loc=UTC&timeout=%s",
 		config.Database.Mysql.Username, config.Database.Mysql.Password,
-		config.Database.Mysql.Host, config.Database.Mysql.Port, config.Database.Mysql.Database)
+		config.Database.Mysql.Host, config.Database.Mysql.Port, config.Database.Mysql.Database,
+		connectDialTimeout)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NowFunc: func() time.Time {
@@ -166,10 +258,10 @@ func connectMysql(config *config.Configuration) (*gorm.DB, error) {
 }
 
 func connectPostgres(config *config.Configuration) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=%s", config.Database.Postgresql.Username,
+	dsn := fmt.Sprintf("%s:%s@%s:%d/%s?sslmode=%s&connect_timeout=%d", config.Database.Postgresql.Username,
 		config.Database.Postgresql.Password, config.Database.Postgresql.Host,
 		config.Database.Postgresql.Port, config.Database.Postgresql.Database,
-		config.Database.Postgresql.SslMode)
+		config.Database.Postgresql.SslMode, int(connectDialTimeout.Seconds()))
 	db, err := gorm.Open(postgres.Open("postgresql://"+dsn), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
