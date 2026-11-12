@@ -135,6 +135,8 @@ const (
 	LockerCronjobAudit = "locker-cronjob-audit"
 	// LockerCronjobSize is the distributed lock key serializing namespace size reconciliation runs.
 	LockerCronjobSize = "locker-cronjob-size"
+	// LockerCronjobGcStorage is the distributed lock key serializing GC storage deletion task cleanup runs.
+	LockerCronjobGcStorage = "locker-cronjob-gc-storage"
 	// LockerVulnerabilityScan is the distributed lock key serializing vulnerability scan runs.
 	LockerVulnerabilityScan = "locker-vulnerability-scan"
 )

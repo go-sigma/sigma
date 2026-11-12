@@ -588,13 +588,34 @@ type ConfigurationProxy struct {
 
 // ConfigurationDaemonGc configures the garbage collection daemon, including retention, schedule, batch sizes and lock behaviour.
 type ConfigurationDaemonGc struct {
-	Retention       time.Duration `yaml:"retention"`
-	Cron            string        `yaml:"cron"`
-	BatchSize       int           `yaml:"batchSize"`
-	WorkerCount     int           `yaml:"workerCount"`
-	RecordBatchSize int           `yaml:"recordBatchSize"`
-	LockExpire      time.Duration `yaml:"lockExpire"`
-	LockWaitTimeout time.Duration `yaml:"lockWaitTimeout"`
+	Retention       time.Duration                `yaml:"retention"`
+	Cron            string                       `yaml:"cron"`
+	BatchSize       int                          `yaml:"batchSize"`
+	WorkerCount     int                          `yaml:"workerCount"`
+	RecordBatchSize int                          `yaml:"recordBatchSize"`
+	LockExpire      time.Duration                `yaml:"lockExpire"`
+	LockWaitTimeout time.Duration                `yaml:"lockWaitTimeout"`
+	Cleanup         ConfigurationDaemonGcCleanup `yaml:"cleanup"`
+}
+
+// ConfigurationDaemonGcCleanup configures cleanup of terminal GC storage deletion tasks.
+type ConfigurationDaemonGcCleanup struct {
+	Interval  time.Duration `yaml:"interval"`
+	Retention time.Duration `yaml:"retention"`
+	BatchSize int           `yaml:"batchSize"`
+}
+
+// WithDefaults applies default values for GC storage deletion task cleanup.
+func (c *ConfigurationDaemonGcCleanup) WithDefaults() {
+	if c.Interval == 0 {
+		c.Interval = 6 * time.Hour
+	}
+	if c.Retention == 0 {
+		c.Retention = 7 * 24 * time.Hour
+	}
+	if c.BatchSize == 0 {
+		c.BatchSize = 1000
+	}
 }
 
 // WithDefaults applies default values for GC daemon.
@@ -614,6 +635,7 @@ func (c *ConfigurationDaemonGc) WithDefaults() {
 	if c.LockWaitTimeout == 0 {
 		c.LockWaitTimeout = 5 * time.Second
 	}
+	c.Cleanup.WithDefaults()
 }
 
 // ConfigurationDaemonDocker configures the docker builder backend, pointing at the daemon socket and container network.

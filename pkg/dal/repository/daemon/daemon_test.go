@@ -16,6 +16,7 @@ package daemon_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -149,6 +150,67 @@ func TestDaemonRepositoryStorageDeletionTask(t *testing.T) {
 	require.Equal(t, enums.TaskCommonStatusSuccess, stored.Status)
 	require.Equal(t, 1, stored.Attempts)
 	require.Equal(t, []byte("deleted"), stored.Message)
+}
+
+func TestDeleteGcStorageDeletionTasksBefore(t *testing.T) {
+	testkit.InitRepository(t)
+
+	ctx := t.Context()
+	daemonRepository := repodaemon.NewDaemonRepository()
+	db := query.Q.UnderlyingDB().WithContext(ctx)
+
+	now := time.Now()
+	old := now.Add(-8 * 24 * time.Hour).UnixMilli()
+	recent := now.Add(-time.Hour).UnixMilli()
+
+	newTask := func(resourceID string, status enums.TaskCommonStatus) *models.GcStorageDeletionTask {
+		return &models.GcStorageDeletionTask{
+			ID:           uuid.NewV7String(),
+			Daemon:       enums.DaemonGcBlob,
+			RunnerID:     uuid.NewV7String(),
+			ResourceType: "blob",
+			ResourceID:   resourceID,
+			StoragePath:  "/blobs/" + resourceID,
+			Status:       status,
+		}
+	}
+	oldSuccess := newTask("old-success", enums.TaskCommonStatusSuccess)
+	oldFailed := newTask("old-failed", enums.TaskCommonStatusFailed)
+	oldPending := newTask("old-pending", enums.TaskCommonStatusPending)
+	recentSuccess := newTask("recent-success", enums.TaskCommonStatusSuccess)
+
+	for _, task := range []*models.GcStorageDeletionTask{oldSuccess, oldFailed, oldPending, recentSuccess} {
+		require.NoError(t, daemonRepository.UpsertGcStorageDeletionTask(ctx, task))
+	}
+	for _, item := range []struct {
+		id        string
+		updatedAt int64
+	}{
+		{oldSuccess.ID, old},
+		{oldFailed.ID, old},
+		{oldPending.ID, old},
+		{recentSuccess.ID, recent},
+	} {
+		require.NoError(t, db.Model(&models.GcStorageDeletionTask{}).
+			Where("id = ?", item.id).
+			UpdateColumn("updated_at", item.updatedAt).Error)
+	}
+
+	cutoff := now.Add(-7 * 24 * time.Hour).UnixMilli()
+	deleted, err := daemonRepository.DeleteGcStorageDeletionTasksBefore(ctx, cutoff, 100)
+	require.NoError(t, err)
+	require.Equal(t, int64(2), deleted)
+
+	for _, id := range []string{oldSuccess.ID, oldFailed.ID} {
+		var count int64
+		require.NoError(t, db.Unscoped().Model(&models.GcStorageDeletionTask{}).Where("id = ?", id).Count(&count).Error)
+		require.Zero(t, count)
+	}
+	for _, id := range []string{oldPending.ID, recentSuccess.ID} {
+		var count int64
+		require.NoError(t, db.Unscoped().Model(&models.GcStorageDeletionTask{}).Where("id = ?", id).Count(&count).Error)
+		require.Equal(t, int64(1), count)
+	}
 }
 
 func testPagination() api.Pagination {

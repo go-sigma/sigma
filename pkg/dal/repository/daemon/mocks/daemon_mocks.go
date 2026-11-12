@@ -85,6 +85,21 @@ func (mr *MockDaemonRepositoryMockRecorder) CreateGcRunner(arg0, arg1 any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGcRunner", reflect.TypeOf((*MockDaemonRepository)(nil).CreateGcRunner), arg0, arg1)
 }
 
+// DeleteGcStorageDeletionTasksBefore mocks base method.
+func (m *MockDaemonRepository) DeleteGcStorageDeletionTasksBefore(arg0 context.Context, arg1 int64, arg2 int) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGcStorageDeletionTasksBefore", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteGcStorageDeletionTasksBefore indicates an expected call of DeleteGcStorageDeletionTasksBefore.
+func (mr *MockDaemonRepositoryMockRecorder) DeleteGcStorageDeletionTasksBefore(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGcStorageDeletionTasksBefore", reflect.TypeOf((*MockDaemonRepository)(nil).DeleteGcStorageDeletionTasksBefore), arg0, arg1, arg2)
+}
+
 // GetGcLatestRunner mocks base method.
 func (m *MockDaemonRepository) GetGcLatestRunner(arg0 context.Context, arg1 string) (*models.DaemonGcRunner, error) {
 	m.ctrl.T.Helper()

@@ -150,6 +150,19 @@ proxy:
 
 # daemon task config
 daemon:
+  gc:
+    batchSize: 100
+    workerCount: 2
+    recordBatchSize: 100
+    lockExpire: 30s
+    lockWaitTimeout: 5s
+    cleanup:
+      # how often terminal storage deletion tasks are purged
+      interval: 6h
+      # keep terminal tasks for this long before deleting them
+      retention: 168h
+      # maximum task rows deleted per cleanup iteration
+      batchSize: 1000
   builder:
     enabled: false
     image: ghcr.io/go-sigma/sigma-builder:nightly

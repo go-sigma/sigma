@@ -143,6 +143,13 @@ daemon:
     retention: 72h
     # At 02:00 on Saturday
     cron: 0 2 * * 6
+    cleanup:
+      # how often terminal storage deletion tasks are purged
+      interval: 6h
+      # keep terminal tasks for this long before deleting them
+      retention: 168h
+      # maximum task rows deleted per cleanup iteration
+      batchSize: 1000
   builder:
     image: sigma-builder:latest
     type: docker

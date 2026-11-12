@@ -36,7 +36,6 @@ import (
 )
 
 type gcRepository struct {
-	ctx    context.Context
 	config *config.Configuration
 
 	runnerObj *models.DaemonGcRepositoryRunner
@@ -52,28 +51,27 @@ type gcRepository struct {
 }
 
 // Run deletes repositories left empty past the rule's retention period, either scoped to the rule's namespace or across all namespaces in cursor batches, recording a DaemonGcRecord for each deletion.
-func (g *gcRepository) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
+func (g *gcRepository) Run(ctx context.Context, runner *runnerContext) error {
 	if err := runner.start(); err != nil {
-		return fmt.Errorf("start gc repository runner failed: %v", err)
+		return fmt.Errorf("start gc repository runner failed: %w", err)
 	}
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runner.runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc repository runner failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("get gc repository runner failed: %v", err)
+		return fmt.Errorf("get gc repository runner failed: %w", err)
 	}
 
 	lockCtx, cancel, err := acquireRuleLock(ctx, g.locker, g.config.Daemon.GC.LockExpire, g.config.Daemon.GC.LockWaitTimeout, enums.DaemonGcRepository, g.runnerObj.RuleID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("acquire gc repository lock failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("acquire gc repository lock failed: %v", err)
+		return fmt.Errorf("acquire gc repository lock failed: %w", err)
 	}
 	defer cancel()
-	g.ctx = lockCtx
 
-	_ = runner.emitWebhook(api.WebhookPayload{
+	runner.emitWebhook(api.WebhookPayload{
 		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
 		Action:       enums.WebhookActionStarted,
 	}, g.packWebhookObj(enums.WebhookActionStarted))
@@ -84,7 +82,7 @@ func (g *gcRepository) Run(ctx context.Context, runner *runnerContext, runnerID 
 
 	if g.runnerObj.Rule.NamespaceID != nil {
 		if err := g.deleteRepositoriesInNamespace(lockCtx, daemonRepository, repositoryRepository, ptr.To(g.runnerObj.Rule.NamespaceID), timeTarget); err != nil {
-			_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+			_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 			return err
 		}
 	} else {
@@ -92,13 +90,12 @@ func (g *gcRepository) Run(ctx context.Context, runner *runnerContext, runnerID 
 		for {
 			namespaceObjs, err := namespaceRepository.FindWithCursor(lockCtx, int64(g.config.Daemon.GC.BatchSize), namespaceCurIndex)
 			if err != nil {
-				_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get namespace with cursor failed: %v", err), g.successCount, g.failedCount)
-				_ = runner.emitWebhook(api.WebhookPayload{ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner, Action: enums.WebhookActionFinished}, g.packWebhookObj(enums.WebhookActionFinished))
-				return fmt.Errorf("get namespace with cursor failed: %v", err)
+				_ = g.finalize(runner, enums.TaskCommonStatusFailed, fmt.Sprintf("get namespace with cursor failed: %v", err))
+				return fmt.Errorf("get namespace with cursor failed: %w", err)
 			}
 			for _, nsObj := range namespaceObjs {
 				if err := g.deleteRepositoriesInNamespace(lockCtx, daemonRepository, repositoryRepository, nsObj.ID, timeTarget); err != nil {
-					_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+					_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 					return err
 				}
 			}
@@ -109,13 +106,9 @@ func (g *gcRepository) Run(ctx context.Context, runner *runnerContext, runnerID 
 		}
 	}
 
-	if err := runner.finish(enums.TaskCommonStatusSuccess, "", g.successCount, g.failedCount); err != nil {
-		return fmt.Errorf("finish gc repository runner failed: %v", err)
+	if err := g.finalize(runner, enums.TaskCommonStatusSuccess, ""); err != nil {
+		return fmt.Errorf("finish gc repository runner failed: %w", err)
 	}
-	_ = runner.emitWebhook(api.WebhookPayload{
-		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
-		Action:       enums.WebhookActionFinished,
-	}, g.packWebhookObj(enums.WebhookActionFinished))
 
 	return nil
 }
@@ -125,7 +118,7 @@ func (g *gcRepository) deleteRepositoriesInNamespace(ctx context.Context, daemon
 	for {
 		repositories, err := repositoryRepository.FindDeletableWithCursor(ctx, namespaceID, before, curIndex, int64(g.config.Daemon.GC.BatchSize))
 		if err != nil {
-			return fmt.Errorf("find deletable repository failed: %v", err)
+			return fmt.Errorf("find deletable repository failed: %w", err)
 		}
 		var mu sync.Mutex
 		if err := runWorkers(ctx, g.config.Daemon.GC.WorkerCount, repositories, func(ctx context.Context, repositoryObj *models.Repository) error {
@@ -187,6 +180,13 @@ func (g *gcRepository) reconcileNamespaceSizeAsync(ctx context.Context, namespac
 			}
 		}
 	}()
+}
+
+func (g *gcRepository) finalize(runner *runnerContext, status enums.TaskCommonStatus, message string) error {
+	return runner.finalize(status, message, g.successCount, g.failedCount, api.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcRepositoryRunner,
+		Action:       enums.WebhookActionFinished,
+	}, g.packWebhookObj(enums.WebhookActionFinished))
 }
 
 func (g *gcRepository) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcRepository {

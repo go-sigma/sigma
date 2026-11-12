@@ -29,6 +29,7 @@ import (
 
 	_ "github.com/go-sigma/sigma/pkg/background/cronjob/audit"
 	_ "github.com/go-sigma/sigma/pkg/background/cronjob/builder"
+	_ "github.com/go-sigma/sigma/pkg/background/cronjob/gcstorage"
 
 	_ "github.com/go-sigma/sigma/pkg/background/daemon/analytics"
 	_ "github.com/go-sigma/sigma/pkg/background/daemon/builder"
