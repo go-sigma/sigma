@@ -41,7 +41,6 @@ import (
 )
 
 type gcBlob struct {
-	ctx    context.Context
 	config *config.Configuration
 
 	runnerObj *models.DaemonGcBlobRunner
@@ -56,28 +55,27 @@ type gcBlob struct {
 }
 
 // Run deletes blobs that are unreferenced and last pulled before the rule's retention window, batch by batch through the storage driver, recording a DaemonGcRecord per blob and finishing the runner with the success/failure counts.
-func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
+func (g *gcBlob) Run(ctx context.Context, runner *runnerContext) error {
 	if err := runner.start(); err != nil {
-		return fmt.Errorf("start gc blob runner failed: %v", err)
+		return fmt.Errorf("start gc blob runner failed: %w", err)
 	}
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runner.runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc blob runner failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("get gc blob runner failed: %v", err)
+		return fmt.Errorf("get gc blob runner failed: %w", err)
 	}
 
 	lockCtx, cancel, err := acquireRuleLock(ctx, g.locker, g.config.Daemon.GC.LockExpire, g.config.Daemon.GC.LockWaitTimeout, enums.DaemonGcBlob, g.runnerObj.RuleID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("acquire gc blob lock failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("acquire gc blob lock failed: %v", err)
+		return fmt.Errorf("acquire gc blob lock failed: %w", err)
 	}
 	defer cancel()
-	g.ctx = lockCtx
 
-	_ = runner.emitWebhook(api.WebhookPayload{
+	runner.emitWebhook(api.WebhookPayload{
 		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
 		Action:       enums.WebhookActionStarted,
 	}, g.packWebhookObj(enums.WebhookActionStarted))
@@ -93,9 +91,8 @@ func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string
 	for {
 		blobs, err := blobRepository.FindDeletableWithCursor(lockCtx, timeTarget, curIndex, int64(g.config.Daemon.GC.BatchSize))
 		if err != nil {
-			_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get deletable blob failed: %v", err), g.successCount, g.failedCount)
-			_ = runner.emitWebhook(api.WebhookPayload{ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner, Action: enums.WebhookActionFinished}, g.packWebhookObj(enums.WebhookActionFinished))
-			return fmt.Errorf("get blob with last pull failed: %v", err)
+			_ = g.finalize(runner, enums.TaskCommonStatusFailed, fmt.Sprintf("get deletable blob failed: %v", err))
+			return fmt.Errorf("get blob with last pull failed: %w", err)
 		}
 		if len(blobs) == 0 {
 			break
@@ -115,7 +112,7 @@ func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string
 			}
 			return nil
 		}); err != nil {
-			_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+			_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 			return err
 		}
 		if len(blobs) < g.config.Daemon.GC.BatchSize {
@@ -127,13 +124,9 @@ func (g *gcBlob) Run(ctx context.Context, runner *runnerContext, runnerID string
 	if err := runner.report(g.successCount, g.failedCount); err != nil {
 		slog.Error("report gc blob count failed", "err", err)
 	}
-	if err := runner.finish(enums.TaskCommonStatusSuccess, "", g.successCount, g.failedCount); err != nil {
-		return fmt.Errorf("finish gc blob runner failed: %v", err)
+	if err := g.finalize(runner, enums.TaskCommonStatusSuccess, ""); err != nil {
+		return fmt.Errorf("finish gc blob runner failed: %w", err)
 	}
-	_ = runner.emitWebhook(api.WebhookPayload{
-		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
-		Action:       enums.WebhookActionFinished,
-	}, g.packWebhookObj(enums.WebhookActionFinished))
 
 	return nil
 }
@@ -161,7 +154,7 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 	if err := g.storageDriver.Delete(ctx, storagePath); err != nil {
 		_ = daemonRepository.UpdateGcStorageDeletionTask(ctx, task.ID, map[string]any{
 			"status":   enums.TaskCommonStatusFailed,
-			"attempts": task.Attempts + 1,
+			"attempts": gorm.Expr("attempts + 1"),
 			"message":  []byte(err.Error()),
 		})
 		return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "delete blob object failed: %v", err)}
@@ -181,6 +174,13 @@ func (g *gcBlob) deleteBlobObject(ctx context.Context, runner models.DaemonGcBlo
 		return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusFailed, Message: fmt.Appendf(nil, "finalize blob deletion failed: %v", err)}
 	}
 	return &models.DaemonGcRecord{ID: uuid.NewV7String(), RunnerID: runner.ID, Resource: blob.Digest, Status: enums.GcRecordStatusSuccess}
+}
+
+func (g *gcBlob) finalize(runner *runnerContext, status enums.TaskCommonStatus, message string) error {
+	return runner.finalize(status, message, g.successCount, g.failedCount, api.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcBlobRunner,
+		Action:       enums.WebhookActionFinished,
+	}, g.packWebhookObj(enums.WebhookActionFinished))
 }
 
 func (g *gcBlob) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcBlob {

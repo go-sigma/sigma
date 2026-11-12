@@ -17,6 +17,7 @@ package gc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/go-sigma/sigma/pkg/api"
@@ -28,17 +29,15 @@ import (
 
 type runnerContext struct {
 	ctx              context.Context
-	daemon           enums.Daemon
 	runnerID         string
 	startedAt        time.Time
 	daemonRepository repodaemon.DaemonRepository
 	producer         workq.Producer
 }
 
-func newRunnerContext(ctx context.Context, daemon enums.Daemon, runnerID string, daemonRepository repodaemon.DaemonRepository, producer workq.Producer) *runnerContext {
+func newRunnerContext(ctx context.Context, runnerID string, daemonRepository repodaemon.DaemonRepository, producer workq.Producer) *runnerContext {
 	return &runnerContext{
 		ctx:              ctx,
-		daemon:           daemon,
 		runnerID:         runnerID,
 		daemonRepository: daemonRepository,
 		producer:         producer,
@@ -78,32 +77,30 @@ func (r *runnerContext) finish(status enums.TaskCommonStatus, message string, su
 	return r.update(updates)
 }
 
-func (r *runnerContext) emitWebhook(meta api.WebhookPayload, obj any) error {
-	if r.producer == nil {
-		return nil
+// finalize finishes the runner and emits the matching "finished" webhook. It is
+// used after the "started" webhook has been emitted so subscribers always get a
+// terminal event, including on failure.
+func (r *runnerContext) finalize(status enums.TaskCommonStatus, message string, successCount, failedCount int64, meta api.WebhookPayload, obj any) error {
+	if err := r.finish(status, message, successCount, failedCount); err != nil {
+		return err
 	}
-	return triggerWebhook(r.ctx, decoratorWebhook{
-		NamespaceID: nil,
-		Meta:        meta,
-		WebhookObj:  obj,
-	}, r.producer)
+	r.emitWebhook(meta, obj)
+	return nil
+}
+
+// emitWebhook best-effort enqueues one GC webhook; failures are logged instead
+// of being silently dropped.
+func (r *runnerContext) emitWebhook(meta api.WebhookPayload, obj any) {
+	if r.producer == nil {
+		return
+	}
+	if err := triggerWebhook(r.ctx, meta, obj, r.producer); err != nil {
+		slog.Warn("emit gc webhook failed", "err", err, "runner_id", r.runnerID, "action", meta.Action)
+	}
 }
 
 func (r *runnerContext) update(updates map[string]any) error {
-	var err error
-	switch r.daemon {
-	case enums.DaemonGcRepository:
-		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
-	case enums.DaemonGcTag:
-		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
-	case enums.DaemonGcArtifact:
-		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
-	case enums.DaemonGcBlob:
-		err = r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
-	default:
-		err = fmt.Errorf("daemon %s not support", r.daemon.String())
-	}
-	return err
+	return r.daemonRepository.UpdateGcRunner(r.ctx, r.runnerID, updates)
 }
 
 func acquireRuleLock(ctx context.Context, lockerClient lock.Locker, configLockExpire, configLockWaitTimeout time.Duration, daemon enums.Daemon, ruleID string) (context.Context, context.CancelFunc, error) {

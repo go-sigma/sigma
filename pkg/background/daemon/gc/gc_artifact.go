@@ -35,7 +35,6 @@ import (
 )
 
 type gcArtifact struct {
-	ctx    context.Context
 	config *config.Configuration
 
 	runnerObj *models.DaemonGcArtifactRunner
@@ -51,28 +50,27 @@ type gcArtifact struct {
 	locker               lock.Locker
 }
 
-func (g *gcArtifact) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
+func (g *gcArtifact) Run(ctx context.Context, runner *runnerContext) error {
 	if err := runner.start(); err != nil {
-		return fmt.Errorf("start gc artifact runner failed: %v", err)
+		return fmt.Errorf("start gc artifact runner failed: %w", err)
 	}
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runner.runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc artifact runner failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("get gc artifact runner failed: %v", err)
+		return fmt.Errorf("get gc artifact runner failed: %w", err)
 	}
 
 	lockCtx, cancel, err := acquireRuleLock(ctx, g.locker, g.config.Daemon.GC.LockExpire, g.config.Daemon.GC.LockWaitTimeout, enums.DaemonGcArtifact, g.runnerObj.RuleID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("acquire gc artifact lock failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("acquire gc artifact lock failed: %v", err)
+		return fmt.Errorf("acquire gc artifact lock failed: %w", err)
 	}
 	defer cancel()
-	g.ctx = lockCtx
 
-	_ = runner.emitWebhook(api.WebhookPayload{
+	runner.emitWebhook(api.WebhookPayload{
 		ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
 		Action:       enums.WebhookActionStarted,
 	}, g.packWebhookObj(enums.WebhookActionStarted))
@@ -84,7 +82,7 @@ func (g *gcArtifact) Run(ctx context.Context, runner *runnerContext, runnerID st
 
 	if g.runnerObj.Rule.NamespaceID != nil {
 		if err := g.deleteArtifactsInNamespace(lockCtx, daemonRepository, repositoryRepository, artifactRepository, ptr.To(g.runnerObj.Rule.NamespaceID), timeTarget); err != nil {
-			_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+			_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 			return err
 		}
 	} else {
@@ -92,13 +90,12 @@ func (g *gcArtifact) Run(ctx context.Context, runner *runnerContext, runnerID st
 		for {
 			namespaceObjs, err := namespaceRepository.FindWithCursor(lockCtx, int64(g.config.Daemon.GC.BatchSize), namespaceCurIndex)
 			if err != nil {
-				_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get namespace with cursor failed: %v", err), g.successCount, g.failedCount)
-				_ = runner.emitWebhook(api.WebhookPayload{ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner, Action: enums.WebhookActionFinished}, g.packWebhookObj(enums.WebhookActionFinished))
-				return fmt.Errorf("get namespace with cursor failed: %v", err)
+				_ = g.finalize(runner, enums.TaskCommonStatusFailed, fmt.Sprintf("get namespace with cursor failed: %v", err))
+				return fmt.Errorf("get namespace with cursor failed: %w", err)
 			}
 			for _, ns := range namespaceObjs {
 				if err := g.deleteArtifactsInNamespace(lockCtx, daemonRepository, repositoryRepository, artifactRepository, ns.ID, timeTarget); err != nil {
-					_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+					_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 					return err
 				}
 			}
@@ -109,13 +106,9 @@ func (g *gcArtifact) Run(ctx context.Context, runner *runnerContext, runnerID st
 		}
 	}
 
-	if err := runner.finish(enums.TaskCommonStatusSuccess, "", g.successCount, g.failedCount); err != nil {
-		return fmt.Errorf("finish gc artifact runner failed: %v", err)
+	if err := g.finalize(runner, enums.TaskCommonStatusSuccess, ""); err != nil {
+		return fmt.Errorf("finish gc artifact runner failed: %w", err)
 	}
-	_ = runner.emitWebhook(api.WebhookPayload{
-		ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
-		Action:       enums.WebhookActionFinished,
-	}, g.packWebhookObj(enums.WebhookActionFinished))
 
 	return nil
 }
@@ -125,7 +118,7 @@ func (g *gcArtifact) deleteArtifactsInNamespace(ctx context.Context, daemonRepos
 	for {
 		repositories, err := repositoryRepository.FindAll(ctx, namespaceID, int64(g.config.Daemon.GC.BatchSize), repositoryCurIndex)
 		if err != nil {
-			return fmt.Errorf("list repository failed: %v", err)
+			return fmt.Errorf("list repository failed: %w", err)
 		}
 		for _, repositoryObj := range repositories {
 			if err := g.deleteArtifactsInRepository(ctx, daemonRepository, artifactRepository, repositoryObj, before); err != nil {
@@ -144,7 +137,7 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 	for {
 		artifacts, err := artifactRepository.FindDeletableWithCursor(ctx, repositoryObj.ID, before, artifactCurIndex, int64(g.config.Daemon.GC.BatchSize))
 		if err != nil {
-			return fmt.Errorf("find deletable artifact failed: %v", err)
+			return fmt.Errorf("find deletable artifact failed: %w", err)
 		}
 		digests := make([]string, 0, len(artifacts))
 		for _, artifactObj := range artifacts {
@@ -152,7 +145,7 @@ func (g *gcArtifact) deleteArtifactsInRepository(ctx context.Context, daemonRepo
 		}
 		referrers, err := artifactRepository.FindReferrersBySubjects(ctx, repositoryObj.ID, digests)
 		if err != nil {
-			return fmt.Errorf("find artifact referrers failed: %v", err)
+			return fmt.Errorf("find artifact referrers failed: %w", err)
 		}
 		deleteIDs := make([]string, 0, len(artifacts)+len(referrers))
 		records := make([]*models.DaemonGcRecord, 0, len(artifacts)+len(referrers))
@@ -230,6 +223,13 @@ func (g *gcArtifact) reconcileScopeSizeAsync(ctx context.Context, namespaceID, r
 			}
 		}
 	}()
+}
+
+func (g *gcArtifact) finalize(runner *runnerContext, status enums.TaskCommonStatus, message string) error {
+	return runner.finalize(status, message, g.successCount, g.failedCount, api.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcArtifactRunner,
+		Action:       enums.WebhookActionFinished,
+	}, g.packWebhookObj(enums.WebhookActionFinished))
 }
 
 func (g *gcArtifact) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcArtifact {

@@ -37,7 +37,6 @@ import (
 )
 
 type gcTag struct {
-	ctx    context.Context
 	config *config.Configuration
 
 	runnerObj *models.DaemonGcTagRunner
@@ -55,35 +54,33 @@ type gcTag struct {
 }
 
 // Run deletes tags matching the rule's retention type (age or count) and optional name pattern, scoped to the rule's namespace or all namespaces, and fails early on an unsupported retention type or invalid pattern.
-func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string) error {
+func (g *gcTag) Run(ctx context.Context, runner *runnerContext) error {
 	if err := runner.start(); err != nil {
-		return fmt.Errorf("start gc tag runner failed: %v", err)
+		return fmt.Errorf("start gc tag runner failed: %w", err)
 	}
 
 	daemonRepository := g.daemonRepository
 	var err error
-	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runnerID)
+	g.runnerObj, err = daemonRepository.GetGcRunner(ctx, runner.runnerID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get gc tag runner failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("get gc tag runner failed: %v", err)
+		return fmt.Errorf("get gc tag runner failed: %w", err)
 	}
 
 	lockCtx, cancel, err := acquireRuleLock(ctx, g.locker, g.config.Daemon.GC.LockExpire, g.config.Daemon.GC.LockWaitTimeout, enums.DaemonGcTag, g.runnerObj.RuleID)
 	if err != nil {
 		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("acquire gc tag lock failed: %v", err), g.successCount, g.failedCount)
-		return fmt.Errorf("acquire gc tag lock failed: %v", err)
+		return fmt.Errorf("acquire gc tag lock failed: %w", err)
 	}
 	defer cancel()
-	g.ctx = lockCtx
 
-	_ = runner.emitWebhook(api.WebhookPayload{
+	runner.emitWebhook(api.WebhookPayload{
 		ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
 		Action:       enums.WebhookActionStarted,
 	}, g.packWebhookObj(enums.WebhookActionStarted))
 
 	if g.runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeDay && g.runnerObj.Rule.RetentionRuleType != enums.RetentionRuleTypeQuantity {
-		_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("gc tag rule retention type(%s) is invalid", g.runnerObj.Rule.RetentionRuleType), g.successCount, g.failedCount)
-		_ = runner.emitWebhook(api.WebhookPayload{ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner, Action: enums.WebhookActionFinished}, g.packWebhookObj(enums.WebhookActionFinished))
+		_ = g.finalize(runner, enums.TaskCommonStatusFailed, fmt.Sprintf("gc tag rule retention type(%s) is invalid", g.runnerObj.Rule.RetentionRuleType))
 		return fmt.Errorf("gc tag rule retention type is invalid: %v", g.runnerObj.Rule.RetentionRuleType)
 	}
 
@@ -91,9 +88,8 @@ func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string)
 	if g.runnerObj.Rule.RetentionPattern != nil {
 		pattern, err = regexp.Compile(ptr.To(g.runnerObj.Rule.RetentionPattern))
 		if err != nil {
-			_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("compile gc tag pattern failed: %v", err), g.successCount, g.failedCount)
-			_ = runner.emitWebhook(api.WebhookPayload{ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner, Action: enums.WebhookActionFinished}, g.packWebhookObj(enums.WebhookActionFinished))
-			return fmt.Errorf("compile gc tag pattern failed: %v", err)
+			_ = g.finalize(runner, enums.TaskCommonStatusFailed, fmt.Sprintf("compile gc tag pattern failed: %v", err))
+			return fmt.Errorf("compile gc tag pattern failed: %w", err)
 		}
 	}
 
@@ -103,7 +99,7 @@ func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string)
 
 	if g.runnerObj.Rule.NamespaceID != nil {
 		if err := g.deleteTagsInNamespace(lockCtx, daemonRepository, repositoryRepository, tagRepository, ptr.To(g.runnerObj.Rule.NamespaceID), pattern); err != nil {
-			_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+			_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 			return err
 		}
 	} else {
@@ -111,13 +107,12 @@ func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string)
 		for {
 			namespaceObjs, err := namespaceRepository.FindWithCursor(lockCtx, int64(g.config.Daemon.GC.BatchSize), namespaceCurIndex)
 			if err != nil {
-				_ = runner.finish(enums.TaskCommonStatusFailed, fmt.Sprintf("get namespace with cursor failed: %v", err), g.successCount, g.failedCount)
-				_ = runner.emitWebhook(api.WebhookPayload{ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner, Action: enums.WebhookActionFinished}, g.packWebhookObj(enums.WebhookActionFinished))
-				return fmt.Errorf("get namespace with cursor failed: %v", err)
+				_ = g.finalize(runner, enums.TaskCommonStatusFailed, fmt.Sprintf("get namespace with cursor failed: %v", err))
+				return fmt.Errorf("get namespace with cursor failed: %w", err)
 			}
 			for _, nsObj := range namespaceObjs {
 				if err := g.deleteTagsInNamespace(lockCtx, daemonRepository, repositoryRepository, tagRepository, nsObj.ID, pattern); err != nil {
-					_ = runner.finish(enums.TaskCommonStatusFailed, err.Error(), g.successCount, g.failedCount)
+					_ = g.finalize(runner, enums.TaskCommonStatusFailed, err.Error())
 					return err
 				}
 			}
@@ -127,13 +122,9 @@ func (g *gcTag) Run(ctx context.Context, runner *runnerContext, runnerID string)
 			namespaceCurIndex = namespaceObjs[len(namespaceObjs)-1].ID
 		}
 	}
-	if err := runner.finish(enums.TaskCommonStatusSuccess, "", g.successCount, g.failedCount); err != nil {
-		return fmt.Errorf("finish gc tag runner failed: %v", err)
+	if err := g.finalize(runner, enums.TaskCommonStatusSuccess, ""); err != nil {
+		return fmt.Errorf("finish gc tag runner failed: %w", err)
 	}
-	_ = runner.emitWebhook(api.WebhookPayload{
-		ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
-		Action:       enums.WebhookActionFinished,
-	}, g.packWebhookObj(enums.WebhookActionFinished))
 
 	return nil
 }
@@ -143,7 +134,7 @@ func (g *gcTag) deleteTagsInNamespace(ctx context.Context, daemonRepository repo
 	for {
 		repositories, err := repositoryRepository.FindAll(ctx, namespaceID, int64(g.config.Daemon.GC.BatchSize), repositoryCurIndex)
 		if err != nil {
-			return fmt.Errorf("list repository failed: %v", err)
+			return fmt.Errorf("list repository failed: %w", err)
 		}
 		for _, repositoryObj := range repositories {
 			if err := g.deleteTagsInRepository(ctx, daemonRepository, tagRepository, namespaceID, repositoryObj.ID, pattern); err != nil {
@@ -169,7 +160,7 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 			tags, err = tagRepository.FindWithQuantityCursor(ctx, repositoryID, int(g.runnerObj.Rule.RetentionRuleAmount), g.config.Daemon.GC.BatchSize, tagCurIndex)
 		}
 		if err != nil {
-			return fmt.Errorf("find deletable tag failed: %v", err)
+			return fmt.Errorf("find deletable tag failed: %w", err)
 		}
 		var mu sync.Mutex
 		var deletedInBatch int64
@@ -220,6 +211,13 @@ func (g *gcTag) deleteTagsInRepository(ctx context.Context, daemonRepository rep
 		}
 		tagCurIndex = tags[len(tags)-1].ID
 	}
+}
+
+func (g *gcTag) finalize(runner *runnerContext, status enums.TaskCommonStatus, message string) error {
+	return runner.finalize(status, message, g.successCount, g.failedCount, api.WebhookPayload{
+		ResourceType: enums.WebhookResourceTypeDaemonTaskGcTagRunner,
+		Action:       enums.WebhookActionFinished,
+	}, g.packWebhookObj(enums.WebhookActionFinished))
 }
 
 func (g *gcTag) packWebhookObj(action enums.WebhookAction) api.WebhookPayloadGcTag {
