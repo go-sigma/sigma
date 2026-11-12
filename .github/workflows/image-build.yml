@@ -60,6 +60,14 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/go-sigma/sigma:${{ github.ref_type == 'tag' && format('{0}-{1}', github.ref_name, matrix.arch) || format('nightly-{0}', matrix.arch) }}
+          # Layer cache lives in GHCR next to the images. `mode=max` exports every
+          # stage, which is what matters here: the binary-download stages (syft,
+          # grype, cosign) and the apk/go-toolchain stages are reused even when
+          # the application source changes.
+          # PR builds only read the cache; dev and tag pushes refresh it so a
+          # fork PR cannot overwrite the shared cache.
+          cache-from: type=registry,ref=ghcr.io/go-sigma/sigma:buildcache-${{ matrix.arch }}
+          cache-to: ${{ github.event_name == 'push' && format('type=registry,ref=ghcr.io/go-sigma/sigma:buildcache-{0},mode=max', matrix.arch) || '' }}
           provenance: false
           sbom: false
           outputs: "${{ github.event_name == 'push' && 'type=registry,force-compression=true,oci-mediatypes=true' || '' }}"
@@ -72,6 +80,10 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/go-sigma/sigma-builder:${{ github.ref_type == 'tag' && format('{0}-{1}', github.ref_name, matrix.arch) || format('nightly-{0}', matrix.arch) }}
+          # Separate cache tags per target: two concurrent exporters writing the
+          # same cache ref would overwrite each other.
+          cache-from: type=registry,ref=ghcr.io/go-sigma/sigma-builder:buildcache-${{ matrix.arch }}
+          cache-to: ${{ github.event_name == 'push' && format('type=registry,ref=ghcr.io/go-sigma/sigma-builder:buildcache-{0},mode=max', matrix.arch) || '' }}
           provenance: false
           sbom: false
           outputs: "${{ github.event_name == 'push' && 'type=registry,force-compression=true,oci-mediatypes=true' || '' }}"
