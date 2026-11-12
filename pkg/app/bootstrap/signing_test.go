@@ -15,13 +15,19 @@
 package bootstrap
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
+	"go.uber.org/mock/gomock"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
+	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
+	reposettingmocks "github.com/go-sigma/sigma/pkg/dal/repository/setting/mocks"
+	lockmocks "github.com/go-sigma/sigma/pkg/infra/lock/mocks"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
@@ -48,4 +54,34 @@ func TestSigning(t *testing.T) {
 	require.NoError(t, testkit.InitializeIntegration(t, digCon))
 
 	require.NoError(t, signing(digCon))
+}
+
+func TestSigningSkipsExistingKey(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	settingRepository := reposettingmocks.NewMockSettingRepository(ctrl)
+	locker := lockmocks.NewMockLocker(ctrl)
+	lockObj := lockmocks.NewMockLock(ctrl)
+
+	locker.EXPECT().
+		Acquire(gomock.Any(), signingKeyLockKey, signingKeyLockTTL, signingKeyLockWait).
+		Return(lockObj, nil)
+	lockObj.EXPECT().Unlock(gomock.Any()).Return(nil)
+	settingRepository.EXPECT().Get(gomock.Any(), consts.SettingSignPrivateKey).
+		Return(&models.Setting{Key: consts.SettingSignPrivateKey}, nil)
+
+	require.NoError(t, signingWithParams(signingParams{SettingRepository: settingRepository, Locker: locker}))
+}
+
+func TestSigningReturnsLockError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	settingRepository := reposettingmocks.NewMockSettingRepository(ctrl)
+	locker := lockmocks.NewMockLocker(ctrl)
+
+	lockErr := errors.New("lock timeout")
+	locker.EXPECT().
+		Acquire(gomock.Any(), signingKeyLockKey, signingKeyLockTTL, signingKeyLockWait).
+		Return(nil, lockErr)
+
+	err := signingWithParams(signingParams{SettingRepository: settingRepository, Locker: locker})
+	require.ErrorIs(t, err, lockErr)
 }

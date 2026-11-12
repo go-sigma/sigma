@@ -70,6 +70,13 @@ func initNamespace(ctx context.Context, namespaceRepository reponamespace.Namesp
 		Visibility: item.Visibility,
 	})
 	if err != nil {
+		if tolerateConcurrentCreate(err, func() error {
+			_, getErr := namespaceRepository.GetByName(ctx, item.Name)
+			return getErr
+		}) {
+			slog.Info("namespace already created by another replica", "namespace", item.Name)
+			return nil
+		}
 		slog.Error("create namespace failed", "err", err, "namespace", item.Name)
 		return fmt.Errorf("create namespace %q failed: %w", item.Name, err)
 	}

@@ -15,17 +15,22 @@
 package bootstrap
 
 import (
+	"errors"
 	"testing"
 	"unicode"
 
 	"github.com/stretchr/testify/require"
 	pwdvalidate "github.com/wagslane/go-password-validator"
 	"go.uber.org/dig"
+	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 
 	"github.com/go-sigma/sigma/pkg/api/enums"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/consts"
+	"github.com/go-sigma/sigma/pkg/dal/models"
 	repouser "github.com/go-sigma/sigma/pkg/dal/repository/user"
+	repousermocks "github.com/go-sigma/sigma/pkg/dal/repository/user/mocks"
 	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/testkit"
@@ -227,4 +232,73 @@ func TestInitUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEnsureUserSkipsExistingUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mock := repousermocks.NewMockUserRepository(ctrl)
+	user := &models.User{ID: "user-1", Username: "sigma"}
+	mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil)
+
+	created, err := ensureUser(t.Context(), mock, user)
+	require.NoError(t, err)
+	require.False(t, created)
+}
+
+func TestEnsureUserCreatesMissingUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mock := repousermocks.NewMockUserRepository(ctrl)
+	user := &models.User{ID: "user-1", Username: "sigma"}
+	gomock.InOrder(
+		mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound),
+		mock.EXPECT().Create(gomock.Any(), user).Return(nil),
+	)
+
+	created, err := ensureUser(t.Context(), mock, user)
+	require.NoError(t, err)
+	require.True(t, created)
+}
+
+func TestEnsureUserToleratesConcurrentCreate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mock := repousermocks.NewMockUserRepository(ctrl)
+	user := &models.User{ID: "user-1", Username: "sigma"}
+	gomock.InOrder(
+		mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound),
+		mock.EXPECT().Create(gomock.Any(), user).
+			Return(errors.New("duplicate key value violates unique constraint")),
+		mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(user, nil),
+	)
+
+	created, err := ensureUser(t.Context(), mock, user)
+	require.NoError(t, err)
+	require.False(t, created)
+}
+
+func TestEnsureUserReturnsCreateError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mock := repousermocks.NewMockUserRepository(ctrl)
+	user := &models.User{ID: "user-1", Username: "sigma"}
+	createErr := errors.New("connection reset by peer")
+	gomock.InOrder(
+		mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound),
+		mock.EXPECT().Create(gomock.Any(), user).Return(createErr),
+		mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, gorm.ErrRecordNotFound),
+	)
+
+	created, err := ensureUser(t.Context(), mock, user)
+	require.ErrorIs(t, err, createErr)
+	require.False(t, created)
+}
+
+func TestEnsureUserReturnsLookupError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mock := repousermocks.NewMockUserRepository(ctrl)
+	user := &models.User{ID: "user-1", Username: "sigma"}
+	lookupErr := errors.New("database unavailable")
+	mock.EXPECT().GetByUsername(gomock.Any(), "sigma").Return(nil, lookupErr)
+
+	created, err := ensureUser(t.Context(), mock, user)
+	require.ErrorIs(t, err, lookupErr)
+	require.False(t, created)
 }
