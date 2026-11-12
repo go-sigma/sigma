@@ -373,7 +373,7 @@ redis:
   enabled: true
   image:
     repository: redis
-    tag: "7-alpine"
+    tag: "8-alpine"
     pullPolicy: IfNotPresent
   auth:
     enabled: true
