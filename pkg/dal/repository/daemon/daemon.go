@@ -47,6 +47,7 @@ type DaemonRepository interface {
 	GetGcRecord(context.Context, string) (*models.DaemonGcRecord, error)
 	UpsertGcStorageDeletionTask(context.Context, *models.GcStorageDeletionTask) error
 	UpdateGcStorageDeletionTask(context.Context, string, map[string]any) error
+	DeleteGcStorageDeletionTasksBefore(context.Context, int64, int) (int64, error)
 }
 
 type daemonRepository struct{ tx *query.Query }
@@ -161,4 +162,33 @@ func (s *daemonRepository) UpdateGcStorageDeletionTask(ctx context.Context, id s
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// DeleteGcStorageDeletionTasksBefore hard-deletes terminal (success/failed)
+// deletion tasks last updated before updatedBefore, returning the deleted count.
+// Pending/doing tasks are kept because a retry may still consume them.
+func (s *daemonRepository) DeleteGcStorageDeletionTasksBefore(ctx context.Context, updatedBefore int64, limit int) (int64, error) {
+	if limit <= 0 {
+		return 0, nil
+	}
+	db := s.tx.UnderlyingDB().WithContext(ctx)
+
+	var ids []string
+	if err := db.Unscoped().
+		Model(&models.GcStorageDeletionTask{}).
+		Where("status IN ?", []enums.TaskCommonStatus{enums.TaskCommonStatusSuccess, enums.TaskCommonStatusFailed}).
+		Where("updated_at < ?", updatedBefore).
+		Order("updated_at").
+		Limit(limit).
+		Pluck("id", &ids).Error; err != nil {
+		return 0, err
+	}
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	matched := db.Unscoped().Where("id IN ?", ids).Delete(&models.GcStorageDeletionTask{})
+	if matched.Error != nil {
+		return 0, matched.Error
+	}
+	return matched.RowsAffected, nil
 }

@@ -176,6 +176,10 @@ daemon:
     recordBatchSize: 100
     lockExpire: 30s
     lockWaitTimeout: 5s
+    cleanup:
+      interval: 6h
+      retention: 168h
+      batchSize: 1000
   builder:
     enabled: false
     image: sigma-builder:latest
