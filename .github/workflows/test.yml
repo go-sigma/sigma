@@ -73,11 +73,12 @@ jobs:
       - name: Setup redis
         run: |
           docker run --name sigma-redis -p 6379:6379 -d --rm --health-cmd "redis-cli -a sigma ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 10 redis:7-alpine --requirepass sigma
+      # setup-go caches both GOMODCACHE and GOCACHE, so no manual actions/cache
+      # steps are needed for the Go side.
       - name: Setup golang
         uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
-          cache: false
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -97,23 +98,6 @@ jobs:
           cd web
           bun install --frozen-lockfile
           bun run build
-      - name: Cache go modules
-        uses: actions/cache@v6
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ matrix.go }}-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-${{ matrix.go }}-
-            ${{ runner.os }}-go-mod-
-      - name: Cache go build and test
-        uses: actions/cache@v6
-        with:
-          path: /home/runner/.cache/go-build
-          key: ${{ runner.os }}-go-build-test-${{ matrix.go }}-${{ hashFiles('go.mod', 'go.sum') }}-${{ hashFiles('cmd/**/*.go', 'pkg/**/*.go', 'main.go') }}
-          restore-keys: |
-            ${{ runner.os }}-go-build-test-${{ matrix.go }}-${{ hashFiles('go.mod', 'go.sum') }}-
-            ${{ runner.os }}-go-build-test-${{ matrix.go }}-
-            ${{ runner.os }}-go-build-test-
       # pkg/storage/s3 writes to the shared "sigma" bucket without creating it,
       # and rs3 answers NoSuchBucket rather than creating buckets on demand.
       # rs3-cli ships in the image, so use its own API instead of relying on the
