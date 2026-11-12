@@ -16,7 +16,6 @@ package server
 
 import (
 	"context"
-	"log/slog"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -25,6 +24,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/app/server"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/dal"
+	"github.com/go-sigma/sigma/pkg/logger"
 	"github.com/go-sigma/sigma/pkg/telemetry"
 )
 
@@ -36,17 +36,18 @@ func NewCmdServer() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "server",
 		Short: "start the sigma server",
+		// Startup failures must exit non-zero: Kubernetes reports an exit code
+		// of 0 as "Completed" and hides the reason a container keeps
+		// restarting.
 		Run: func(_ *cobra.Command, _ []string) {
 			digCon, err := bootstrap.NewDigContainer()
 			if err != nil {
-				slog.Error("new dig container failed", "err", err)
-				return
+				logger.Fatal("new dig container failed", "err", err)
 			}
 
 			shutdown, err := telemetry.Init(config.GetConfig())
 			if err != nil {
-				slog.Error("init trace failed", "err", err)
-				return
+				logger.Fatal("init trace failed", "err", err)
 			}
 			defer func() {
 				if shutdown != nil {
@@ -64,26 +65,22 @@ func NewCmdServer() *cobra.Command {
 				}
 			})
 			if err != nil {
-				slog.Error("dig container provide server config failed", "err", err)
-				return
+				logger.Fatal("dig container provide server config failed", "err", err)
 			}
 
 			err = dal.Initialize(digCon)
 			if err != nil {
-				slog.Error("initialize database failed", "err", err)
-				return
+				logger.Fatal("initialize database failed", "err", err)
 			}
 
 			err = bootstrap.Initialize(digCon)
 			if err != nil {
-				slog.Error("initialize bootstrap failed", "err", err)
-				return
+				logger.Fatal("initialize bootstrap failed", "err", err)
 			}
 
 			err = server.Serve(digCon)
 			if err != nil {
-				slog.Error("start server failed", "err", err)
-				return
+				logger.Fatal("start server failed", "err", err)
 			}
 		},
 	}
