@@ -4,7 +4,7 @@
 ARG ALPINE_VERSION=3.24
 ARG GOLANG_VERSION=1.27-alpine3.24
 ARG BUN_VERSION=1.4.4-alpine
-ARG BUILDKIT_VERSION=v0.34.1-rootless
+ARG BUILDKIT_VERSION=v0.35.0-rootless
 ARG SWAGGER_UI_VERSION=5.34.1
 
 # =============================================================
