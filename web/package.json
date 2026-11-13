@@ -29,7 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "cron-parser": "^5.10.4",
+    "cron-parser": "^5.10.5",
     "csstype": "^3.2.3",
     "dayjs": "^1.11.23",
     "human-format": "^1.4.0",
