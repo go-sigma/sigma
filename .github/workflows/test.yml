@@ -73,12 +73,22 @@ jobs:
       - name: Setup redis
         run: |
           docker run --name sigma-redis -p 6379:6379 -d --rm --health-cmd "redis-cli -a sigma ping || exit 1" --health-interval 10s --health-timeout 5s --health-retries 10 redis:7-alpine --requirepass sigma
-      # setup-go caches both GOMODCACHE and GOCACHE, so no manual actions/cache
-      # steps are needed for the Go side.
+      # setup-go caches GOMODCACHE and a base GOCACHE, but its cache key is
+      # immutable: once created, an incomplete build cache is never refreshed.
+      # Layer a rolling GOCACHE key on top so a complete cache is saved every
+      # run and restored by the next one.
       - name: Setup golang
         uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
+      - name: Cache go build
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/go-build
+          key: go-build-${{ runner.os }}-${{ hashFiles('go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            go-build-${{ runner.os }}-${{ hashFiles('go.sum') }}-
+            go-build-${{ runner.os }}-
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -133,12 +143,11 @@ jobs:
               "/mocks"
               "pkg/testkit"
               "pkg/version"
+              # External object-storage integration tests. They need real
+              # credentials and are run manually by maintainers.
+              "pkg/storage/cos"
+              "pkg/storage/oss"
             )
-            # Merge queue entries run the same package set as the pull request
-            # they come from.
-            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] || [ "${GITHUB_EVENT_NAME}" = "merge_group" ]; then
-              excludes+=("pkg/storage/oss")
-            fi
 
             go list ./... | while read -r pkg; do
               local skipped=0
