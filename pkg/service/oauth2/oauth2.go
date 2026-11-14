@@ -157,7 +157,9 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 			Email:    user.GetEmail(),
 		}
 	case enums.ProviderGitlab:
-		glClient, err := gitlab.NewOAuthClient(oauth2Token.AccessToken) // nolint: staticcheck
+		glClient, err := gitlab.NewAuthSourceClient(gitlab.OAuthTokenSource{
+			TokenSource: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: oauth2Token.AccessToken}),
+		})
 		if err != nil {
 			slog.Error("create gitlab client failed", "err", err)
 			return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gitlab client failed: %v", err))
