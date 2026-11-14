@@ -56,7 +56,7 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.76
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.77
 	github.com/tidwall/gjson v1.20.2
 	github.com/wagslane/go-password-validator v0.3.0
 	gitlab.com/gitlab-org/api/client-go v1.46.0
