@@ -29,7 +29,7 @@ import (
 // Service encapsulates system-related business logic.
 type Service interface {
 	// GetConfig returns the system configuration.
-	GetConfig(ctx context.Context) (config.Configuration, error)
+	GetConfig(ctx context.Context) (*config.Configuration, error)
 	// GetEndpoint returns the HTTP endpoint.
 	GetEndpoint(ctx context.Context) (string, error)
 	// GetVersion returns the build version info.
@@ -46,8 +46,8 @@ func NewService(params service) Service {
 	return &params
 }
 
-func (s *service) GetConfig(ctx context.Context) (config.Configuration, error) {
-	return *s.Config, nil
+func (s *service) GetConfig(ctx context.Context) (*config.Configuration, error) {
+	return s.Config, nil
 }
 
 func (s *service) GetEndpoint(ctx context.Context) (string, error) {

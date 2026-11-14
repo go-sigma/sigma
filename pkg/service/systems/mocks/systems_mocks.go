@@ -43,10 +43,10 @@ func (m *MockSystemsService) EXPECT() *MockSystemsServiceMockRecorder {
 }
 
 // GetConfig mocks base method.
-func (m *MockSystemsService) GetConfig(ctx context.Context) (config.Configuration, error) {
+func (m *MockSystemsService) GetConfig(ctx context.Context) (*config.Configuration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig", ctx)
-	ret0, _ := ret[0].(config.Configuration)
+	ret0, _ := ret[0].(*config.Configuration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
