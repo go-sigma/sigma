@@ -1505,8 +1505,8 @@ github.com/tchap/go-patricia/v2 v2.3.3 h1:xfNEsODumaEcCcY3gI0hYPZ/PcpVv5ju6RMAhg
 github.com/tchap/go-patricia/v2 v2.3.3/go.mod h1:VZRHKAb53DLaG+nA9EaYYiaEx6YztwDlLElMsnSHD4k=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.563/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/kms v1.0.563/go.mod h1:uom4Nvi9W+Qkom0exYiJ9VWJjXwyxtPYTkKkaLMlfE0=
-github.com/tencentyun/cos-go-sdk-v5 v0.7.76 h1:x0q1v3PXKd/hbxcFEPtn7Z3Fu8nY78TH/IkSDvfT2MM=
-github.com/tencentyun/cos-go-sdk-v5 v0.7.76/go.mod h1:STbTNaNKq03u+gscPEGOahKzLcGSYOj6Dzc5zNay7Pg=
+github.com/tencentyun/cos-go-sdk-v5 v0.7.77 h1:mckT76QKylKjijq2MzwazEAT1mZ/g+eQ+G/zKDM6/w8=
+github.com/tencentyun/cos-go-sdk-v5 v0.7.77/go.mod h1:STbTNaNKq03u+gscPEGOahKzLcGSYOj6Dzc5zNay7Pg=
 github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20250515025012-e0eec8a5d123/go.mod h1:b18KQa4IxHbxeseW1GcZox53d7J0z39VNONTxvvlkXw=
 github.com/terminalstatic/go-xsd-validate v0.1.8 h1:UVrTCy1j3DhwaYTTUF+QYO/Nan13S0tf+Jwi+p45Bf0=
 github.com/terminalstatic/go-xsd-validate v0.1.8/go.mod h1:1kb47fi2c6onlf+B7UrrQ9VYraOhcYwFm3iG+J6F4Zo=
