@@ -27,7 +27,17 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 )
 
+func skipUnlessConfigured(t *testing.T) {
+	t.Helper()
+	for _, key := range []string{"OSS_ENDPOINT", "OSS_AK", "OSS_SK", "OSS_BUCKET"} {
+		if os.Getenv(key) == "" {
+			t.Skipf("%s is not set", key)
+		}
+	}
+}
+
 func TestBigFileMove(t *testing.T) {
+	skipUnlessConfigured(t)
 	ctx := context.Background()
 	var config = config.Configuration{
 		Storage: config.ConfigurationStorage{
@@ -72,6 +82,7 @@ func TestBigFileMove(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	skipUnlessConfigured(t)
 	ctx := context.Background()
 	var config = config.Configuration{
 		Storage: config.ConfigurationStorage{
@@ -101,6 +112,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestMultiUpload(t *testing.T) {
+	skipUnlessConfigured(t)
 	ctx := context.Background()
 	var config = config.Configuration{
 		Storage: config.ConfigurationStorage{
