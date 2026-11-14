@@ -31,7 +31,7 @@ func TestService(t *testing.T) {
 
 	gotConfig, err := service.GetConfig(t.Context())
 	require.NoError(t, err)
-	require.Equal(t, *configuration, gotConfig)
+	require.Same(t, configuration, gotConfig)
 
 	endpoint, err := service.GetEndpoint(t.Context())
 	require.NoError(t, err)
