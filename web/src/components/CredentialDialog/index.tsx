@@ -44,6 +44,29 @@ function notifyError(error: any) {
   });
 }
 
+// oauthAuthorize returns the provider-specific OAuth authorize URL and scope.
+// Gitea uses /login/oauth/authorize and colon-separated scopes, unlike GitHub
+// and GitLab.
+function oauthAuthorize(provider: ICodeRepositoryProviderItem) {
+  switch (provider.provider) {
+    case "github":
+      return {
+        url: "https://github.com/login/oauth/authorize",
+        scope: "repo",
+      };
+    case "gitea":
+      return {
+        url: `${provider.base_url}/login/oauth/authorize`,
+        scope: "read:user",
+      };
+    default:
+      return {
+        url: `${provider.base_url}/oauth/authorize`,
+        scope: "repo",
+      };
+  }
+}
+
 export default function ({
   localServer,
   provider,
@@ -62,6 +85,7 @@ export default function ({
   const [token, setToken] = useState("");
   const [saving, setSaving] = useState(false);
   const [clientID, setClientID] = useState("");
+  const oauth = oauthAuthorize(provider);
 
   const submit = () => {
     setSaving(true);
@@ -134,15 +158,11 @@ export default function ({
               <span>{t("codeRepository.oauthLinkHint")}</span>
               <a
                 className="underline"
-                href={`${
-                  provider.provider === "github"
-                    ? "https://github.com/login/oauth/authorize"
-                    : `${provider.base_url}/oauth/authorize`
-                }?client_id=${clientID}&redirect_uri=${encodeURIComponent(
+                href={`${oauth.url}?client_id=${clientID}&redirect_uri=${encodeURIComponent(
                   `${endpoint}/api/v1/oauth2/${provider.provider}/redirect_callback?endpoint=${encodeURIComponent(
                     location.protocol + "//" + location.host,
                   )}`,
-                )}&scope=repo`}
+                )}&scope=${encodeURIComponent(oauth.scope)}`}
                 onMouseEnter={loadClientID}
                 onClick={loadClientID}
               >

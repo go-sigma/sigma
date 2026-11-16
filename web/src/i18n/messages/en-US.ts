@@ -31,7 +31,7 @@ const enUS = {
   "codeRepository.credentialTitle": "Source code credential",
   "codeRepository.credentialToken": "Access token",
   "codeRepository.tokenPlaceholder": "personal access token",
-  "codeRepository.tokenHint": "GitHub needs the repo and read:org scopes, GitLab needs api and read_repository. The token is stored encrypted and never returned.",
+  "codeRepository.tokenHint": "GitHub needs the repo and read:org scopes, GitLab needs api and read_repository, Gitea needs read:repository and read:user. The token is stored encrypted and never returned.",
   "codeRepository.oauthLinkHint": "You can also link this account with OAuth. The issued token is not stored, so an access token is still required for syncing.",
   "codeRepository.oauthLink": "Link account with OAuth",
   "common.confirm": "Confirm",
