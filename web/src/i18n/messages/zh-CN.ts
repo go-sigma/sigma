@@ -33,7 +33,7 @@ const zhCN: Record<keyof typeof enUS, string> = {
   "codeRepository.credentialTitle": "代码仓库凭据",
   "codeRepository.credentialToken": "访问令牌",
   "codeRepository.tokenPlaceholder": "个人访问令牌",
-  "codeRepository.tokenHint": "GitHub 需要 repo 与 read:org 权限，GitLab 需要 api 与 read_repository。令牌加密存储，接口不会回显。",
+  "codeRepository.tokenHint": "GitHub 需要 repo 与 read:org 权限，GitLab 需要 api 与 read_repository，Gitea 需要 read:repository 与 read:user。令牌加密存储，接口不会回显。",
   "codeRepository.oauthLinkHint": "也可以用 OAuth 绑定账号。但 OAuth 下发的令牌不会保存，同步仍然需要访问令牌。",
   "codeRepository.oauthLink": "使用 OAuth 绑定账号",
   "common.confirm": "确认",

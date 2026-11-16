@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"code.gitea.io/sdk/gitea"
 	"github.com/google/go-github/v74/github"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"go.uber.org/dig"
@@ -117,6 +118,9 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 		}
 	case enums.ProviderGitea:
 		baseURL := s.scmBaseURL(provider)
+		if baseURL == "" {
+			return "", "", "", "", "", errcode.HTTPErrCodeBadRequest.Detail("gitea base URL is not configured")
+		}
 		conf = &oauth2.Config{
 			ClientID:     s.Config.Auth.Oauth2.Gitea.ClientID,
 			ClientSecret: s.Config.Auth.Oauth2.Gitea.ClientSecret,
@@ -176,7 +180,24 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 			Email:    user.Email,
 		}
 	case enums.ProviderGitea:
-		// gitea.NewClient("", gitea.SetHTTPClient(client))
+		gtClient, err := gitea.NewClient(s.scmBaseURL(provider),
+			gitea.SetToken(oauth2Token.AccessToken),
+			gitea.SetContext(ctx))
+		if err != nil {
+			slog.Error("create gitea client failed", "err", err)
+			return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Create gitea client failed: %v", err))
+		}
+		user, _, err := gtClient.GetMyUserInfo()
+		if err != nil {
+			slog.Error("get user info failed", "err", err)
+			return "", "", "", "", "", errcode.HTTPErrCodeInternalError.Detail(fmt.Sprintf("Get user info failed: %v", err))
+		}
+		userInfo = api.Oauth2UserInfo{
+			Provider: provider,
+			ID:       strconv.FormatInt(user.ID, 10),
+			Username: user.UserName,
+			Email:    user.Email,
+		}
 	}
 
 	var userExist = true
@@ -282,8 +303,9 @@ func (s *service) Callback(ctx context.Context, provider enums.Provider, code st
 	return user3rdPartyObj.User.ID, user3rdPartyObj.User.Username, ptr.To(user3rdPartyObj.User.Email), accessToken, refreshToken, nil
 }
 
-// scmBaseURL returns the base URL of a provider from the scm configuration, falling back to
-// the hosted endpoint when the provider is not configured.
+// scmBaseURL returns the base URL of a provider from the scm configuration,
+// falling back to the hosted endpoint for GitHub and GitLab. Gitea is
+// self-hosted, so it returns "" when no scm.providers entry is configured.
 func (s *service) scmBaseURL(provider enums.Provider) string {
 	if scmProvider, ok := s.Config.ScmProvider(provider); ok && scmProvider.BaseURL != "" {
 		return scmProvider.BaseURL
@@ -293,6 +315,9 @@ func (s *service) scmBaseURL(provider enums.Provider) string {
 		return "https://github.com"
 	case enums.ProviderGitlab:
 		return "https://gitlab.com"
+	case enums.ProviderGitea:
+		// Gitea is self-hosted and has no hosted fallback.
+		return ""
 	}
 	return ""
 }
