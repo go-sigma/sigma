@@ -16,7 +16,6 @@ spec:
     metadata:
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
-        checksum/nginx-conf: {{ include (print $.Template.BasePath "/web/nginx-configmap.yaml") . | sha256sum | quote }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -50,19 +49,13 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
           volumeMounts:
-            - name: tmp
-              mountPath: /tmp
-            - name: nginx-conf
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
-              readOnly: true
             - name: config
               mountPath: /etc/sigma/config.yaml
               subPath: config.yaml
@@ -74,11 +67,6 @@ spec:
             {{- toYaml .Values.resources.web | nindent 12 }}
             {{- end }}
       volumes:
-        - name: tmp
-          emptyDir: {}
-        - name: nginx-conf
-          configMap:
-            name: {{ include "sigma.web" . | quote }}
         - name: config
           configMap:
             name: {{ printf "%s-config" ( include "sigma.fullname" . ) | quote }}

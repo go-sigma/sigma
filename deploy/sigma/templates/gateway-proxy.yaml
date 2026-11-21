@@ -1,0 +1,28 @@
+{{- if and .Values.gateway.enabled .Values.gateway.create .Values.gateway.compression.enabled (eq .Values.gateway.className "nginx") }}
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: {{ include "sigma.fullname" . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "sigma.labels" . | nindent 4 }}
+spec:
+  compression:
+    type: gzip
+    level: {{ .Values.gateway.compression.level }}
+    minLength: {{ .Values.gateway.compression.minLength }}
+    mimeTypes:
+      {{- range .Values.gateway.compression.mimeTypes }}
+      - {{ . | quote }}
+      {{- end }}
+    gzip:
+      vary: {{ .Values.gateway.compression.vary }}
+      proxied:
+        {{- range .Values.gateway.compression.proxied }}
+        - {{ . | quote }}
+        {{- end }}
+      disable:
+        {{- range .Values.gateway.compression.disable }}
+        - {{ . | quote }}
+        {{- end }}
+{{- end }}

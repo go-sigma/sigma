@@ -13,6 +13,13 @@ metadata:
   {{- end }}
 spec:
   gatewayClassName: {{ .Values.gateway.className | quote }}
+  {{- if and .Values.gateway.compression.enabled (eq .Values.gateway.className "nginx") }}
+  infrastructure:
+    parametersRef:
+      group: gateway.nginx.org
+      kind: NginxProxy
+      name: {{ include "sigma.fullname" . | quote }}
+  {{- end }}
   listeners:
     - name: http
       {{- if .Values.gateway.hostname }}

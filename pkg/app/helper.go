@@ -53,6 +53,7 @@ import (
 	"github.com/go-sigma/sigma/pkg/service/password"
 	"github.com/go-sigma/sigma/pkg/service/token"
 	"github.com/go-sigma/sigma/pkg/storage"
+	"github.com/go-sigma/sigma/pkg/web"
 )
 
 // GinServerParams declares the dependencies needed to construct the gin engine.
@@ -178,8 +179,8 @@ func NewGinServer(params GinServerParams) (*gin.Engine, error) {
 		}))
 	}
 
-	if staticServer := newStaticServer(params.Config); staticServer != nil {
-		staticServer.Register(e)
+	if staticServer := web.NewStatic(params.Config); staticServer != nil {
+		e.NoRoute(staticServer.Serve)
 	}
 
 	return e, nil

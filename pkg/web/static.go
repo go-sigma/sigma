@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package app
+package web
 
 import (
 	"fmt"
@@ -28,21 +28,24 @@ import (
 	"github.com/go-sigma/sigma/pkg/config"
 )
 
-const staticIndexFile = "index.html"
+const (
+	staticIndexFile    = "index.html"
+	staticSwaggerPath  = "/swagger"
+	staticSwaggerIndex = staticSwaggerPath + "/"
+)
 
-// staticServer serves the built web UI. It replaces the nginx static file
-// server: files are streamed from disk with sendfile, responses carry a
-// metadata ETag so conditional requests get a 304, and http.ServeContent
-// handles Range requests.
-type staticServer struct {
+// Static serves the built web UI. It replaces the nginx static file server:
+// files are streamed from disk, responses carry a metadata ETag so conditional
+// requests get a 304, and http.ServeContent handles Range requests.
+type Static struct {
 	root  string
 	index string
 	cfg   config.ConfigurationHTTPStatic
 }
 
-// newStaticServer returns nil when static serving is disabled or the web root
-// is unusable, so a server without a web build keeps running.
-func newStaticServer(cfg *config.Configuration) *staticServer {
+// NewStatic returns nil when static serving is disabled or the web root is
+// unusable, so a server without a web build keeps running.
+func NewStatic(cfg *config.Configuration) *Static {
 	staticCfg := cfg.HTTP.Static
 	if !staticCfg.IsEnabled() {
 		return nil
@@ -65,26 +68,43 @@ func newStaticServer(cfg *config.Configuration) *staticServer {
 	}
 
 	slog.Info("static: serving web UI", "dir", root, "spa", staticCfg.SpaEnabled())
-	return &staticServer{root: root, index: index, cfg: staticCfg}
+	return &Static{root: root, index: index, cfg: staticCfg}
 }
 
-// Register installs the static handler as the router fallback. Routes that the
-// server owns keep precedence, and unknown API paths stay 404s.
-func (s *staticServer) Register(e *gin.Engine) {
-	e.NoRoute(s.handle)
-}
-
-func (s *staticServer) handle(c *gin.Context) {
+// Serve answers a request from the web root. Install it as a router fallback
+// so the routes the server owns keep precedence and unknown API paths stay
+// 404s.
+func (s *Static) Serve(c *gin.Context) {
 	if c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead {
 		http.NotFound(c.Writer, c.Request)
 		return
 	}
 
 	urlPath := c.Request.URL.Path
+	if urlPath == staticSwaggerPath {
+		// Swagger UI resolves its assets relative to the page URL, so the
+		// trailing slash is required.
+		c.Redirect(http.StatusMovedPermanently, staticSwaggerIndex)
+		return
+	}
+	if strings.HasPrefix(urlPath, staticSwaggerIndex) {
+		// The swagger UI is a static bundle inside the web root. A missing file
+		// is a real 404 and never falls back to the application shell.
+		if !s.serveFile(c, urlPath) {
+			http.NotFound(c.Writer, c.Request)
+		}
+		return
+	}
+
 	if isReservedPath(urlPath) {
 		http.NotFound(c.Writer, c.Request)
 		return
 	}
+
+	// Keep the headers the nginx front end added to the web UI. Swagger is
+	// skipped above because it is a separate bundle.
+	c.Header("X-Frame-Options", "DENY")
+	c.Header("Content-Security-Policy", "frame-ancestors 'none'")
 
 	if s.serveFile(c, urlPath) {
 		return
@@ -101,7 +121,7 @@ func (s *staticServer) handle(c *gin.Context) {
 }
 
 // serveFile serves a root-relative URL path and reports whether it exists.
-func (s *staticServer) serveFile(c *gin.Context, urlPath string) bool {
+func (s *Static) serveFile(c *gin.Context, urlPath string) bool {
 	webPath := cleanWebPath(urlPath)
 	full := filepath.Join(s.root, filepath.FromSlash(webPath))
 
@@ -140,13 +160,13 @@ func cleanWebPath(urlPath string) string {
 // isReservedPath reports whether the server owns the path. Unknown paths below
 // these prefixes must not fall back to index.html.
 func isReservedPath(urlPath string) bool {
-	for _, prefix := range []string{"/api/", "/v2/", "/swagger/", "/__debug/"} {
+	for _, prefix := range []string{"/api/", "/v2/", "/__debug/"} {
 		if strings.HasPrefix(urlPath, prefix) {
 			return true
 		}
 	}
 	switch urlPath {
-	case "/api", "/v2", "/swagger", "/metrics", "/healthz", "/readyz", "/livez":
+	case "/api", "/v2", "/metrics", "/healthz", "/readyz", "/livez":
 		return true
 	}
 	return false
