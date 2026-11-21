@@ -1,6 +1,7 @@
 {{- $secretName := include "sigma.secret" . }}
 {{- $adminUser := .Values.config.auth.admin.username | default "sigma" }}
-{{- $portForward := printf "kubectl -n %s port-forward svc/%s 8080:80" .Release.Namespace (include "sigma.web" .) }}
+{{- $webPortForward := printf "kubectl -n %s port-forward svc/%s 8080:80" .Release.Namespace (include "sigma.web" .) }}
+{{- $serverPortForward := printf "kubectl -n %s port-forward svc/%s 3000:3000" .Release.Namespace (include "sigma.server" .) }}
 {{- $passwordCmd := printf "kubectl -n %s get secret %s -o jsonpath='{.data.SIGMA_AUTH_ADMIN_PASSWORD}' | base64 -d" .Release.Namespace $secretName }}
 Thank you for installing {{ .Chart.Name }}.
 
@@ -24,21 +25,21 @@ Thank you for installing {{ .Chart.Name }}.
 {{- end }}
 {{- else }}
 
-     {{ $portForward }}
+     {{ $webPortForward }}
 
    Then open http://localhost:8080/
 {{- end }}
 
 3. Docker login and push
-   Start a port-forward for the web service (it proxies /v2/ to the registry):
+   Start a port-forward for the server service:
 
-     {{ $portForward }}
+     {{ $serverPortForward }}
 
    Then log in and push:
 
-     docker login localhost:8080 -u {{ $adminUser }}
-     docker tag <image> localhost:8080/<namespace>/<repository>:<tag>
-     docker push localhost:8080/<namespace>/<repository>:<tag>
+     docker login localhost:3000 -u {{ $adminUser }}
+     docker tag <image> localhost:3000/<namespace>/<repository>:<tag>
+     docker push localhost:3000/<namespace>/<repository>:<tag>
 
    The login password is the administrator password from step 1.
 

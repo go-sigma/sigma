@@ -8,20 +8,14 @@ image:
   ## main image contain all of the sigma logic
   repository: go-sigma/sigma
   tag: latest
-  ## the web image reuses the server image and runs nginx to serve the built frontend files
+  ## the web image reuses the server image and runs the standalone web front end
   web:
     repository: go-sigma/sigma
     tag: latest
     command:
-      - nginx
-    args:
-      # -e writes the pre-config error log to stderr; without it nginx tries the
-      # compiled-in /var/lib/nginx/logs/error.log, which is not writable by the
-      # non-root sigma user and logs a harmless "permission denied" alert.
-      - -e
-      - /dev/stderr
-      - -g
-      - daemon off;
+      - sigma
+      - web
+    args: []
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -65,6 +59,25 @@ gateway:
   # rejects blob uploads with 413, so 0 (unlimited) matches the web image.
   # Set to "" to leave it unmanaged.
   clientMaxBodySize: "0"
+  # Response compression is handled by the gateway data plane through an
+  # NginxProxy, so the server does not compress anything itself. Requires
+  # NGINX Gateway Fabric >= 2.7 (NginxProxy v1alpha2) and className "nginx".
+  compression:
+    enabled: false
+    level: 5
+    minLength: 1024
+    mimeTypes:
+      - text/plain
+      - text/css
+      - text/javascript
+      - application/javascript
+      - application/json
+      - image/svg+xml
+    proxied:
+      - any
+    vary: true
+    disable:
+      - msie6
   paths:
     - name: server
       path: /api/v1/
@@ -179,6 +192,16 @@ config:
   http:
     server: 0.0.0.0:3000
     worker: 0.0.0.0:3001
+    static:
+      # Serve the built web UI from the server itself; the chart no longer runs
+      # a separate nginx deployment.
+      enabled: true
+      dir: /app
+      spa: true
+      cacheControl: no-cache
+      immutablePrefixes:
+        - /assets/
+      immutableCacheControl: public, max-age=31536000, immutable
     timeout:
       readHeader: 30s
       # read and write cover full push/pull transfers; increase them for very large images or slow links

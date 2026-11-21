@@ -69,6 +69,16 @@ data:
         default: {{ .Values.config.http.bodyLimit.default }}
         manifest: {{ .Values.config.http.bodyLimit.manifest }}
         blob: {{ .Values.config.http.bodyLimit.blob }}
+      static:
+        enabled: {{ .Values.config.http.static.enabled }}
+        dir: {{ .Values.config.http.static.dir | quote }}
+        spa: {{ .Values.config.http.static.spa }}
+        cacheControl: {{ .Values.config.http.static.cacheControl | quote }}
+        immutablePrefixes:
+          {{- range .Values.config.http.static.immutablePrefixes }}
+          - {{ . | quote }}
+          {{- end }}
+        immutableCacheControl: {{ .Values.config.http.static.immutableCacheControl | quote }}
     daemon:
       builder:
         enabled: {{ .Values.config.daemon.builder.enabled }}

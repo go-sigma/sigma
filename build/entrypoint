@@ -1,9 +1,0 @@
-#!/bin/sh
-set -e
-
-if [ "$#" -gt 0 ]; then
-  exec "$@"
-fi
-
-nginx -e /dev/stderr -c /etc/nginx/nginx.conf
-exec sigma server --config=/etc/sigma/config.yaml

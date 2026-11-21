@@ -144,11 +144,9 @@ ARG USE_MIRROR=false
 
 RUN set -eux && \
   if [ "$USE_MIRROR" = true ]; then sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories; fi && \
-  apk add --no-cache ca-certificates mailcap nginx tini tzdata && \
+  apk add --no-cache ca-certificates mailcap tzdata && \
   install -d -m 0755 /etc/sigma
 
-COPY --chmod=0755 ./build/entrypoint /usr/local/bin/sigma-server-entrypoint
-COPY --chmod=0644 ./conf/default.conf.template /etc/nginx/nginx.conf
 COPY --chmod=0644 ./conf/config.yaml /etc/sigma/config.yaml
 
 COPY --from=syft --chmod=0755 /usr/local/bin/syft /usr/local/bin/syft
@@ -157,7 +155,7 @@ COPY --from=grype --chmod=0755 /usr/local/bin/grype /usr/local/bin/grype
 COPY --from=grype --chown=1001:1001 --chmod=0755 /opt/grype/ /opt/grype/
 COPY --from=server --chmod=0755 /go/src/github.com/go-sigma/sigma/bin/sigma /usr/local/bin/sigma
 COPY --from=web --chmod=755 /web/dist /app
-COPY --from=swagger --chmod=0755 /app/swag /app/swag
+COPY --from=swagger --chmod=0755 /app/swag /app/swagger
 
 RUN adduser --disabled-password -h /home/sigma -s /bin/sh -u 1001 sigma && \
   install -d -o 1001 -g 1001 /var/lib/sigma /code/
@@ -166,7 +164,7 @@ WORKDIR /home/sigma
 
 USER sigma
 
-CMD ["tini", "--", "sigma-server-entrypoint"]
+CMD ["sigma", "server", "--config=/etc/sigma/config.yaml"]
 
 # =============================================================
 # sigma-builder  (originally Dockerfile.builder, bake target: sigma-builder)

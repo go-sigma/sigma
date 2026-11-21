@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package app
+package web
 
 import (
 	"net/http"
@@ -28,7 +28,10 @@ import (
 	"github.com/go-sigma/sigma/pkg/testkit"
 )
 
-const testIndexHTML = "<html>sigma</html>"
+const (
+	testIndexHTML   = "<html>sigma</html>"
+	testSwaggerHTML = "<html>swagger</html>"
+)
 
 // newStaticTestEngine builds an engine that serves a small fake web build.
 func newStaticTestEngine(t *testing.T) *gin.Engine {
@@ -36,8 +39,11 @@ func newStaticTestEngine(t *testing.T) *gin.Engine {
 
 	root := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(root, "assets"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "swagger"), 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "index.html"), []byte(testIndexHTML), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "assets", "app.js"), []byte("console.log('ok')"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "swagger", "index.html"), []byte(testSwaggerHTML), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "swagger", "swagger-ui.css"), []byte("body{}"), 0o600))
 
 	enabled := true
 	cfg := &config.Configuration{HTTP: config.ConfigurationHTTP{
@@ -45,11 +51,11 @@ func newStaticTestEngine(t *testing.T) *gin.Engine {
 	}}
 	cfg.WithDefaults()
 
-	server := newStaticServer(cfg)
+	server := NewStatic(cfg)
 	require.NotNil(t, server)
 
 	e := testkit.NewGin()
-	server.Register(e)
+	e.NoRoute(server.Serve)
 	return e
 }
 
@@ -122,7 +128,7 @@ func TestStaticMissingAssetIsNotFound(t *testing.T) {
 func TestStaticReservedAPIPathIsNotFound(t *testing.T) {
 	e := newStaticTestEngine(t)
 
-	for _, target := range []string{"/api/v1/unknown", "/v2/unknown", "/swagger/"} {
+	for _, target := range []string{"/api/v1/unknown", "/v2/unknown"} {
 		rec := serveStaticRequest(e, httptest.NewRequest(http.MethodGet, target, nil))
 		require.Equal(t, http.StatusNotFound, rec.Code, target)
 		require.NotContains(t, rec.Body.String(), testIndexHTML, target)
@@ -149,12 +155,49 @@ func TestNewStaticServerDisabledOrMissingRoot(t *testing.T) {
 		Static: config.ConfigurationHTTPStatic{Enabled: &disabled},
 	}}
 	cfg.WithDefaults()
-	require.Nil(t, newStaticServer(cfg))
+	require.Nil(t, NewStatic(cfg))
 
 	enabled := true
 	cfg = &config.Configuration{HTTP: config.ConfigurationHTTP{
 		Static: config.ConfigurationHTTPStatic{Enabled: &enabled, Dir: filepath.Join(t.TempDir(), "missing")},
 	}}
 	cfg.WithDefaults()
-	require.Nil(t, newStaticServer(cfg))
+	require.Nil(t, NewStatic(cfg))
+}
+
+func TestStaticServesSwaggerUI(t *testing.T) {
+	e := newStaticTestEngine(t)
+
+	rec := serveStaticRequest(e, httptest.NewRequest(http.MethodGet, "/swagger", nil))
+	require.Equal(t, http.StatusMovedPermanently, rec.Code)
+	require.Equal(t, "/swagger/", rec.Header().Get("Location"))
+
+	rec = serveStaticRequest(e, httptest.NewRequest(http.MethodGet, "/swagger/", nil))
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, testSwaggerHTML, rec.Body.String())
+
+	rec = serveStaticRequest(e, httptest.NewRequest(http.MethodGet, "/swagger/swagger-ui.css", nil))
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, "body{}", rec.Body.String())
+}
+
+func TestStaticMissingSwaggerFileIsNotFound(t *testing.T) {
+	e := newStaticTestEngine(t)
+
+	for _, target := range []string{"/swagger/missing.css", "/swagger/missing-route"} {
+		rec := serveStaticRequest(e, httptest.NewRequest(http.MethodGet, target, nil))
+		require.Equal(t, http.StatusNotFound, rec.Code, target)
+		require.NotContains(t, rec.Body.String(), testIndexHTML, target)
+	}
+}
+
+func TestStaticSecurityHeaders(t *testing.T) {
+	e := newStaticTestEngine(t)
+
+	for _, target := range []string{"/", "/assets/app.js"} {
+		rec := serveStaticRequest(e, httptest.NewRequest(http.MethodGet, target, nil))
+		require.Equal(t, http.StatusOK, rec.Code, target)
+		require.Equal(t, "DENY", rec.Header().Get("X-Frame-Options"), target)
+		require.Equal(t, "frame-ancestors 'none'", rec.Header().Get("Content-Security-Policy"), target)
+	}
 }

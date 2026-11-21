@@ -122,6 +122,8 @@ const (
 	WorkerPort = "0.0.0.0:3001"
 	// DistributionPort distribution port
 	DistributionPort = "0.0.0.0:3002"
+	// WebPort web front end port
+	WebPort = "0.0.0.0:8080"
 )
 
 const (

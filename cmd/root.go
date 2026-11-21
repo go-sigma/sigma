@@ -29,6 +29,7 @@ import (
 	"github.com/go-sigma/sigma/cmd/distribution"
 	"github.com/go-sigma/sigma/cmd/server"
 	"github.com/go-sigma/sigma/cmd/tools"
+	"github.com/go-sigma/sigma/cmd/web"
 	"github.com/go-sigma/sigma/cmd/worker"
 	"github.com/go-sigma/sigma/pkg/config"
 	"github.com/go-sigma/sigma/pkg/logger"
@@ -66,6 +67,7 @@ which can be deployed on any cloud platform or on-premises.`,
 	cmd.AddCommand(worker.NewCmdWorker())
 	cmd.AddCommand(tools.NewCmdTools())
 	cmd.AddCommand(distribution.NewCmdDistribution())
+	cmd.AddCommand(web.NewCmdWeb())
 	cmd.AddCommand(builder.NewCmdBuilder())
 	return cmd
 }
