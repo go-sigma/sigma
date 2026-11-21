@@ -40,7 +40,7 @@ all: build
 ## Build:
 .PHONY: build
 build: ## Build sigma and put the output binary in ./bin
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" go build $(GOFLAGS) -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=1 GO111MODULE=on CC="$(CC)" CXX="$(CXX)" go build $(GOFLAGS) -tags "exclude_graphdriver_btrfs,containers_image_openpgp" -o bin/$(BINARY_NAME) -v .
 
 .PHONY: build-cli
 build-cli: ## Build sigma CLI and put the output binary in ./bin
@@ -64,7 +64,7 @@ lint-dockerfile: ## Lint Dockerfiles
 
 .PHONY: lint-go
 lint-go: ## Run golangci-lint
-	@golangci-lint run --timeout=10m --build-tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp"
+	@golangci-lint run --timeout=10m --build-tags "exclude_graphdriver_btrfs,containers_image_openpgp"
 
 ## Image:
 .PHONY: image-build

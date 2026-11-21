@@ -216,14 +216,14 @@ jobs:
               echo "warming turso native library cache" | tee -a test-results/unit-test.log
               CI_DATABASE_TYPE="${database_type}" \
                 go test -count=1 -run '^TestInitialize$' -v \
-                  -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+                  -tags "exclude_graphdriver_btrfs,containers_image_openpgp" \
                   ./pkg/dal >>test-results/unit-test.log 2>&1
             fi
             CI_DATABASE_TYPE="${database_type}" \
               COS_ENDPOINT="${cos_endpoint}" \
               OSS_BUCKET="${oss_bucket}" \
               go test -parallel 1 -failfast \
-                -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+                -tags "exclude_graphdriver_btrfs,containers_image_openpgp" \
                 -timeout 30m -v \
                 -coverprofile="${coverage_file}" -covermode=atomic \
                 "${test_packages[@]}" 2>&1 | tee -a test-results/unit-test.log
