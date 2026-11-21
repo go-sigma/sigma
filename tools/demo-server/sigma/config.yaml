@@ -75,6 +75,22 @@ http:
   internalEndpoint:
   # eg: http://sigma-distribution:3000
   internalDistributionEndpoint:
+  # Serve the built web UI from the server itself instead of a separate nginx.
+  # The sigma-server image ships the web UI in /app; set dir to ./web/dist when
+  # running the server from the repository.
+  static:
+    enabled: true
+    dir: /app
+    # Fall back to index.html for unknown routes without a file extension.
+    spa: true
+    # index.html and other non-fingerprinted files must be revalidated on every
+    # load, otherwise a new release can reference assets the browser never sees.
+    cacheControl: no-cache
+    # Fingerprinted files can be cached forever because their name changes with
+    # their content.
+    immutablePrefixes:
+      - /assets/
+    immutableCacheControl: public, max-age=31536000, immutable
   tls:
     enabled: false
     certificate: ./conf/sigma.test.io.crt

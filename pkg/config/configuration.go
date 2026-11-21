@@ -473,6 +473,59 @@ func (c *ConfigurationHTTPTimeout) WithDefaults() {
 	}
 }
 
+// ConfigurationHTTPStatic configures serving the built web UI from the HTTP
+// server itself, which removes the need for a separate nginx front end.
+type ConfigurationHTTPStatic struct {
+	Enabled      *bool  `yaml:"enabled"`
+	Dir          string `yaml:"dir"`
+	Spa          *bool  `yaml:"spa"`
+	CacheControl string `yaml:"cacheControl"`
+	// ImmutablePrefixes lists the URL prefixes that hold content-addressed files,
+	// such as Vite's /assets output, which can be cached forever because their
+	// name changes whenever their content does.
+	ImmutablePrefixes     []string `yaml:"immutablePrefixes"`
+	ImmutableCacheControl string   `yaml:"immutableCacheControl"`
+}
+
+// IsEnabled reports whether the HTTP server serves the web UI. Static file
+// serving stays off unless it is enabled explicitly.
+func (c ConfigurationHTTPStatic) IsEnabled() bool {
+	return c.Enabled != nil && *c.Enabled
+}
+
+// SpaEnabled reports whether an unknown route without a file extension falls
+// back to index.html, as a single-page application needs.
+func (c ConfigurationHTTPStatic) SpaEnabled() bool {
+	return c.Spa == nil || *c.Spa
+}
+
+// CacheControlFor returns the Cache-Control header value for a file below the
+// web root, given its root-relative path (for example /assets/app-123.js).
+func (c ConfigurationHTTPStatic) CacheControlFor(webPath string) string {
+	for _, prefix := range c.ImmutablePrefixes {
+		if prefix != "" && strings.HasPrefix(webPath, prefix) {
+			return c.ImmutableCacheControl
+		}
+	}
+	return c.CacheControl
+}
+
+// WithDefaults applies default values for static file serving.
+func (c *ConfigurationHTTPStatic) WithDefaults() {
+	if c.Dir == "" {
+		c.Dir = "/app"
+	}
+	if c.CacheControl == "" {
+		c.CacheControl = "no-cache"
+	}
+	if len(c.ImmutablePrefixes) == 0 {
+		c.ImmutablePrefixes = []string{"/assets/"}
+	}
+	if c.ImmutableCacheControl == "" {
+		c.ImmutableCacheControl = "public, max-age=31536000, immutable"
+	}
+}
+
 // ConfigurationHTTP configures the HTTP server endpoints, TLS, request body-size limits and timeouts.
 type ConfigurationHTTP struct {
 	Endpoint                     string                     `yaml:"endpoint"`
@@ -481,6 +534,7 @@ type ConfigurationHTTP struct {
 	TLS                          ConfigurationHttpTLS       `yaml:"tls"`
 	BodyLimit                    ConfigurationHTTPBodyLimit `yaml:"bodyLimit"`
 	Timeout                      ConfigurationHTTPTimeout   `yaml:"timeout"`
+	Static                       ConfigurationHTTPStatic    `yaml:"static"`
 }
 
 // WithDefaults applies default values for HTTP.
@@ -493,6 +547,7 @@ func (c *ConfigurationHTTP) WithDefaults() {
 	}
 	c.BodyLimit.WithDefaults()
 	c.Timeout.WithDefaults()
+	c.Static.WithDefaults()
 }
 
 // BuilderEndpoint returns the endpoint the builder container must use to push the image and call

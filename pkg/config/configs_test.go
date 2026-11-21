@@ -151,6 +151,47 @@ http:
 	require.Equal(t, 30*time.Second, cfg.HTTP.Timeout.IdleTimeout())
 }
 
+func TestConfigurationHTTPStaticDefaults(t *testing.T) {
+	var static ConfigurationHTTPStatic
+	static.WithDefaults()
+	require.False(t, static.IsEnabled())
+	require.True(t, static.SpaEnabled())
+	require.Equal(t, "/app", static.Dir)
+	require.Equal(t, []string{"/assets/"}, static.ImmutablePrefixes)
+	require.Equal(t, "no-cache", static.CacheControlFor("/index.html"))
+	require.Equal(t, "public, max-age=31536000, immutable", static.CacheControlFor("/assets/index-abc.js"))
+
+	enabled := true
+	spa := false
+	static = ConfigurationHTTPStatic{Enabled: &enabled, Spa: &spa}
+	static.WithDefaults()
+	require.True(t, static.IsEnabled())
+	require.False(t, static.SpaEnabled())
+}
+
+func TestConfigurationHTTPStaticUnmarshal(t *testing.T) {
+	var cfg Configuration
+	err := yaml.Unmarshal([]byte(`
+http:
+  static:
+    enabled: true
+    dir: ./web/dist
+    spa: false
+    cacheControl: max-age=60
+    immutablePrefixes:
+      - /static/
+    immutableCacheControl: max-age=31536000, immutable
+`), &cfg)
+	require.NoError(t, err)
+
+	cfg.WithDefaults()
+	require.True(t, cfg.HTTP.Static.IsEnabled())
+	require.False(t, cfg.HTTP.Static.SpaEnabled())
+	require.Equal(t, "./web/dist", cfg.HTTP.Static.Dir)
+	require.Equal(t, "max-age=60", cfg.HTTP.Static.CacheControlFor("/index.html"))
+	require.Equal(t, "max-age=31536000, immutable", cfg.HTTP.Static.CacheControlFor("/static/app.js"))
+}
+
 func TestConfigurationApplyEnvOverrides(t *testing.T) {
 	t.Setenv("SIGMA_DATABASE_MYSQL_PASSWORD", "mysql-env")
 	t.Setenv("SIGMA_DATABASE_POSTGRESQL_PASSWORD", "postgresql-env")

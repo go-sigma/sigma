@@ -20,6 +20,7 @@ import (
 	"hash"
 	"hash/crc32"
 	"log/slog"
+	"net/http"
 	"reflect"
 	"slices"
 	"strings"
@@ -125,17 +126,11 @@ func NewGinServer(params GinServerParams) (*gin.Engine, error) {
 		},
 	}))
 	e.Use(etag.WithEtagConfig(etag.EtagConfig{
-		Skipper: func(c *gin.Context) bool {
-			reqPath := c.Request.URL.Path
-			if strings.HasPrefix(reqPath, "/api/v1/") {
-				return true
-			}
-			if strings.HasPrefix(reqPath, "/v2/") {
-				return true
-			}
-			return false
-		},
-		Weak: true,
+		// Only small GET/HEAD API responses are buffered to compute an ETag.
+		// Blob transfers under /v2 must stream, and static files carry an ETag
+		// derived from their metadata by the static handler.
+		Skipper: etagSkipper,
+		Weak:    true,
 		HashFn: func(config etag.EtagConfig) hash.Hash {
 			if config.Weak {
 				return crc32.New(crc32.MakeTable(0xD5828281))
@@ -182,7 +177,23 @@ func NewGinServer(params GinServerParams) (*gin.Engine, error) {
 			AuditRepository: params.AuditRepository,
 		}))
 	}
+
+	if staticServer := newStaticServer(params.Config); staticServer != nil {
+		staticServer.Register(e)
+	}
+
 	return e, nil
+}
+
+// etagSkipper restricts the ETag middleware to GET and HEAD API responses,
+// where buffering the body is cheap. Streaming blob transfers and static files,
+// which serve themselves with an ETag from the file metadata, are skipped.
+func etagSkipper(c *gin.Context) bool {
+	if c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead {
+		return true
+	}
+	reqPath := c.Request.URL.Path
+	return reqPath != consts.APIV1 && !strings.HasPrefix(reqPath, consts.APIV1+"/")
 }
 
 var skipAuthns = []string{"get:/api/v1/users/token", "get:/api/v1/users/signup", "get:/api/v1/users/create"}
