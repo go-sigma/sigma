@@ -103,6 +103,8 @@ http:
   # on the host, eg. http://sigma-distribution:3000 in docker-compose or
   # http://host.docker.internal:3000 when the server runs on the host and the builder in docker.
   internalDistributionEndpoint:
+  # These timeouts cover every request, including the web UI served when
+  # http.static is enabled.
   timeout:
     readHeader: 30s
     # read and write cover full push/pull transfers; increase them for very large images or slow links
@@ -118,6 +120,18 @@ http:
     manifest: 104857600
     # blob applies to /v2/<name>/blobs/uploads requests; increase for large image pushes
     blob: 10737418240
+  # Serve the built web UI from the server itself instead of a separate nginx.
+  # The sigma-server image ships the web UI in /app; set dir to ./web/dist when
+  # running the server from the repository.
+  static:
+    enabled: true
+    dir: /app
+    # Fall back to index.html for unknown routes without a file extension.
+    spa: true
+    cacheControl: no-cache
+    immutablePrefixes:
+      - /assets/
+    immutableCacheControl: public, max-age=31536000, immutable
   tls:
     enabled: false
     certificate: ./conf/sigma.test.io.crt
@@ -301,243 +315,251 @@ audit:
 
 ### 完整对照表
 
-按字母顺序排列，覆盖配置文件的每一个叶子节点。
+按字母顺序排列，覆盖配置文件的每一个叶子节点，并给出省略时生效的默认值。
+结构化列表（`namespace.initialize`、`scm.providers`）只能写在配置文件里，
+无法用环境变量覆盖，因此未列入表中。
 
 #### analytics
 
-| config path | environment variable |
-| --- | --- |
-| `analytics.backend` | `SIGMA_ANALYTICS_BACKEND` |
-| `analytics.counterBackend` | `SIGMA_ANALYTICS_COUNTERBACKEND` |
-| `analytics.enabled` | `SIGMA_ANALYTICS_ENABLED` |
-| `analytics.flushInterval` | `SIGMA_ANALYTICS_FLUSHINTERVAL` |
-| `analytics.reconcileCron` | `SIGMA_ANALYTICS_RECONCILECRON` |
-| `analytics.retentionDays` | `SIGMA_ANALYTICS_RETENTIONDAYS` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `analytics.backend` | `SIGMA_ANALYTICS_BACKEND` | `""` |
+| `analytics.counterBackend` | `SIGMA_ANALYTICS_COUNTERBACKEND` | `""` |
+| `analytics.enabled` | `SIGMA_ANALYTICS_ENABLED` | `false` |
+| `analytics.flushInterval` | `SIGMA_ANALYTICS_FLUSHINTERVAL` | `""` |
+| `analytics.reconcileCron` | `SIGMA_ANALYTICS_RECONCILECRON` | `""` |
+| `analytics.retentionDays` | `SIGMA_ANALYTICS_RETENTIONDAYS` | `0` |
 
 #### audit
 
-| config path | environment variable |
-| --- | --- |
-| `audit.cleanup.batchSize` | `SIGMA_AUDIT_CLEANUP_BATCHSIZE` |
-| `audit.cleanup.hardDeleteAfterMonths` | `SIGMA_AUDIT_CLEANUP_HARDDELETEAFTERMONTHS` |
-| `audit.cleanup.interval` | `SIGMA_AUDIT_CLEANUP_INTERVAL` |
-| `audit.cleanup.softDeleteAfterMonths` | `SIGMA_AUDIT_CLEANUP_SOFTDELETEAFTERMONTHS` |
-| `audit.enabled` | `SIGMA_AUDIT_ENABLED` |
-| `audit.recordListGet` | `SIGMA_AUDIT_RECORDLISTGET` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `audit.cleanup.batchSize` | `SIGMA_AUDIT_CLEANUP_BATCHSIZE` | `1000` |
+| `audit.cleanup.hardDeleteAfterMonths` | `SIGMA_AUDIT_CLEANUP_HARDDELETEAFTERMONTHS` | `6` |
+| `audit.cleanup.interval` | `SIGMA_AUDIT_CLEANUP_INTERVAL` | `168h` |
+| `audit.cleanup.softDeleteAfterMonths` | `SIGMA_AUDIT_CLEANUP_SOFTDELETEAFTERMONTHS` | `3` |
+| `audit.enabled` | `SIGMA_AUDIT_ENABLED` | `true` |
+| `audit.recordListGet` | `SIGMA_AUDIT_RECORDLISTGET` | `false` |
 
 #### auth
 
-| config path | environment variable |
-| --- | --- |
-| `auth.admin.email` | `SIGMA_AUTH_ADMIN_EMAIL` |
-| `auth.admin.password` | `SIGMA_AUTH_ADMIN_PASSWORD` |
-| `auth.admin.username` | `SIGMA_AUTH_ADMIN_USERNAME` |
-| `auth.anonymous.enabled` | `SIGMA_AUTH_ANONYMOUS_ENABLED` |
-| `auth.credentialKey` | `SIGMA_AUTH_CREDENTIALKEY` |
-| `auth.jwt.privateKey` | `SIGMA_AUTH_JWT_PRIVATEKEY` |
-| `auth.jwt.refreshTTL` | `SIGMA_AUTH_JWT_REFRESHTTL` |
-| `auth.jwt.ttl` | `SIGMA_AUTH_JWT_TTL` |
-| `auth.loginRateLimit.delay` | `SIGMA_AUTH_LOGINRATELIMIT_DELAY` |
-| `auth.loginRateLimit.enabled` | `SIGMA_AUTH_LOGINRATELIMIT_ENABLED` |
-| `auth.loginRateLimit.maxFailures` | `SIGMA_AUTH_LOGINRATELIMIT_MAXFAILURES` |
-| `auth.loginRateLimit.window` | `SIGMA_AUTH_LOGINRATELIMIT_WINDOW` |
-| `auth.oauth2.gitea.clientId` | `SIGMA_AUTH_OAUTH2_GITEA_CLIENTID` |
-| `auth.oauth2.gitea.clientSecret` | `SIGMA_AUTH_OAUTH2_GITEA_CLIENTSECRET` |
-| `auth.oauth2.gitea.enabled` | `SIGMA_AUTH_OAUTH2_GITEA_ENABLED` |
-| `auth.oauth2.github.clientId` | `SIGMA_AUTH_OAUTH2_GITHUB_CLIENTID` |
-| `auth.oauth2.github.clientSecret` | `SIGMA_AUTH_OAUTH2_GITHUB_CLIENTSECRET` |
-| `auth.oauth2.github.enabled` | `SIGMA_AUTH_OAUTH2_GITHUB_ENABLED` |
-| `auth.oauth2.gitlab.clientId` | `SIGMA_AUTH_OAUTH2_GITLAB_CLIENTID` |
-| `auth.oauth2.gitlab.clientSecret` | `SIGMA_AUTH_OAUTH2_GITLAB_CLIENTSECRET` |
-| `auth.oauth2.gitlab.enabled` | `SIGMA_AUTH_OAUTH2_GITLAB_ENABLED` |
-| `auth.token.realm` | `SIGMA_AUTH_TOKEN_REALM` |
-| `auth.token.service` | `SIGMA_AUTH_TOKEN_SERVICE` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `auth.admin.email` | `SIGMA_AUTH_ADMIN_EMAIL` | `""` |
+| `auth.admin.password` | `SIGMA_AUTH_ADMIN_PASSWORD` | `""` |
+| `auth.admin.username` | `SIGMA_AUTH_ADMIN_USERNAME` | `""` |
+| `auth.anonymous.enabled` | `SIGMA_AUTH_ANONYMOUS_ENABLED` | `false` |
+| `auth.credentialKey` | `SIGMA_AUTH_CREDENTIALKEY` | `""` |
+| `auth.jwt.privateKey` | `SIGMA_AUTH_JWT_PRIVATEKEY` | `""` |
+| `auth.jwt.refreshTTL` | `SIGMA_AUTH_JWT_REFRESHTTL` | `24h` |
+| `auth.jwt.ttl` | `SIGMA_AUTH_JWT_TTL` | `1h` |
+| `auth.loginRateLimit.delay` | `SIGMA_AUTH_LOGINRATELIMIT_DELAY` | `1s` |
+| `auth.loginRateLimit.enabled` | `SIGMA_AUTH_LOGINRATELIMIT_ENABLED` | `true` |
+| `auth.loginRateLimit.maxFailures` | `SIGMA_AUTH_LOGINRATELIMIT_MAXFAILURES` | `5` |
+| `auth.loginRateLimit.window` | `SIGMA_AUTH_LOGINRATELIMIT_WINDOW` | `5m` |
+| `auth.oauth2.gitea.clientId` | `SIGMA_AUTH_OAUTH2_GITEA_CLIENTID` | `""` |
+| `auth.oauth2.gitea.clientSecret` | `SIGMA_AUTH_OAUTH2_GITEA_CLIENTSECRET` | `""` |
+| `auth.oauth2.gitea.enabled` | `SIGMA_AUTH_OAUTH2_GITEA_ENABLED` | `false` |
+| `auth.oauth2.github.clientId` | `SIGMA_AUTH_OAUTH2_GITHUB_CLIENTID` | `""` |
+| `auth.oauth2.github.clientSecret` | `SIGMA_AUTH_OAUTH2_GITHUB_CLIENTSECRET` | `""` |
+| `auth.oauth2.github.enabled` | `SIGMA_AUTH_OAUTH2_GITHUB_ENABLED` | `false` |
+| `auth.oauth2.gitlab.clientId` | `SIGMA_AUTH_OAUTH2_GITLAB_CLIENTID` | `""` |
+| `auth.oauth2.gitlab.clientSecret` | `SIGMA_AUTH_OAUTH2_GITLAB_CLIENTSECRET` | `""` |
+| `auth.oauth2.gitlab.enabled` | `SIGMA_AUTH_OAUTH2_GITLAB_ENABLED` | `false` |
+| `auth.token.realm` | `SIGMA_AUTH_TOKEN_REALM` | `""` |
+| `auth.token.service` | `SIGMA_AUTH_TOKEN_SERVICE` | `""` |
 
 #### cache
 
-| config path | environment variable |
-| --- | --- |
-| `cache.inmemory.size` | `SIGMA_CACHE_INMEMORY_SIZE` |
-| `cache.negativeTtl` | `SIGMA_CACHE_NEGATIVETTL` |
-| `cache.prefix` | `SIGMA_CACHE_PREFIX` |
-| `cache.prewarm.enabled` | `SIGMA_CACHE_PREWARM_ENABLED` |
-| `cache.prewarm.limit` | `SIGMA_CACHE_PREWARM_LIMIT` |
-| `cache.prewarm.timeout` | `SIGMA_CACHE_PREWARM_TIMEOUT` |
-| `cache.redis.ttl` | `SIGMA_CACHE_REDIS_TTL` |
-| `cache.ttl` | `SIGMA_CACHE_TTL` |
-| `cache.type` | `SIGMA_CACHE_TYPE` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `cache.inmemory.size` | `SIGMA_CACHE_INMEMORY_SIZE` | `10240` |
+| `cache.negativeTtl` | `SIGMA_CACHE_NEGATIVETTL` | `5m` |
+| `cache.prefix` | `SIGMA_CACHE_PREFIX` | `sigma-cache` |
+| `cache.prewarm.enabled` | `SIGMA_CACHE_PREWARM_ENABLED` | `true` |
+| `cache.prewarm.limit` | `SIGMA_CACHE_PREWARM_LIMIT` | `1000` |
+| `cache.prewarm.timeout` | `SIGMA_CACHE_PREWARM_TIMEOUT` | `10s` |
+| `cache.redis.ttl` | `SIGMA_CACHE_REDIS_TTL` | `72h` |
+| `cache.ttl` | `SIGMA_CACHE_TTL` | `72h` |
+| `cache.type` | `SIGMA_CACHE_TYPE` | `""` |
 
 #### daemon
 
-| config path | environment variable |
-| --- | --- |
-| `daemon.builder.docker.network` | `SIGMA_DAEMON_BUILDER_DOCKER_NETWORK` |
-| `daemon.builder.docker.sock` | `SIGMA_DAEMON_BUILDER_DOCKER_SOCK` |
-| `daemon.builder.enabled` | `SIGMA_DAEMON_BUILDER_ENABLED` |
-| `daemon.builder.extra_hosts` | `SIGMA_DAEMON_BUILDER_EXTRA_HOSTS` |
-| `daemon.builder.image` | `SIGMA_DAEMON_BUILDER_IMAGE` |
-| `daemon.builder.kubernetes.kubeconfig` | `SIGMA_DAEMON_BUILDER_KUBERNETES_KUBECONFIG` |
-| `daemon.builder.kubernetes.namespace` | `SIGMA_DAEMON_BUILDER_KUBERNETES_NAMESPACE` |
-| `daemon.builder.podman.uri` | `SIGMA_DAEMON_BUILDER_PODMAN_URI` |
-| `daemon.builder.tlsVerify` | `SIGMA_DAEMON_BUILDER_TLSVERIFY` |
-| `daemon.builder.type` | `SIGMA_DAEMON_BUILDER_TYPE` |
-| `daemon.gc.batchSize` | `SIGMA_DAEMON_GC_BATCHSIZE` |
-| `daemon.gc.cleanup.batchSize` | `SIGMA_DAEMON_GC_CLEANUP_BATCHSIZE` |
-| `daemon.gc.cleanup.interval` | `SIGMA_DAEMON_GC_CLEANUP_INTERVAL` |
-| `daemon.gc.cleanup.retention` | `SIGMA_DAEMON_GC_CLEANUP_RETENTION` |
-| `daemon.gc.cron` | `SIGMA_DAEMON_GC_CRON` |
-| `daemon.gc.lockExpire` | `SIGMA_DAEMON_GC_LOCKEXPIRE` |
-| `daemon.gc.lockWaitTimeout` | `SIGMA_DAEMON_GC_LOCKWAITTIMEOUT` |
-| `daemon.gc.recordBatchSize` | `SIGMA_DAEMON_GC_RECORDBATCHSIZE` |
-| `daemon.gc.retention` | `SIGMA_DAEMON_GC_RETENTION` |
-| `daemon.gc.workerCount` | `SIGMA_DAEMON_GC_WORKERCOUNT` |
-| `daemon.sizeReconcile.batchSize` | `SIGMA_DAEMON_SIZERECONCILE_BATCHSIZE` |
-| `daemon.sizeReconcile.interval` | `SIGMA_DAEMON_SIZERECONCILE_INTERVAL` |
-| `daemon.sizeReconcile.lockExpire` | `SIGMA_DAEMON_SIZERECONCILE_LOCKEXPIRE` |
-| `daemon.sizeReconcile.lockWaitTimeout` | `SIGMA_DAEMON_SIZERECONCILE_LOCKWAITTIMEOUT` |
-| `daemon.vulnerability.grype.dbCacheDir` | `SIGMA_DAEMON_VULNERABILITY_GRYPE_DBCACHEDIR` |
-| `daemon.vulnerability.staleTimeout` | `SIGMA_DAEMON_VULNERABILITY_STALETIMEOUT` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `daemon.builder.docker.network` | `SIGMA_DAEMON_BUILDER_DOCKER_NETWORK` | `""` |
+| `daemon.builder.docker.sock` | `SIGMA_DAEMON_BUILDER_DOCKER_SOCK` | `""` |
+| `daemon.builder.enabled` | `SIGMA_DAEMON_BUILDER_ENABLED` | `false` |
+| `daemon.builder.extra_hosts` | `SIGMA_DAEMON_BUILDER_EXTRA_HOSTS` | `[]` |
+| `daemon.builder.image` | `SIGMA_DAEMON_BUILDER_IMAGE` | `""` |
+| `daemon.builder.kubernetes.kubeconfig` | `SIGMA_DAEMON_BUILDER_KUBERNETES_KUBECONFIG` | `""` |
+| `daemon.builder.kubernetes.namespace` | `SIGMA_DAEMON_BUILDER_KUBERNETES_NAMESPACE` | `default` |
+| `daemon.builder.podman.uri` | `SIGMA_DAEMON_BUILDER_PODMAN_URI` | `unix:///run/podman/podman.sock` |
+| `daemon.builder.tlsVerify` | `SIGMA_DAEMON_BUILDER_TLSVERIFY` | `true` |
+| `daemon.builder.type` | `SIGMA_DAEMON_BUILDER_TYPE` | `""` |
+| `daemon.gc.batchSize` | `SIGMA_DAEMON_GC_BATCHSIZE` | `100` |
+| `daemon.gc.cleanup.batchSize` | `SIGMA_DAEMON_GC_CLEANUP_BATCHSIZE` | `1000` |
+| `daemon.gc.cleanup.interval` | `SIGMA_DAEMON_GC_CLEANUP_INTERVAL` | `6h` |
+| `daemon.gc.cleanup.retention` | `SIGMA_DAEMON_GC_CLEANUP_RETENTION` | `168h` |
+| `daemon.gc.cron` | `SIGMA_DAEMON_GC_CRON` | `""` |
+| `daemon.gc.lockExpire` | `SIGMA_DAEMON_GC_LOCKEXPIRE` | `30s` |
+| `daemon.gc.lockWaitTimeout` | `SIGMA_DAEMON_GC_LOCKWAITTIMEOUT` | `5s` |
+| `daemon.gc.recordBatchSize` | `SIGMA_DAEMON_GC_RECORDBATCHSIZE` | `100` |
+| `daemon.gc.retention` | `SIGMA_DAEMON_GC_RETENTION` | `0s` |
+| `daemon.gc.workerCount` | `SIGMA_DAEMON_GC_WORKERCOUNT` | `2` |
+| `daemon.sizeReconcile.batchSize` | `SIGMA_DAEMON_SIZERECONCILE_BATCHSIZE` | `100` |
+| `daemon.sizeReconcile.interval` | `SIGMA_DAEMON_SIZERECONCILE_INTERVAL` | `6h` |
+| `daemon.sizeReconcile.lockExpire` | `SIGMA_DAEMON_SIZERECONCILE_LOCKEXPIRE` | `30s` |
+| `daemon.sizeReconcile.lockWaitTimeout` | `SIGMA_DAEMON_SIZERECONCILE_LOCKWAITTIMEOUT` | `100ms` |
+| `daemon.vulnerability.grype.dbCacheDir` | `SIGMA_DAEMON_VULNERABILITY_GRYPE_DBCACHEDIR` | `""` |
+| `daemon.vulnerability.staleTimeout` | `SIGMA_DAEMON_VULNERABILITY_STALETIMEOUT` | `6h` |
 
 #### database
 
-| config path | environment variable |
-| --- | --- |
-| `database.connMaxIdleTime` | `SIGMA_DATABASE_CONNMAXIDLETIME` |
-| `database.connMaxLifetime` | `SIGMA_DATABASE_CONNMAXLIFETIME` |
-| `database.maxIdleConns` | `SIGMA_DATABASE_MAXIDLECONNS` |
-| `database.maxOpenConns` | `SIGMA_DATABASE_MAXOPENCONNS` |
-| `database.mysql.database` | `SIGMA_DATABASE_MYSQL_DATABASE` |
-| `database.mysql.host` | `SIGMA_DATABASE_MYSQL_HOST` |
-| `database.mysql.password` | `SIGMA_DATABASE_MYSQL_PASSWORD` |
-| `database.mysql.port` | `SIGMA_DATABASE_MYSQL_PORT` |
-| `database.mysql.username` | `SIGMA_DATABASE_MYSQL_USERNAME` |
-| `database.postgresql.database` | `SIGMA_DATABASE_POSTGRESQL_DATABASE` |
-| `database.postgresql.host` | `SIGMA_DATABASE_POSTGRESQL_HOST` |
-| `database.postgresql.password` | `SIGMA_DATABASE_POSTGRESQL_PASSWORD` |
-| `database.postgresql.port` | `SIGMA_DATABASE_POSTGRESQL_PORT` |
-| `database.postgresql.sslMode` | `SIGMA_DATABASE_POSTGRESQL_SSLMODE` |
-| `database.postgresql.username` | `SIGMA_DATABASE_POSTGRESQL_USERNAME` |
-| `database.sqlite3.path` | `SIGMA_DATABASE_SQLITE3_PATH` |
-| `database.turso.dsn` | `SIGMA_DATABASE_TURSO_DSN` |
-| `database.type` | `SIGMA_DATABASE_TYPE` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `database.connMaxIdleTime` | `SIGMA_DATABASE_CONNMAXIDLETIME` | `10m` |
+| `database.connMaxLifetime` | `SIGMA_DATABASE_CONNMAXLIFETIME` | `1h` |
+| `database.maxIdleConns` | `SIGMA_DATABASE_MAXIDLECONNS` | `10` |
+| `database.maxOpenConns` | `SIGMA_DATABASE_MAXOPENCONNS` | `50` |
+| `database.mysql.database` | `SIGMA_DATABASE_MYSQL_DATABASE` | `""` |
+| `database.mysql.host` | `SIGMA_DATABASE_MYSQL_HOST` | `""` |
+| `database.mysql.password` | `SIGMA_DATABASE_MYSQL_PASSWORD` | `""` |
+| `database.mysql.port` | `SIGMA_DATABASE_MYSQL_PORT` | `0` |
+| `database.mysql.username` | `SIGMA_DATABASE_MYSQL_USERNAME` | `""` |
+| `database.postgresql.database` | `SIGMA_DATABASE_POSTGRESQL_DATABASE` | `""` |
+| `database.postgresql.host` | `SIGMA_DATABASE_POSTGRESQL_HOST` | `""` |
+| `database.postgresql.password` | `SIGMA_DATABASE_POSTGRESQL_PASSWORD` | `""` |
+| `database.postgresql.port` | `SIGMA_DATABASE_POSTGRESQL_PORT` | `0` |
+| `database.postgresql.sslMode` | `SIGMA_DATABASE_POSTGRESQL_SSLMODE` | `""` |
+| `database.postgresql.username` | `SIGMA_DATABASE_POSTGRESQL_USERNAME` | `""` |
+| `database.sqlite3.path` | `SIGMA_DATABASE_SQLITE3_PATH` | `""` |
+| `database.turso.dsn` | `SIGMA_DATABASE_TURSO_DSN` | `""` |
+| `database.type` | `SIGMA_DATABASE_TYPE` | `""` |
 
 #### deploy
 
-| config path | environment variable |
-| --- | --- |
-| `deploy` | `SIGMA_DEPLOY` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `deploy` | `SIGMA_DEPLOY` | `""` |
 
 #### http
 
-| config path | environment variable |
-| --- | --- |
-| `http.bodyLimit.blob` | `SIGMA_HTTP_BODYLIMIT_BLOB` |
-| `http.bodyLimit.default` | `SIGMA_HTTP_BODYLIMIT_DEFAULT` |
-| `http.bodyLimit.enabled` | `SIGMA_HTTP_BODYLIMIT_ENABLED` |
-| `http.bodyLimit.manifest` | `SIGMA_HTTP_BODYLIMIT_MANIFEST` |
-| `http.endpoint` | `SIGMA_HTTP_ENDPOINT` |
-| `http.internalDistributionEndpoint` | `SIGMA_HTTP_INTERNALDISTRIBUTIONENDPOINT` |
-| `http.internalEndpoint` | `SIGMA_HTTP_INTERNALENDPOINT` |
-| `http.timeout.idle` | `SIGMA_HTTP_TIMEOUT_IDLE` |
-| `http.timeout.read` | `SIGMA_HTTP_TIMEOUT_READ` |
-| `http.timeout.readHeader` | `SIGMA_HTTP_TIMEOUT_READHEADER` |
-| `http.timeout.write` | `SIGMA_HTTP_TIMEOUT_WRITE` |
-| `http.tls.certificate` | `SIGMA_HTTP_TLS_CERTIFICATE` |
-| `http.tls.enabled` | `SIGMA_HTTP_TLS_ENABLED` |
-| `http.tls.key` | `SIGMA_HTTP_TLS_KEY` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `http.bodyLimit.blob` | `SIGMA_HTTP_BODYLIMIT_BLOB` | `10737418240` |
+| `http.bodyLimit.default` | `SIGMA_HTTP_BODYLIMIT_DEFAULT` | `10485760` |
+| `http.bodyLimit.enabled` | `SIGMA_HTTP_BODYLIMIT_ENABLED` | `true` |
+| `http.bodyLimit.manifest` | `SIGMA_HTTP_BODYLIMIT_MANIFEST` | `104857600` |
+| `http.endpoint` | `SIGMA_HTTP_ENDPOINT` | `http://127.0.0.1:3000` |
+| `http.internalDistributionEndpoint` | `SIGMA_HTTP_INTERNALDISTRIBUTIONENDPOINT` | `""` |
+| `http.internalEndpoint` | `SIGMA_HTTP_INTERNALENDPOINT` | `http://127.0.0.1:3000` |
+| `http.static.cacheControl` | `SIGMA_HTTP_STATIC_CACHECONTROL` | `no-cache` |
+| `http.static.dir` | `SIGMA_HTTP_STATIC_DIR` | `/app` |
+| `http.static.enabled` | `SIGMA_HTTP_STATIC_ENABLED` | `false` |
+| `http.static.immutableCacheControl` | `SIGMA_HTTP_STATIC_IMMUTABLECACHECONTROL` | `public, max-age=31536000, immutable` |
+| `http.static.immutablePrefixes` | `SIGMA_HTTP_STATIC_IMMUTABLEPREFIXES` | `/assets/` |
+| `http.static.spa` | `SIGMA_HTTP_STATIC_SPA` | `true` |
+| `http.timeout.idle` | `SIGMA_HTTP_TIMEOUT_IDLE` | `2m` |
+| `http.timeout.read` | `SIGMA_HTTP_TIMEOUT_READ` | `1h` |
+| `http.timeout.readHeader` | `SIGMA_HTTP_TIMEOUT_READHEADER` | `30s` |
+| `http.timeout.write` | `SIGMA_HTTP_TIMEOUT_WRITE` | `1h` |
+| `http.tls.certificate` | `SIGMA_HTTP_TLS_CERTIFICATE` | `""` |
+| `http.tls.enabled` | `SIGMA_HTTP_TLS_ENABLED` | `false` |
+| `http.tls.key` | `SIGMA_HTTP_TLS_KEY` | `""` |
 
 #### locker
 
-| config path | environment variable |
-| --- | --- |
-| `locker.prefix` | `SIGMA_LOCKER_PREFIX` |
-| `locker.type` | `SIGMA_LOCKER_TYPE` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `locker.prefix` | `SIGMA_LOCKER_PREFIX` | `sigma-locker` |
+| `locker.type` | `SIGMA_LOCKER_TYPE` | `""` |
 
 #### log
 
-| config path | environment variable |
-| --- | --- |
-| `log.level` | `SIGMA_LOG_LEVEL` |
-| `log.proxyLevel` | `SIGMA_LOG_PROXYLEVEL` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `log.level` | `SIGMA_LOG_LEVEL` | `""` |
+| `log.proxyLevel` | `SIGMA_LOG_PROXYLEVEL` | `""` |
 
 #### namespace
 
-| config path | environment variable |
-| --- | --- |
-| `namespace.visibility` | `SIGMA_NAMESPACE_VISIBILITY` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `namespace.visibility` | `SIGMA_NAMESPACE_VISIBILITY` | `private` |
 
 #### proxy
 
-| config path | environment variable |
-| --- | --- |
-| `proxy.enabled` | `SIGMA_PROXY_ENABLED` |
-| `proxy.endpoint` | `SIGMA_PROXY_ENDPOINT` |
-| `proxy.password` | `SIGMA_PROXY_PASSWORD` |
-| `proxy.tlsVerify` | `SIGMA_PROXY_TLSVERIFY` |
-| `proxy.token` | `SIGMA_PROXY_TOKEN` |
-| `proxy.username` | `SIGMA_PROXY_USERNAME` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `proxy.enabled` | `SIGMA_PROXY_ENABLED` | `false` |
+| `proxy.endpoint` | `SIGMA_PROXY_ENDPOINT` | `""` |
+| `proxy.password` | `SIGMA_PROXY_PASSWORD` | `""` |
+| `proxy.tlsVerify` | `SIGMA_PROXY_TLSVERIFY` | `false` |
+| `proxy.token` | `SIGMA_PROXY_TOKEN` | `""` |
+| `proxy.username` | `SIGMA_PROXY_USERNAME` | `""` |
 
 #### redis
 
-| config path | environment variable |
-| --- | --- |
-| `redis.addrs` | `SIGMA_REDIS_ADDRS` |
-| `redis.db` | `SIGMA_REDIS_DB` |
-| `redis.masterName` | `SIGMA_REDIS_MASTERNAME` |
-| `redis.maxRetries` | `SIGMA_REDIS_MAXRETRIES` |
-| `redis.minIdleConns` | `SIGMA_REDIS_MINIDLECONNS` |
-| `redis.password` | `SIGMA_REDIS_PASSWORD` |
-| `redis.poolSize` | `SIGMA_REDIS_POOLSIZE` |
-| `redis.url` | `SIGMA_REDIS_URL` |
-| `redis.username` | `SIGMA_REDIS_USERNAME` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `redis.addrs` | `SIGMA_REDIS_ADDRS` | `[]` |
+| `redis.db` | `SIGMA_REDIS_DB` | `0` |
+| `redis.masterName` | `SIGMA_REDIS_MASTERNAME` | `""` |
+| `redis.maxRetries` | `SIGMA_REDIS_MAXRETRIES` | `0` |
+| `redis.minIdleConns` | `SIGMA_REDIS_MINIDLECONNS` | `0` |
+| `redis.password` | `SIGMA_REDIS_PASSWORD` | `""` |
+| `redis.poolSize` | `SIGMA_REDIS_POOLSIZE` | `0` |
+| `redis.url` | `SIGMA_REDIS_URL` | `""` |
+| `redis.username` | `SIGMA_REDIS_USERNAME` | `""` |
 
 #### storage
 
-| config path | environment variable |
-| --- | --- |
-| `storage.capacity` | `SIGMA_STORAGE_CAPACITY` |
-| `storage.cos.ak` | `SIGMA_STORAGE_COS_AK` |
-| `storage.cos.endpoint` | `SIGMA_STORAGE_COS_ENDPOINT` |
-| `storage.cos.forcePathStyle` | `SIGMA_STORAGE_COS_FORCEPATHSTYLE` |
-| `storage.cos.sk` | `SIGMA_STORAGE_COS_SK` |
-| `storage.filesystem.path` | `SIGMA_STORAGE_FILESYSTEM_PATH` |
-| `storage.oss.ak` | `SIGMA_STORAGE_OSS_AK` |
-| `storage.oss.bucket` | `SIGMA_STORAGE_OSS_BUCKET` |
-| `storage.oss.endpoint` | `SIGMA_STORAGE_OSS_ENDPOINT` |
-| `storage.oss.forcePathStyle` | `SIGMA_STORAGE_OSS_FORCEPATHSTYLE` |
-| `storage.oss.sk` | `SIGMA_STORAGE_OSS_SK` |
-| `storage.redirect` | `SIGMA_STORAGE_REDIRECT` |
-| `storage.rootDirectory` | `SIGMA_STORAGE_ROOTDIRECTORY` |
-| `storage.s3.ak` | `SIGMA_STORAGE_S3_AK` |
-| `storage.s3.bucket` | `SIGMA_STORAGE_S3_BUCKET` |
-| `storage.s3.checksumValidation` | `SIGMA_STORAGE_S3_CHECKSUMVALIDATION` |
-| `storage.s3.endpoint` | `SIGMA_STORAGE_S3_ENDPOINT` |
-| `storage.s3.forcePathStyle` | `SIGMA_STORAGE_S3_FORCEPATHSTYLE` |
-| `storage.s3.operateObjectWithoutMD5` | `SIGMA_STORAGE_S3_OPERATEOBJECTWITHOUTMD5` |
-| `storage.s3.region` | `SIGMA_STORAGE_S3_REGION` |
-| `storage.s3.sk` | `SIGMA_STORAGE_S3_SK` |
-| `storage.type` | `SIGMA_STORAGE_TYPE` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `storage.capacity` | `SIGMA_STORAGE_CAPACITY` | `0` |
+| `storage.cos.ak` | `SIGMA_STORAGE_COS_AK` | `""` |
+| `storage.cos.endpoint` | `SIGMA_STORAGE_COS_ENDPOINT` | `""` |
+| `storage.cos.forcePathStyle` | `SIGMA_STORAGE_COS_FORCEPATHSTYLE` | `false` |
+| `storage.cos.sk` | `SIGMA_STORAGE_COS_SK` | `""` |
+| `storage.filesystem.path` | `SIGMA_STORAGE_FILESYSTEM_PATH` | `""` |
+| `storage.oss.ak` | `SIGMA_STORAGE_OSS_AK` | `""` |
+| `storage.oss.bucket` | `SIGMA_STORAGE_OSS_BUCKET` | `""` |
+| `storage.oss.endpoint` | `SIGMA_STORAGE_OSS_ENDPOINT` | `""` |
+| `storage.oss.forcePathStyle` | `SIGMA_STORAGE_OSS_FORCEPATHSTYLE` | `false` |
+| `storage.oss.sk` | `SIGMA_STORAGE_OSS_SK` | `""` |
+| `storage.redirect` | `SIGMA_STORAGE_REDIRECT` | `false` |
+| `storage.rootDirectory` | `SIGMA_STORAGE_ROOTDIRECTORY` | `""` |
+| `storage.s3.ak` | `SIGMA_STORAGE_S3_AK` | `""` |
+| `storage.s3.bucket` | `SIGMA_STORAGE_S3_BUCKET` | `""` |
+| `storage.s3.checksumValidation` | `SIGMA_STORAGE_S3_CHECKSUMVALIDATION` | `""` |
+| `storage.s3.endpoint` | `SIGMA_STORAGE_S3_ENDPOINT` | `""` |
+| `storage.s3.forcePathStyle` | `SIGMA_STORAGE_S3_FORCEPATHSTYLE` | `false` |
+| `storage.s3.operateObjectWithoutMD5` | `SIGMA_STORAGE_S3_OPERATEOBJECTWITHOUTMD5` | `false` |
+| `storage.s3.region` | `SIGMA_STORAGE_S3_REGION` | `""` |
+| `storage.s3.sk` | `SIGMA_STORAGE_S3_SK` | `""` |
+| `storage.type` | `SIGMA_STORAGE_TYPE` | `""` |
 
 #### trace
 
-| config path | environment variable |
-| --- | --- |
-| `trace.enabled` | `SIGMA_TRACE_ENABLED` |
-| `trace.endpoint` | `SIGMA_TRACE_ENDPOINT` |
-| `trace.insecure` | `SIGMA_TRACE_INSECURE` |
-| `trace.protocol` | `SIGMA_TRACE_PROTOCOL` |
-| `trace.sampleRatio` | `SIGMA_TRACE_SAMPLERATIO` |
-| `trace.serviceName` | `SIGMA_TRACE_SERVICENAME` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `trace.enabled` | `SIGMA_TRACE_ENABLED` | `false` |
+| `trace.endpoint` | `SIGMA_TRACE_ENDPOINT` | `""` |
+| `trace.insecure` | `SIGMA_TRACE_INSECURE` | `false` |
+| `trace.protocol` | `SIGMA_TRACE_PROTOCOL` | `""` |
+| `trace.sampleRatio` | `SIGMA_TRACE_SAMPLERATIO` | `0` |
+| `trace.serviceName` | `SIGMA_TRACE_SERVICENAME` | `""` |
 
 #### workqueue
 
-| config path | environment variable |
-| --- | --- |
-| `workqueue.inmemory.concurrency` | `SIGMA_WORKQUEUE_INMEMORY_CONCURRENCY` |
-| `workqueue.inmemory.maxBacklog` | `SIGMA_WORKQUEUE_INMEMORY_MAXBACKLOG` |
-| `workqueue.redis.concurrency` | `SIGMA_WORKQUEUE_REDIS_CONCURRENCY` |
-| `workqueue.redis.maxBacklog` | `SIGMA_WORKQUEUE_REDIS_MAXBACKLOG` |
-| `workqueue.type` | `SIGMA_WORKQUEUE_TYPE` |
+| config path | environment variable | default |
+| --- | --- | --- |
+| `workqueue.inmemory.concurrency` | `SIGMA_WORKQUEUE_INMEMORY_CONCURRENCY` | `1024` |
+| `workqueue.inmemory.maxBacklog` | `SIGMA_WORKQUEUE_INMEMORY_MAXBACKLOG` | `1000` |
+| `workqueue.redis.concurrency` | `SIGMA_WORKQUEUE_REDIS_CONCURRENCY` | `0` |
+| `workqueue.redis.maxBacklog` | `SIGMA_WORKQUEUE_REDIS_MAXBACKLOG` | `0` |
+| `workqueue.type` | `SIGMA_WORKQUEUE_TYPE` | `""` |
 
 ### 示例
 
