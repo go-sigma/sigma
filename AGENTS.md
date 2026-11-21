@@ -31,7 +31,7 @@ go run . server -c conf/config.yaml
 Build tags required for tests/lint/build:
 
 ```text
-netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp
+exclude_graphdriver_btrfs,containers_image_openpgp
 ```
 
 ## Common Commands
@@ -44,7 +44,7 @@ make lint-go                    # golangci-lint only (timeout 10m)
 # Tests (set CI_DATABASE_TYPE=sqlite3|turso|mysql|postgresql)
 # Prefer turso for local unit-test verification.
 CI_DATABASE_TYPE=turso go test -parallel 1 -failfast \
-  -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+  -tags "exclude_graphdriver_btrfs,containers_image_openpgp" \
   -timeout 30m ./...
 
 # Code generation

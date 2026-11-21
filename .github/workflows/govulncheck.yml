@@ -53,7 +53,7 @@ jobs:
         run: |
           set +e
           go tool govulncheck \
-            -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+            -tags "exclude_graphdriver_btrfs,containers_image_openpgp" \
             ./... > govulncheck.txt 2>&1
           status=$?
           set -e

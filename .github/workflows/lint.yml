@@ -68,7 +68,7 @@ jobs:
           # toolchain's export data. Older releases fail typecheck with
           # "export data version N is greater than maximum supported version M".
           version: v2.15.0
-          args: --timeout=30m --verbose --build-tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp"
+          args: --timeout=30m --verbose --build-tags "exclude_graphdriver_btrfs,containers_image_openpgp"
           skip-cache: false
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.3.0

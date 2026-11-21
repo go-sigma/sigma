@@ -49,7 +49,7 @@ make build
 The project uses build tags for tests, linting, and builds:
 
 ```text
-netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp
+exclude_graphdriver_btrfs,containers_image_openpgp
 ```
 
 Run Go lint checks:
@@ -68,7 +68,7 @@ Run tests with sqlite:
 
 ```bash
 CI_DATABASE_TYPE=sqlite3 go test -parallel 1 -failfast \
-  -tags "netgo,timetzdata,exclude_graphdriver_btrfs,containers_image_openpgp" \
+  -tags "exclude_graphdriver_btrfs,containers_image_openpgp" \
   -timeout 30m ./...
 ```
 
